@@ -35,8 +35,8 @@ export default async function handler(req, res) {
             });
         }
 
-        // FIX #2: Gagamitin na natin ang "v1" (Stable Version) imbes na "v1beta"
-        const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        // TAMA NA ANG MODEL PANGALAN DITO!
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
         const response = await fetch(url, {
             method: 'POST',
