@@ -181,6 +181,18 @@ function renderUtangList() {
     );
     filteredUtang.sort((a, b) => a.isPaid - b.isPaid || a.dueDate - b.dueDate);
 
+    // BAGO: Compute Monthly Totals based sa kung anong buwan ang naka-view
+    let monthUtang = 0;
+    let monthBayad = 0;
+    filteredUtang.forEach(u => {
+        if (u.isPaid) monthBayad += u.amount;
+        else monthUtang += u.amount;
+    });
+    
+    // Update HTML for Monthly
+    document.getElementById('displayMonthUtang').innerText = monthUtang.toFixed(2);
+    document.getElementById('displayMonthBayad').innerText = monthBayad.toFixed(2);
+
     if (filteredUtang.length === 0) {
         container.innerHTML = `<p style="text-align: center; color: var(--text-muted); font-style: italic; margin-top: 30px;">Walang due para sa buwang ito.</p>`;
         return;
@@ -201,15 +213,29 @@ function renderUtangList() {
             ? `<span class="badge badge-primary"><i class="ph-bold ph-device-mobile"></i> My App: ${utang.appName}</span>`
             : `<span class="badge badge-secondary"><i class="ph-bold ph-user"></i> Under their: ${utang.appName}</span>`;
 
+        // BAGO: Dinagdag yung Delete Button (X) sa upper right ng card
         container.innerHTML += `
             <div class="utang-card" style="${cardStyle}">
-                <div style="margin-bottom: 10px;">${badgeHTML}</div>
+                <button onclick="deleteUtang('${utang.id}')" style="position: absolute; top: 12px; right: 12px; background: none; border: none; color: var(--danger); cursor: pointer; font-size: 16px; padding: 0;"><i class="ph-bold ph-x"></i></button>
+                <div style="margin-bottom: 10px; padding-right: 20px;">${badgeHTML}</div>
                 <h4><span style="font-family: monospace; letter-spacing: 1px; color: var(--primary);">ID: ${utang.utangId}</span> <span>₱${utang.amount.toFixed(2)}</span></h4>
                 <p style="color: var(--danger); font-weight: bold;"><i class="ph-bold ph-calendar-x"></i> Due On: ${shortMonth} ${day}</p>
                 <button class="paid-btn" onclick="openPayUtangModal('${utang.id}', ${utang.amount}, '${utang.utangId}')" ${utang.isPaid ? 'disabled' : ''}>${utang.isPaid ? '<i class="ph-bold ph-check"></i> Paid' : 'Pay via Wallet'}</button>
             </div>
         `;
     });
+}
+
+// BAGO: Delete Utang Record
+async function deleteUtang(id) {
+    if (confirm("Sigurado ka bang gusto mong burahin ang utang na ito? Hindi na ito maibabalik.")) {
+        try {
+            await window.dbMethods.deleteDoc(window.dbMethods.doc(window.db, "utang", id));
+        } catch (e) { 
+            console.error(e); 
+            alert("May error sa pagbura ng utang."); 
+        }
+    }
 }
 
 // ==========================================
@@ -703,3 +729,4 @@ window.addExpense = addExpense;
 window.addTransfer = addTransfer;
 window.saveTransaction = saveTransaction;
 window.closeBudgetModals = closeBudgetModals;
+window.deleteUtang = deleteUtang;
