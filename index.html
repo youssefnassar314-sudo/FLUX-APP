@@ -64,14 +64,22 @@
                 <i class="ph-bold ph-caret-left"></i> Dashboard
             </button>
 
-            <div class="summary-box">
-                <div class="stat-col">
-                    <p>Total Utang</p>
-                    <h3 class="text-danger">₱<span id="displayTotalUtang">0.00</span></h3>
+            <div class="summary-box" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 25px;">
+                <div class="stat-col" style="background: rgba(56, 189, 248, 0.05); border-color: rgba(56, 189, 248, 0.2);">
+                    <p style="color: var(--primary);">Due This Month</p>
+                    <h3 class="text-danger" style="font-size: 18px;">₱<span id="displayMonthUtang">0.00</span></h3>
+                </div>
+                <div class="stat-col" style="background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.2);">
+                    <p style="color: var(--success);">Paid This Month</p>
+                    <h3 class="text-success" style="font-size: 18px;">₱<span id="displayMonthBayad">0.00</span></h3>
                 </div>
                 <div class="stat-col">
-                    <p>Total Bayad</p>
-                    <h3 class="text-success">₱<span id="displayTotalBayad">0.00</span></h3>
+                    <p>Overall Utang</p>
+                    <h3 class="text-danger" style="font-size: 18px;">₱<span id="displayTotalUtang">0.00</span></h3>
+                </div>
+                <div class="stat-col">
+                    <p>Overall Paid</p>
+                    <h3 class="text-success" style="font-size: 18px;">₱<span id="displayTotalBayad">0.00</span></h3>
                 </div>
             </div>
 
