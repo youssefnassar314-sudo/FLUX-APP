@@ -2,8 +2,16 @@
 // 🌐 MGA GLOBAL VARIABLES
 // ==========================================
 let utangDatabase = []; 
+let taskDatabase = [];
+let habitDatabase = [];
+let foodDatabase = [];
+let myWallets = [];
+
 let runningTotalUtang = 0;
 let runningTotalBayad = 0;
+let monthlyTarget = 0;
+let monthlySpent = 0;
+
 let dueCounter = 1; 
 let currentDateView = new Date(); 
 
@@ -13,7 +21,6 @@ function switchScreen(screenId) {
     screens.forEach(screen => screen.classList.remove('active-screen'));
     document.getElementById(screenId).classList.add('active-screen');
     
-    // I-trigger ang tamang render function depende sa screen
     if (screenId === 'utangScreen') renderUtangList();
     if (screenId === 'taskScreen') { renderTasks(); renderKanban(); }
     if (screenId === 'foodScreen') renderFoodList();
@@ -21,17 +28,18 @@ function switchScreen(screenId) {
     if (screenId === 'kanbanScreen') renderKanban();
 }
 
-// 2. Ipakita o itago yung Add Form
+// ==========================================
+// 💸 MODULE 1: UTANG TRACKER (FIREBASE)
+// ==========================================
+
 function showAddForm() {
     let form = document.getElementById('addUtangForm');
     form.style.display = (form.style.display === 'none' || form.style.display === '') ? 'block' : 'none';
 }
 
-// 3. Mag-add ng bagong row na may DELETE Button
 function addDueRow() {
     dueCounter++;
     let container = document.getElementById('duesContainer');
-    
     let newRow = document.createElement('div');
     newRow.className = 'due-row';
     newRow.innerHTML = `
@@ -45,8 +53,7 @@ function addDueRow() {
     container.appendChild(newRow);
 }
 
-// 4. I-save lahat ng rows at i-reset ang form
-function saveUtang() {
+async function saveUtang() {
     let category = document.getElementById('utangCategory').value;
     let appName = document.getElementById('appName').value;
     let utangId = document.getElementById('utangId').value;
@@ -57,64 +64,82 @@ function saveUtang() {
     let amounts = document.querySelectorAll('.dynamic-amt');
     let dates = document.querySelectorAll('.dynamic-date');
 
-    for (let i = 0; i < amounts.length; i++) {
-        let amt = parseFloat(amounts[i].value);
-        let dateVal = dates[i].value;
+    try {
+        for (let i = 0; i < amounts.length; i++) {
+            let amt = parseFloat(amounts[i].value);
+            let dateVal = dates[i].value;
 
-        if (!isNaN(amt) && dateVal) {
-            utangDatabase.push({
-                id: Date.now() + Math.random(), 
-                utangId: utangId + ` (Due ${i + 1})`,
-                amount: amt,
-                dueDate: new Date(dateVal),
-                isPaid: false,
-                category: category,
-                appName: appName
-            });
-            runningTotalUtang += amt;
+            if (!isNaN(amt) && dateVal) {
+                await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "utang"), {
+                    utangId: utangId + ` (Due ${i + 1})`,
+                    amount: amt,
+                    dueDate: dateVal, // Save as string YYYY-MM-DD
+                    isPaid: false,
+                    category: category,
+                    appName: appName,
+                    createdAt: Date.now()
+                });
+            }
         }
-    }
 
-    document.getElementById('displayTotalUtang').innerText = runningTotalUtang.toFixed(2);
-
-    document.getElementById('utangId').value = '';
-    document.getElementById('utangCategory').value = 'My App';
-    document.getElementById('appName').value = '';
-    
-    document.getElementById('duesContainer').innerHTML = `
-        <div class="due-row">
-            <label style="font-size: 11px; color: var(--primary); font-weight: 700; display: block; margin-bottom: 8px; text-transform: uppercase;">Due 1:</label>
-            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                <input type="number" class="dynamic-amt" placeholder="Amount" style="flex: 1;">
-                <input type="date" class="dynamic-date" style="flex: 1;">
+        document.getElementById('utangId').value = '';
+        document.getElementById('utangCategory').value = 'My App';
+        document.getElementById('appName').value = '';
+        document.getElementById('duesContainer').innerHTML = `
+            <div class="due-row">
+                <label style="font-size: 11px; color: var(--primary); font-weight: 700; display: block; margin-bottom: 8px; text-transform: uppercase;">Due 1:</label>
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <input type="number" class="dynamic-amt" placeholder="Amount" style="flex: 1;">
+                    <input type="date" class="dynamic-date" style="flex: 1;">
+                </div>
             </div>
-        </div>
-    `;
-    dueCounter = 1;
-    document.getElementById('addUtangForm').style.display = 'none';
-
-    renderUtangList();
+        `;
+        dueCounter = 1;
+        document.getElementById('addUtangForm').style.display = 'none';
+    } catch (e) { console.error(e); alert("May error sa pag-save ng utang!"); }
 }
 
-// 5. Pang-lipat ng Buwan
+async function markPaid(id) {
+    try {
+        const docRef = window.dbMethods.doc(window.db, "utang", id);
+        await window.dbMethods.updateDoc(docRef, { isPaid: true });
+    } catch (e) { console.error(e); }
+}
+
 function changeMonth(offset) {
     currentDateView.setMonth(currentDateView.getMonth() + offset);
     renderUtangList();
 }
 
-// 6. THE RENDER ENGINE PARA SA UTANG
+function initRealtimeUtang() {
+    const q = window.dbMethods.query(window.dbMethods.collection(window.db, "utang"));
+    window.dbMethods.onSnapshot(q, (snapshot) => {
+        utangDatabase = [];
+        runningTotalUtang = 0;
+        runningTotalBayad = 0;
+        
+        snapshot.forEach(doc => {
+            let data = doc.data();
+            utangDatabase.push({ id: doc.id, ...data, dueDate: new Date(data.dueDate) });
+            if (data.isPaid) runningTotalBayad += data.amount;
+            else runningTotalUtang += data.amount;
+        });
+        
+        document.getElementById('displayTotalUtang').innerText = runningTotalUtang.toFixed(2);
+        document.getElementById('displayTotalBayad').innerText = runningTotalBayad.toFixed(2);
+        renderUtangList();
+    });
+}
+
 function renderUtangList() {
     let container = document.getElementById('utangListContainer');
     container.innerHTML = ''; 
-
     let viewMonthName = currentDateView.toLocaleString('default', { month: 'long', year: 'numeric' });
     document.getElementById('currentMonthLabel').innerText = viewMonthName;
 
-    let filteredUtang = utangDatabase.filter(utang => {
-        return utang.dueDate.getMonth() === currentDateView.getMonth() &&
-               utang.dueDate.getFullYear() === currentDateView.getFullYear();
-    });
-
+    let filteredUtang = utangDatabase.filter(utang => 
+        utang.dueDate.getMonth() === currentDateView.getMonth() && utang.dueDate.getFullYear() === currentDateView.getFullYear()
+    );
     filteredUtang.sort((a, b) => a.isPaid - b.isPaid || a.dueDate - b.dueDate);
 
     if (filteredUtang.length === 0) {
@@ -123,164 +148,123 @@ function renderUtangList() {
     }
 
     let hasRenderedPaidHeader = false;
-
     filteredUtang.forEach(utang => {
         let day = utang.dueDate.getDate();
         let shortMonth = utang.dueDate.toLocaleString('default', { month: 'short' });
-        let formattedDate = `${shortMonth} ${day}`;
-
+        
         if (utang.isPaid && !hasRenderedPaidHeader) {
             container.innerHTML += `<div class="date-section"><h3 style="color: var(--success); border-bottom: 2px solid rgba(16, 185, 129, 0.2); padding-bottom: 5px; font-size: 14px; margin-top: 25px;"><i class="ph-bold ph-check-circle"></i> Paid This Month</h3></div>`;
             hasRenderedPaidHeader = true;
         } 
 
-        let cardStyle = utang.isPaid ? 'opacity: 0.5; background-color: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.05);' : 'background: rgba(255,255,255,0.02);';
-        let btnText = utang.isPaid ? '<i class="ph-bold ph-check"></i> Paid' : 'Mark as Full Paid';
-        let btnDisabled = utang.isPaid ? 'disabled' : '';
+        let cardStyle = utang.isPaid ? 'opacity: 0.5; background-color: rgba(255,255,255,0.02);' : 'background: rgba(255,255,255,0.02);';
+        let badgeHTML = utang.category === 'My App' 
+            ? `<span class="badge badge-primary"><i class="ph-bold ph-device-mobile"></i> My App: ${utang.appName}</span>`
+            : `<span class="badge badge-secondary"><i class="ph-bold ph-user"></i> Under their: ${utang.appName}</span>`;
 
-        let badgeHTML = '';
-        if (utang.category === 'My App') {
-            badgeHTML = `<span class="badge badge-primary"><i class="ph-bold ph-device-mobile"></i> My App: ${utang.appName}</span>`;
-        } else {
-            badgeHTML = `<span class="badge badge-secondary"><i class="ph-bold ph-user"></i> Under their: ${utang.appName}</span>`;
-        }
-
-        let cardHTML = `
+        container.innerHTML += `
             <div class="utang-card" style="${cardStyle}">
                 <div style="margin-bottom: 10px;">${badgeHTML}</div>
                 <h4><span style="font-family: monospace; letter-spacing: 1px; color: var(--primary);">ID: ${utang.utangId}</span> <span>₱${utang.amount.toFixed(2)}</span></h4>
-                <p style="color: var(--danger); font-weight: bold;"><i class="ph-bold ph-calendar-x"></i> Due On: ${formattedDate}</p>
-                <button class="paid-btn" onclick="markPaid(${utang.id})" ${btnDisabled}>${btnText}</button>
+                <p style="color: var(--danger); font-weight: bold;"><i class="ph-bold ph-calendar-x"></i> Due On: ${shortMonth} ${day}</p>
+                <button class="paid-btn" onclick="markPaid('${utang.id}')" ${utang.isPaid ? 'disabled' : ''}>${utang.isPaid ? '<i class="ph-bold ph-check"></i> Paid' : 'Mark as Full Paid'}</button>
             </div>
         `;
-
-        container.innerHTML += cardHTML;
     });
 }
 
-// 7. I-update ang bayad
-function markPaid(id) {
-    let utang = utangDatabase.find(u => u.id === id);
-    
-    if (utang && !utang.isPaid) {
-        utang.isPaid = true; 
-        
-        runningTotalUtang -= utang.amount;
-        runningTotalBayad += utang.amount;
-        
-        document.getElementById('displayTotalUtang').innerText = runningTotalUtang.toFixed(2);
-        document.getElementById('displayTotalBayad').innerText = runningTotalBayad.toFixed(2);
-
-        renderUtangList();
-    }
-}
-
 // ==========================================
-// 🚀 MODULE 2: TASKS, DEADLINES & HABITS
+// 🚀 MODULE 2: TASKS, DEADLINES & HABITS (FIREBASE)
 // ==========================================
 
-let taskDatabase = [];
-let habitDatabase = [];
-
-// --- 1. MOCK AI ESTIMATOR ---
-function estimateAITask() {
+async function estimateAITask() {
     let title = document.getElementById('aiTaskTitle').value;
     let category = document.getElementById('aiTaskCategory').value;
     let dateVal = document.getElementById('aiTaskDate').value;
-
     if (!title || !dateVal) { alert("Engineer, pakilagay ang Task Title at Date!"); return; }
 
     let estMins = Math.floor(Math.random() * 90) + 30; 
     alert(`FLUX AI says: Naisip ko na! Yung "${title}" aabutin yan ng mga ${estMins} minutes.`);
 
-    taskDatabase.push({
-        id: Date.now(),
-        title: title,
-        category: category,
-        dueDate: new Date(dateVal),
-        estMins: estMins,
-        status: 'todo'
+    await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "tasks"), {
+        title: title, category: category, dueDate: dateVal, estMins: estMins, status: 'todo', createdAt: Date.now()
     });
 
     document.getElementById('aiTaskTitle').value = '';
     document.getElementById('aiTaskDetails').value = '';
     document.getElementById('aiTaskDate').value = '';
-
-    renderTasks();
-    renderKanban();
 }
 
-// --- 2. MANUAL TASK SAVE ---
-function saveManualTask() {
+async function saveManualTask() {
     let title = document.getElementById('manualTaskTitle').value;
     let category = document.getElementById('manualTaskCategory').value;
     let dateVal = document.getElementById('manualTaskDate').value;
     let mins = document.getElementById('manualTaskMins').value;
-
     if (!title || !dateVal) { alert("Pakikumpleto ang Manual Task details!"); return; }
 
-    taskDatabase.push({
-        id: Date.now() + 1,
-        title: title,
-        category: category,
-        dueDate: new Date(dateVal),
-        estMins: mins ? parseInt(mins) : 0,
-        status: 'todo'
+    await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "tasks"), {
+        title: title, category: category, dueDate: dateVal, estMins: parseInt(mins) || 0, status: 'todo', createdAt: Date.now()
     });
 
     document.getElementById('manualTaskTitle').value = '';
     document.getElementById('manualTaskDate').value = '';
     document.getElementById('manualTaskMins').value = '';
-
-    renderTasks();
-    renderKanban(); 
 }
 
-// --- 3. DAILY HABIT SAVE ---
-function saveHabit() {
+async function saveHabit() {
     let name = document.getElementById('habitName').value;
     let timeVal = document.getElementById('habitTime').value;
     if (!name || !timeVal) { alert("Pakilagay yung Habit at Oras!"); return; }
-    habitDatabase.push({ id: Date.now() + 2, name: name, time: timeVal, isDone: false });
+
+    await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "habits"), {
+        name: name, time: timeVal, isDone: false, createdAt: Date.now()
+    });
+
     document.getElementById('habitName').value = '';
     document.getElementById('habitTime').value = '';
-    renderTasks();
 }
 
-// --- 4. RENDER ENGINE PARA SA TASKS LIST ---
+async function moveTaskStatus(id, newStatus) {
+    await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "tasks", id), { status: newStatus });
+}
+
+async function markHabitDone(id) {
+    await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "habits", id), { isDone: true });
+}
+
+function initRealtimeTasks() {
+    window.dbMethods.onSnapshot(window.dbMethods.collection(window.db, "tasks"), (snapshot) => {
+        taskDatabase = [];
+        snapshot.forEach(doc => taskDatabase.push({ id: doc.id, ...doc.data(), dueDate: new Date(doc.data().dueDate) }));
+        renderTasks(); renderKanban();
+    });
+    
+    window.dbMethods.onSnapshot(window.dbMethods.collection(window.db, "habits"), (snapshot) => {
+        habitDatabase = [];
+        snapshot.forEach(doc => habitDatabase.push({ id: doc.id, ...doc.data() }));
+        renderTasks();
+    });
+}
+
 function renderTasks() {
     let taskContainer = document.getElementById('taskListContainer');
     let habitContainer = document.getElementById('habitListContainer');
-    
     taskContainer.innerHTML = `<h3 style="color: var(--text-main); margin-top: 30px; font-size: 14px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px;"><i class="ph-duotone ph-list-checks"></i> PENDING TASKS</h3>`;
     habitContainer.innerHTML = `<h3 style="color: var(--success); margin-top: 30px; font-size: 14px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px;"><i class="ph-duotone ph-arrows-clockwise"></i> DAILY HABITS</h3>`;
 
     let sortedTasks = taskDatabase.sort((a, b) => (a.status === 'done') - (b.status === 'done') || a.dueDate - b.dueDate);
-    
     if (sortedTasks.length === 0) taskContainer.innerHTML += '<p style="color: var(--text-muted); font-size: 12px; font-style: italic;">No tasks yet.</p>';
     
     sortedTasks.forEach(task => {
-        let shortMonth = task.dueDate.toLocaleString('default', { month: 'short' });
-        let day = task.dueDate.getDate();
-        
         let isDone = task.status === 'done';
-        let cardStyle = isDone ? 'opacity: 0.5; background: rgba(255,255,255,0.02);' : 'background: rgba(192, 132, 252, 0.05); border-left: 4px solid var(--secondary);';
-        let btnText = isDone
-            ? '<i class="ph-bold ph-check"></i> Done'
-            : (task.status === 'doing'
-                ? '<i class="ph-bold ph-hourglass"></i> Doing'
-                : 'Mark Done');
         let badgeColor = task.category === 'Work' ? '#38bdf8' : task.category === 'School' ? '#c084fc' : '#10b981';
-
+        let btnText = isDone ? '<i class="ph-bold ph-check"></i> Done' : (task.status === 'doing' ? '<i class="ph-bold ph-hourglass"></i> Doing' : 'Mark Done');
+        
         taskContainer.innerHTML += `
-            <div class="utang-card" style="${cardStyle} margin-bottom: 10px; padding: 15px;">
+            <div class="utang-card" style="${isDone ? 'opacity: 0.5; background: rgba(255,255,255,0.02);' : 'background: rgba(192, 132, 252, 0.05); border-left: 4px solid var(--secondary);'} margin-bottom: 10px; padding: 15px;">
                 <span style="font-size: 10px; font-weight: 700; background: rgba(255,255,255,0.05); color: ${badgeColor}; padding: 3px 8px; border-radius: 5px; text-transform: uppercase;">${task.category}</span>
                 <h4 style="margin: 8px 0; font-size: 15px; color: var(--text-main);">${task.title}</h4>
-                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--text-muted);">
-                    <span><i class="ph-bold ph-calendar"></i> ${shortMonth} ${day}</span>
-                    <span><i class="ph-bold ph-timer"></i> ${task.estMins} mins</span>
-                </div>
-                <button class="paid-btn" style="border-color: var(--secondary); color: var(--secondary); margin-top: 10px; padding: 6px;" onclick="moveTaskStatus(${task.id}, 'done')" ${isDone ? 'disabled' : ''}>${btnText}</button>
+                <button class="paid-btn" style="border-color: var(--secondary); color: var(--secondary); margin-top: 10px; padding: 6px;" onclick="moveTaskStatus('${task.id}', 'done')" ${isDone ? 'disabled' : ''}>${btnText}</button>
             </div>
         `;
     });
@@ -289,273 +273,172 @@ function renderTasks() {
     habitDatabase.forEach(habit => {
         let timeParts = habit.time.split(':');
         let hour = parseInt(timeParts[0]);
-        let ampm = hour >= 12 ? 'PM' : 'AM';
-        hour = hour % 12; hour = hour ? hour : 12; 
-        let formattedTime = hour + ':' + timeParts[1] + ' ' + ampm;
-        let cardStyle = habit.isDone ? 'opacity: 0.5; background: rgba(255,255,255,0.02);' : 'background: rgba(16, 185, 129, 0.05); border-left: 4px solid var(--success);';
-        let btnText = habit.isDone ? '<i class="ph-bold ph-check"></i> Done' : 'Mark Done';
-
+        let formattedTime = (hour % 12 || 12) + ':' + timeParts[1] + (hour >= 12 ? ' PM' : ' AM');
+        
         habitContainer.innerHTML += `
-            <div class="utang-card" style="${cardStyle} margin-bottom: 10px; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
+            <div class="utang-card" style="${habit.isDone ? 'opacity: 0.5;' : 'background: rgba(16, 185, 129, 0.05); border-left: 4px solid var(--success);'} margin-bottom: 10px; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
                 <div>
                     <h4 style="margin: 0 0 5px 0; font-size: 15px; color: var(--success);">${habit.name}</h4>
                     <span style="font-size: 12px; color: var(--text-muted);"><i class="ph-bold ph-clock"></i> ${formattedTime}</span>
                 </div>
-                <button class="paid-btn" style="width: auto; margin-top: 0; padding: 6px 12px; border-color: var(--success); color: var(--success);" onclick="markHabitDone(${habit.id})" ${habit.isDone ? 'disabled' : ''}>${btnText}</button>
+                <button class="paid-btn" style="width: auto; margin-top: 0; padding: 6px 12px; border-color: var(--success); color: var(--success);" onclick="markHabitDone('${habit.id}')" ${habit.isDone ? 'disabled' : ''}>${habit.isDone ? '<i class="ph-bold ph-check"></i> Done' : 'Mark Done'}</button>
             </div>
         `;
     });
 }
 
-// --- 5. THE KANBAN RENDER ENGINE ---
 function renderKanban() {
-    let colTodo = document.getElementById('kb-todo');
-    let colDoing = document.getElementById('kb-doing');
-    let colDone = document.getElementById('kb-done');
-
+    let colTodo = document.getElementById('kb-todo'); let colDoing = document.getElementById('kb-doing'); let colDone = document.getElementById('kb-done');
+    if(!colTodo) return;
     colTodo.innerHTML = ''; colDoing.innerHTML = ''; colDone.innerHTML = '';
 
     taskDatabase.forEach(task => {
-        let shortMonth = task.dueDate.toLocaleString('default', { month: 'short' });
-        let day = task.dueDate.getDate();
-        let badgeColor = task.category === 'Work' ? '#38bdf8' : task.category === 'School' ? '#c084fc' : '#10b981';
-
         let actionButtons = '';
-        if (task.status === 'todo') {
-            actionButtons = `<button class="kb-btn" style="width: 100%; color: var(--primary);" onclick="moveTaskStatus(${task.id}, 'doing')">Move to DOING <i class="ph-bold ph-arrow-right"></i></button>`;
-        } else if (task.status === 'doing') {
-            actionButtons = `
-                <button class="kb-btn" style="color: var(--danger);" onclick="moveTaskStatus(${task.id}, 'todo')"><i class="ph-bold ph-arrow-left"></i> To Do</button>
-                <button class="kb-btn" style="color: var(--success);" onclick="moveTaskStatus(${task.id}, 'done')"><i class="ph-bold ph-check"></i> Done</button>
-            `;
-        } else if (task.status === 'done') {
-            actionButtons = `<button class="kb-btn" style="width: 100%; color: var(--text-muted);" onclick="moveTaskStatus(${task.id}, 'doing')"><i class="ph-bold ph-arrow-left"></i> Back to Doing</button>`;
-        }
+        if (task.status === 'todo') actionButtons = `<button class="kb-btn" style="width: 100%; color: var(--primary);" onclick="moveTaskStatus('${task.id}', 'doing')">Move to DOING <i class="ph-bold ph-arrow-right"></i></button>`;
+        else if (task.status === 'doing') actionButtons = `<button class="kb-btn" style="color: var(--danger);" onclick="moveTaskStatus('${task.id}', 'todo')"><i class="ph-bold ph-arrow-left"></i> To Do</button><button class="kb-btn" style="color: var(--success);" onclick="moveTaskStatus('${task.id}', 'done')"><i class="ph-bold ph-check"></i> Done</button>`;
+        else if (task.status === 'done') actionButtons = `<button class="kb-btn" style="width: 100%; color: var(--text-muted);" onclick="moveTaskStatus('${task.id}', 'doing')"><i class="ph-bold ph-arrow-left"></i> Back to Doing</button>`;
 
         let cardHTML = `
             <div class="kanban-card">
-                <span style="font-size: 9px; font-weight: 700; background: rgba(255,255,255,0.05); color: ${badgeColor}; padding: 3px 6px; border-radius: 4px; text-transform: uppercase;">${task.category}</span>
                 <h4 style="margin: 8px 0; font-size: 14px; color: var(--text-main);">${task.title}</h4>
-                <p style="margin: 0; font-size: 11px; color: var(--text-muted);"><i class="ph-bold ph-calendar"></i> Due: ${shortMonth} ${day}</p>
                 <div class="kanban-actions">${actionButtons}</div>
             </div>
         `;
-
         if (task.status === 'todo') colTodo.innerHTML += cardHTML;
         else if (task.status === 'doing') colDoing.innerHTML += cardHTML;
         else if (task.status === 'done') colDone.innerHTML += cardHTML;
     });
 }
 
-// --- 6. LOGIC PARA MAG-LIPAT NG TASK ---
-function moveTaskStatus(id, newStatus) {
-    let task = taskDatabase.find(t => t.id === id);
-    if (task) { 
-        task.status = newStatus; 
-        renderTasks();
-        renderKanban();
-    }
-}
-
-function markHabitDone(id) {
-    let habit = habitDatabase.find(h => h.id === id);
-    if (habit) { habit.isDone = true; renderTasks(); }
-}
-
 // ==========================================
-// 🍔 MODULE 3: FOOD LOG & MULTIMODAL AI
+// 🍔 MODULE 3: FOOD LOG & MULTIMODAL AI (FIREBASE)
 // ==========================================
 
-let foodDatabase = [];
 let currentBase64 = null;
 let currentMimeType = null;
 
-// --- 1. IMAGE UPLOAD HANDLER (WITH AUTO-COMPRESSOR) ---
 document.getElementById('foodImage').addEventListener('change', function(e) {
     let file = e.target.files[0];
     if (!file) return;
-    
     let display = document.getElementById('fileNameDisplay');
-    display.innerText = "Compressing: " + file.name + "...";
-    display.style.display = "block";
-    display.style.color = "var(--secondary)";
+    display.innerText = "Compressing..."; display.style.display = "block";
 
     let reader = new FileReader();
     reader.onload = function(event) {
         let img = new Image();
         img.onload = function() {
-            let canvas = document.createElement('canvas');
-            let ctx = canvas.getContext('2d');
+            let canvas = document.createElement('canvas'); let ctx = canvas.getContext('2d');
+            let w = img.width, h = img.height;
+            if (w > h) { if (w > 800) { h *= 800 / w; w = 800; } } else { if (h > 800) { w *= 800 / h; h = 800; } }
+            canvas.width = w; canvas.height = h; ctx.drawImage(img, 0, 0, w, h);
             
-            let MAX_WIDTH = 800; 
-            let MAX_HEIGHT = 800;
-            let width = img.width;
-            let height = img.height;
-
-            if (width > height) {
-                if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
-            } else {
-                if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
-            }
-
-            canvas.width = width;
-            canvas.height = height;
-            ctx.drawImage(img, 0, 0, width, height);
-
-            let compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
-            let split = compressedDataUrl.split(',');
-            currentMimeType = split[0].match(/:(.*?);/)[1];
-            currentBase64 = split[1]; 
-
-            display.innerText = "Ready: " + file.name;
-            display.style.color = "var(--success)";
+            let split = canvas.toDataURL('image/jpeg', 0.7).split(',');
+            currentMimeType = split[0].match(/:(.*?);/)[1]; currentBase64 = split[1];
+            display.innerText = "Ready: " + file.name; display.style.color = "var(--success)";
         };
         img.src = event.target.result;
     };
     reader.readAsDataURL(file);
 });
 
-// --- 2. I-SAVE ANG FOOD LOG ---
-function saveFood() {
+async function saveFood() {
     let mealType = document.getElementById('mealType').value;
     let foodSource = document.getElementById('foodSource').value;
     let foodItem = document.getElementById('foodItem').value;
-
-    // BAGO: Kunin ang presyo at kung saang wallet ibabawas
     let priceInput = document.getElementById('foodPrice');
     let walletInput = document.getElementById('foodWallet');
     let price = priceInput ? parseFloat(priceInput.value || 0) : 0;
-    let walletId = walletInput ? parseInt(walletInput.value) : null;
+    let walletId = walletInput ? walletInput.value : null;
 
-    if (!foodItem && !currentBase64) { 
-        alert("Engineer, piktyuran mo o i-type mo yung kinain mo!"); 
-        return; 
-    }
+    if (!foodItem && !currentBase64) { alert("Piktyuran mo o i-type mo yung kinain mo!"); return; }
 
-    // BAGO: Bawasan ang wallet at idagdag sa expenses kung may presyo
-    if (price > 0 && walletId) {
-        let walletIndex = myWallets.findIndex(w => w.id === walletId);
-        if (walletIndex !== -1) {
-            if (myWallets[walletIndex].balance < price) {
-                alert("Oops! Kulang ang pondo mo sa wallet na ito pambili ng pagkain.");
-                return; 
-            }
-            myWallets[walletIndex].balance -= price;
-            monthlySpent += price;
-            updateBudgetDashboard(); 
+    try {
+        // I-kaltas agad sa Firebase Wallet kung may presyo
+        if (price > 0 && walletId) {
+            let walletObj = myWallets.find(w => w.id === walletId);
+            if (!walletObj || walletObj.balance < price) { alert("Oops! Kulang ang pondo mo."); return; }
+            await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletId), { balance: walletObj.balance - price });
+            // Ang monthlySpent is local pa rin
+            monthlySpent += price; 
         }
-    }
 
-    foodDatabase.push({
-        id: Date.now(),
-        meal: mealType,
-        source: foodSource,
-        item: foodItem || "*(May Picture)*",
-        cost: price, 
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        image64: currentBase64,
-        mimeType: currentMimeType
-    });
+        // I-save ang pagkain sa Firebase
+        await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "foodLogs"), {
+            meal: mealType, source: foodSource, item: foodItem || "*(May Picture)*", cost: price,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            image64: currentBase64, mimeType: currentMimeType, createdAt: Date.now()
+        });
 
-    document.getElementById('foodItem').value = '';
-    if (priceInput) priceInput.value = ''; 
-    document.getElementById('foodImage').value = '';
-    document.getElementById('fileNameDisplay').style.display = 'none';
-    currentBase64 = null;
-    currentMimeType = null;
-    document.getElementById('aiFoodResult').style.display = 'none'; 
-    
-    renderFoodList();
+        document.getElementById('foodItem').value = ''; if (priceInput) priceInput.value = '';
+        document.getElementById('foodImage').value = ''; document.getElementById('fileNameDisplay').style.display = 'none';
+        currentBase64 = null; currentMimeType = null; document.getElementById('aiFoodResult').style.display = 'none';
+    } catch (e) { console.error(e); alert("May error sa pag-save!"); }
 }
 
-// --- 3. I-RENDER ANG FOOD LIST ---
+async function deleteFood(id) {
+    await window.dbMethods.deleteDoc(window.dbMethods.doc(window.db, "foodLogs", id));
+}
+
+function initRealtimeFood() {
+    const q = window.dbMethods.query(window.dbMethods.collection(window.db, "foodLogs"));
+    window.dbMethods.onSnapshot(q, (snapshot) => {
+        foodDatabase = [];
+        snapshot.forEach(doc => foodDatabase.push({ id: doc.id, ...doc.data() }));
+        foodDatabase.sort((a, b) => b.createdAt - a.createdAt); // Latest sa taas
+        renderFoodList();
+    });
+}
+
 function renderFoodList() {
     let container = document.getElementById('foodListContainer');
     container.innerHTML = `<h3 style="color: var(--text-main); margin-top: 10px; font-size: 14px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px;"><i class="ph-duotone ph-fork-knife"></i> FOOD LOG TODAY</h3>`;
 
-    if (foodDatabase.length === 0) {
-        container.innerHTML += '<p style="color: var(--text-muted); font-size: 12px; font-style: italic;">Wala ka pang kinakain today. Tubig tubig din!</p>';
-        return;
-    }
+    if (foodDatabase.length === 0) { container.innerHTML += '<p style="color: var(--text-muted); font-size: 12px; font-style: italic;">Wala ka pang kinakain today.</p>'; return; }
 
     foodDatabase.forEach(food => {
         let badgeColor = food.meal === 'Breakfast' ? '#fbbf24' : food.meal === 'Lunch' ? '#38bdf8' : food.meal === 'Dinner' ? '#c084fc' : '#f43f5e';
         let picIcon = food.image64 ? ' <i class="ph-bold ph-image"></i>' : '';
+        let priceTag = food.cost > 0 ? ` - ₱${food.cost}` : '';
 
         container.innerHTML += `
             <div class="utang-card" style="background: rgba(255,255,255,0.02); margin-bottom: 10px; padding: 15px;">
                 <span style="font-size: 9px; font-weight: 700; background: rgba(255,255,255,0.05); color: ${badgeColor}; padding: 3px 8px; border-radius: 5px; text-transform: uppercase;">${food.meal} • ${food.source}</span>
                 <span style="float: right; font-size: 11px; color: var(--text-muted);">${food.time}</span>
-                <h4 style="margin: 10px 0 0 0; font-size: 14px; color: var(--text-main); font-weight: 500;">${food.item}${picIcon}</h4>
-                <button onclick="deleteFood(${food.id})" style="background: none; border: none; color: var(--danger); font-size: 12px; margin-top: 8px; cursor: pointer; padding: 0;"><i class="ph-bold ph-trash"></i> Remove</button>
+                <h4 style="margin: 10px 0 0 0; font-size: 14px; color: var(--text-main); font-weight: 500;">${food.item}${picIcon}${priceTag}</h4>
+                <button onclick="deleteFood('${food.id}')" style="background: none; border: none; color: var(--danger); font-size: 12px; margin-top: 8px; cursor: pointer; padding: 0;"><i class="ph-bold ph-trash"></i> Remove</button>
             </div>
         `;
     });
 }
 
-function deleteFood(id) { 
-    foodDatabase = foodDatabase.filter(f => f.id !== id); 
-    renderFoodList(); 
-}
-
-// --- 4. AI FOOD ANALYSIS CALL ---
 async function analyzeFoodAI() {
     if (foodDatabase.length === 0) { alert("Kumain ka muna!"); return; }
-
     let aiBtn = document.querySelector('button[onclick="analyzeFoodAI()"]');
-    let originalText = aiBtn.innerHTML;
-    aiBtn.innerHTML = '<i class="ph-bold ph-hourglass"></i> Scanning food with AI...';
-    aiBtn.disabled = true;
+    let originalText = aiBtn.innerHTML; aiBtn.innerHTML = '<i class="ph-bold ph-hourglass"></i> Scanning...'; aiBtn.disabled = true;
 
-    let allFoodText = foodDatabase.map(f => `${f.meal} [${f.source}]: ${f.item}`).join(" | ");
-    
-    let payloadImages = foodDatabase.filter(f => f.image64).map(f => ({
-        mimeType: f.mimeType,
-        data: f.image64
-    }));
-    
     try {
+        let allFoodText = foodDatabase.map(f => `${f.meal}: ${f.item}`).join(" | ");
         const response = await fetch('/api/analyze', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ foodLog: allFoodText, images: payloadImages })
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ foodLog: allFoodText, images: foodDatabase.filter(f => f.image64).map(f => ({ mimeType: f.mimeType, data: f.image64 })) })
         });
-
         const data = await response.json();
-        if(data.error) throw new Error(data.error);
-
-        let resultBox = document.getElementById('aiFoodResult');
-        resultBox.style.display = 'block';
-        document.getElementById('aiVerdictText').innerHTML = data.verdict;
-
-    } catch (error) {
-        console.error(error);
-        alert("Oops! May error sa Vercel API connection natin.");
-    } finally {
-        aiBtn.innerHTML = originalText;
-        aiBtn.disabled = false;
-    }
+        document.getElementById('aiFoodResult').style.display = 'block';
+        document.getElementById('aiVerdictText').innerHTML = data.verdict || data.error;
+    } catch (e) { alert("API Error."); } finally { aiBtn.innerHTML = originalText; aiBtn.disabled = false; }
 }
 
 // ==========================================
-// 💰 MODULE 4: MULTI-WALLET & BUDGET SYSTEM
+// 💰 MODULE 4: MULTI-WALLET & BUDGET SYSTEM (FIREBASE)
 // ==========================================
 
-let myWallets = [];
-let monthlyTarget = 0;
-let monthlySpent = 0;
-
-// --- 1. UI UPDATES ---
 function updateBudgetDashboard() {
     let totalPera = myWallets.reduce((sum, wallet) => sum + parseFloat(wallet.balance), 0);
     document.getElementById('totalNetWorth').innerText = `₱${totalPera.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
 
-    let container = document.getElementById('walletsContainer');
-    container.innerHTML = '';
-    
-    if (myWallets.length === 0) {
-        container.innerHTML = `<p style="color: var(--text-muted); font-size: 12px; font-style: italic;">Wala pang wallet. Mag-add na sa taas!</p>`;
-    } else {
+    let container = document.getElementById('walletsContainer'); container.innerHTML = '';
+    if (myWallets.length === 0) container.innerHTML = `<p style="color: var(--text-muted); font-size: 12px; font-style: italic;">Wala pang wallet.</p>`;
+    else {
         myWallets.forEach(wallet => {
             container.innerHTML += `
                 <div style="min-width: 120px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; flex-shrink: 0;">
@@ -569,172 +452,93 @@ function updateBudgetDashboard() {
     document.getElementById('monthlyTarget').innerText = `₱${parseFloat(monthlyTarget).toLocaleString()}`;
     document.getElementById('monthlySpent').innerText = `₱${parseFloat(monthlySpent).toLocaleString()}`;
     
-    let progress = 0;
-    if (monthlyTarget > 0) {
-        progress = (monthlySpent / monthlyTarget) * 100;
-        if (progress > 100) progress = 100;
-    }
-    
     let bar = document.getElementById('budgetProgressBar');
-    bar.style.width = `${progress}%`;
-    bar.style.background = progress >= 90 ? 'var(--danger)' : 'var(--success)';
+    let progress = monthlyTarget > 0 ? Math.min((monthlySpent / monthlyTarget) * 100, 100) : 0;
+    bar.style.width = `${progress}%`; bar.style.background = progress >= 90 ? 'var(--danger)' : 'var(--success)';
 
-    // BAGO: I-update din yung dropdown sa Food Log para laging updated ang listahan ng wallets
     let foodWalletSelect = document.getElementById('foodWallet');
     if (foodWalletSelect) {
         foodWalletSelect.innerHTML = '<option value="">Saan ibabawas?</option>';
-        myWallets.forEach(wallet => {
-            foodWalletSelect.innerHTML += `<option value="${wallet.id}">${wallet.name} (Bal: ₱${parseFloat(wallet.balance).toLocaleString()})</option>`;
-        });
+        myWallets.forEach(wallet => { foodWalletSelect.innerHTML += `<option value="${wallet.id}">${wallet.name} (Bal: ₱${parseFloat(wallet.balance).toLocaleString()})</option>`; });
     }
 }
 
-// --- 2. ADD WALLET LOGIC ---
-function showAddWalletModal() {
-    document.getElementById('walletModal').style.display = 'flex';
-}
+function showAddWalletModal() { document.getElementById('walletModal').style.display = 'flex'; }
 
-// BAGO: Real-time listener para sa Wallets (Pang-sync sa Firebase)
 function initRealtimeBudget() {
     window.dbMethods.onSnapshot(window.dbMethods.collection(window.db, "wallets"), (snapshot) => {
         myWallets = [];
         snapshot.forEach(doc => myWallets.push({ id: doc.id, ...doc.data() }));
-        updateBudgetDashboard(); // Mag-u-update agad UI pag may nagbago sa DB
+        updateBudgetDashboard(); 
     });
 }
 
-// BAGO: Naka-connect na sa Firebase ang Save Wallet
 async function saveWallet() {
-    let name = document.getElementById('walletName').value;
-    let bal = document.getElementById('walletBalance').value;
-
-    if (!name || !bal) {
-        alert("Pakilagay ang pangalan at initial balance ng wallet!");
-        return;
-    }
-
+    let name = document.getElementById('walletName').value; let bal = document.getElementById('walletBalance').value;
+    if (!name || !bal) return alert("Kulang details!");
     try {
-        await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "wallets"), {
-            name: name,
-            balance: parseFloat(bal),
-            createdAt: Date.now()
-        });
-        
-        document.getElementById('walletName').value = '';
-        document.getElementById('walletBalance').value = '';
-        closeBudgetModals();
-        // Hindi na kailangang mag-push manually kasi magti-trigger yung initRealtimeBudget()
-    } catch (e) {
-        console.error(e);
-        alert("May error sa pag-save sa database!");
-    }
+        await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "wallets"), { name: name, balance: parseFloat(bal), createdAt: Date.now() });
+        document.getElementById('walletName').value = ''; document.getElementById('walletBalance').value = ''; closeBudgetModals();
+    } catch (e) { console.error(e); alert("May error sa pag-save!"); }
 }
 
-// BAGO: Naka-connect na sa Firebase ang Transactions (Income/Expense)
 async function saveTransaction() {
     let type = document.getElementById('transactionType').value;
     let walletId = document.getElementById('transactionWallet').value; 
     let amount = parseFloat(document.getElementById('transactionAmount').value);
 
-    if (!amount || isNaN(amount)) {
-        alert("Pakilagay ang tamang halaga!");
-        return;
-    }
+    if (!amount || isNaN(amount)) return alert("Maling halaga!");
+    let walletObj = myWallets.find(w => w.id === walletId);
+    if (!walletObj) return;
 
-    let walletIndex = myWallets.findIndex(w => w.id === walletId);
-    if (walletIndex === -1) return;
-
-    let currentBalance = parseFloat(myWallets[walletIndex].balance);
-    let newBalance = currentBalance;
-
-    if (type === 'income') {
-        newBalance += amount;
-    } else if (type === 'expense') {
-        if (currentBalance < amount) {
-            alert("Oops! Kulang ang pondo mo sa wallet na ito.");
-            return;
-        }
-        newBalance -= amount;
-        monthlySpent += amount; 
-    }
+    let newBal = parseFloat(walletObj.balance);
+    if (type === 'income') newBal += amount;
+    else { if (newBal < amount) return alert("Kulang pondo!"); newBal -= amount; monthlySpent += amount; }
 
     try {
-        const walletRef = window.dbMethods.doc(window.db, "wallets", walletId);
-        await window.dbMethods.updateDoc(walletRef, { balance: newBalance });
-
-        document.getElementById('transactionAmount').value = '';
-        document.getElementById('transactionNote').value = '';
-        closeBudgetModals();
-    } catch (e) {
-        console.error(e);
-    }
+        await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletId), { balance: newBal });
+        document.getElementById('transactionAmount').value = ''; document.getElementById('transactionNote').value = ''; closeBudgetModals();
+    } catch (e) { console.error(e); }
 }
 
-// --- 3. SET MONTHLY BUDGET ---
 function setMonthlyBudget() {
-    let target = prompt("Magkano ang limit ng budget mo for this month? (e.g. 5000)");
-    if (target && !isNaN(target)) {
-        monthlyTarget = parseFloat(target);
-        updateBudgetDashboard();
-    }
+    let target = prompt("Magkano ang limit ng budget mo for this month?");
+    if (target && !isNaN(target)) { monthlyTarget = parseFloat(target); updateBudgetDashboard(); }
 }
 
-// --- 4. ADD INCOME & EXPENSE LOGIC ---
 function openTransactionModal(type) {
-    if (myWallets.length === 0) {
-        alert("Gumawa ka muna ng wallet sa taas bago mag-add ng pera!");
-        return;
-    }
-
-    document.getElementById('transactionModal').style.display = 'flex';
-    document.getElementById('transactionType').value = type;
+    if (myWallets.length === 0) return alert("Gumawa ka muna ng wallet!");
+    document.getElementById('transactionModal').style.display = 'flex'; document.getElementById('transactionType').value = type;
+    let title = document.getElementById('transactionTitle'); let btn = document.getElementById('saveTransactionBtn');
     
-    let title = document.getElementById('transactionTitle');
-    let btn = document.getElementById('saveTransactionBtn');
-    
-    if (type === 'income') {
-        title.innerHTML = '<i class="ph-bold ph-trend-up"></i> Add Income';
-        title.style.color = 'var(--success)';
-        btn.style.background = 'var(--success)';
-    } else {
-        title.innerHTML = '<i class="ph-bold ph-trend-down"></i> Add Expense';
-        title.style.color = 'var(--danger)';
-        btn.style.background = 'var(--danger)';
-    }
+    if (type === 'income') { title.innerHTML = '<i class="ph-bold ph-trend-up"></i> Add Income'; title.style.color = 'var(--success)'; btn.style.background = 'var(--success)'; } 
+    else { title.innerHTML = '<i class="ph-bold ph-trend-down"></i> Add Expense'; title.style.color = 'var(--danger)'; btn.style.background = 'var(--danger)'; }
 
-    let walletSelect = document.getElementById('transactionWallet');
-    walletSelect.innerHTML = '';
-    myWallets.forEach(wallet => {
-        walletSelect.innerHTML += `<option value="${wallet.id}">${wallet.name} (Bal: ₱${wallet.balance})</option>`;
-    });
+    let select = document.getElementById('transactionWallet'); select.innerHTML = '';
+    myWallets.forEach(w => { select.innerHTML += `<option value="${w.id}">${w.name} (Bal: ₱${w.balance})</option>`; });
 }
 
 function addIncome() { openTransactionModal('income'); }
 function addExpense() { openTransactionModal('expense'); }
+function closeBudgetModals() { document.getElementById('walletModal').style.display = 'none'; document.getElementById('transactionModal').style.display = 'none'; }
 
-function closeBudgetModals() {
-    document.getElementById('walletModal').style.display = 'none';
-    document.getElementById('transactionModal').style.display = 'none';
-}
-
-// I-run agad pagka-load ng page
-updateBudgetDashboard();
-
+// ==========================================
+// 🚀 INITIALIZE SYSTEM
+// ==========================================
 function startApp() {
     if (window.db && window.dbMethods) {
         initRealtimeUtang();
         initRealtimeTasks();
         initRealtimeFood();
-        initRealtimeBudget(); // Idagdag mo ito para mag-load ang pera mo!
+        initRealtimeBudget(); 
     } else {
-        setTimeout(startApp, 500);
+        setTimeout(startApp, 500); // Retry kung hindi pa ready ang Firebase script
     }
 }
 startApp();
 
-
 // ==========================================
-// 🌍 GLOBAL EXPORTS PARA GUMANA ANG HTML ONCLICK
+// 🌍 GLOBAL EXPORTS (Wag buburahin, kailangan 'to ng HTML onclick)
 // ==========================================
 window.switchScreen = switchScreen;
 window.showAddForm = showAddForm;
