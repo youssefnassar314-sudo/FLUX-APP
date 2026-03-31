@@ -12,16 +12,21 @@
 
     <div class="app-container">
 
-        <div class="app-header">
+        <div class="app-header" style="position: relative;">
             <h1 class="logo">FLUX.</h1>
             <p class="subtitle">Your Life, Synchronized.</p>
+            <button id="logoutBtn" style="display: none; position: absolute; top: 0; right: 0; background: none; border: none; color: var(--danger); font-size: 24px; cursor: pointer; transition: 0.3s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                <i class="ph-bold ph-power"></i>
+            </button>
         </div>
 
         <div id="loginScreen" class="screen active-screen">
-            <div class="login-box">
-                <h2>Welcome Back, Engineer!</h2>
-                <button class="google-btn" onclick="switchScreen('dashboardScreen')">
-                    <span style="background: white; color: #4285F4; border-radius: 50%; padding: 2px 8px; margin-right: 10px;">G</span> 
+            <div class="login-box" style="text-align: center; padding: 30px 20px; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                <i class="ph-duotone ph-fingerprint icon-svg" style="font-size: 64px; color: var(--primary); margin-bottom: 10px;"></i>
+                <h2 style="margin: 0 0 5px 0; font-weight: 800; letter-spacing: 1px; font-size: 22px; color: var(--text-main);">System Online.</h2>
+                <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 25px;">Welcome to your central hub, Engineer.</p>
+                <button class="google-btn" id="googleLoginBtn" style="display: flex; align-items: center; justify-content: center; width: 100%;">
+                    <span style="background: white; color: #4285F4; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-weight: 800; margin-right: 12px; font-size: 14px;">G</span> 
                     Sign In with Google
                 </button>
             </div>
@@ -348,11 +353,12 @@
 
     </div>
 
-    <script type="module">
+<script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    // BAGO: In-import ang Firebase Auth
+    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    // 1. Dito mo i-paste yung nakuha mong config sa Firebase Console
     const firebaseConfig = {
         apiKey: "AIzaSyADsCX5UOybPnbVLTlFHz9_pchxfNgTMCU",
         authDomain: "flux-os.firebaseapp.com",
@@ -362,15 +368,17 @@
         appId: "1:460355221542:web:a2e0117283ba237e470ee7"
     };
 
-    // 2. Initialize Firebase & Firestore
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    // BAGO: Setup ng Auth at Provider
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
 
-    // 3. I-expose natin ang Firestore sa app.js
     window.db = db;
+    window.auth = auth;
+    window.provider = provider;
     window.dbMethods = { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy };
-</script>
-
-<script src="app.js"></script>
+    window.authMethods = { signInWithPopup, onAuthStateChanged, signOut };
+    </script>
 </body>
 </html>
