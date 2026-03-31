@@ -594,7 +594,17 @@ function showAddWalletModal() {
     document.getElementById('walletModal').style.display = 'flex';
 }
 
-function saveWallet() {
+// BAGO: Real-time listener para sa Wallets (Pang-sync sa Firebase)
+function initRealtimeBudget() {
+    window.dbMethods.onSnapshot(window.dbMethods.collection(window.db, "wallets"), (snapshot) => {
+        myWallets = [];
+        snapshot.forEach(doc => myWallets.push({ id: doc.id, ...doc.data() }));
+        updateBudgetDashboard(); // Mag-u-update agad UI pag may nagbago sa DB
+    });
+}
+
+// BAGO: Naka-connect na sa Firebase ang Save Wallet
+async function saveWallet() {
     let name = document.getElementById('walletName').value;
     let bal = document.getElementById('walletBalance').value;
 
@@ -603,12 +613,61 @@ function saveWallet() {
         return;
     }
 
-    myWallets.push({ id: Date.now(), name: name, balance: parseFloat(bal) });
+    try {
+        await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "wallets"), {
+            name: name,
+            balance: parseFloat(bal),
+            createdAt: Date.now()
+        });
+        
+        document.getElementById('walletName').value = '';
+        document.getElementById('walletBalance').value = '';
+        closeBudgetModals();
+        // Hindi na kailangang mag-push manually kasi magti-trigger yung initRealtimeBudget()
+    } catch (e) {
+        console.error(e);
+        alert("May error sa pag-save sa database!");
+    }
+}
 
-    document.getElementById('walletName').value = '';
-    document.getElementById('walletBalance').value = '';
-    closeBudgetModals();
-    updateBudgetDashboard();
+// BAGO: Naka-connect na sa Firebase ang Transactions (Income/Expense)
+async function saveTransaction() {
+    let type = document.getElementById('transactionType').value;
+    let walletId = document.getElementById('transactionWallet').value; 
+    let amount = parseFloat(document.getElementById('transactionAmount').value);
+
+    if (!amount || isNaN(amount)) {
+        alert("Pakilagay ang tamang halaga!");
+        return;
+    }
+
+    let walletIndex = myWallets.findIndex(w => w.id === walletId);
+    if (walletIndex === -1) return;
+
+    let currentBalance = parseFloat(myWallets[walletIndex].balance);
+    let newBalance = currentBalance;
+
+    if (type === 'income') {
+        newBalance += amount;
+    } else if (type === 'expense') {
+        if (currentBalance < amount) {
+            alert("Oops! Kulang ang pondo mo sa wallet na ito.");
+            return;
+        }
+        newBalance -= amount;
+        monthlySpent += amount; 
+    }
+
+    try {
+        const walletRef = window.dbMethods.doc(window.db, "wallets", walletId);
+        await window.dbMethods.updateDoc(walletRef, { balance: newBalance });
+
+        document.getElementById('transactionAmount').value = '';
+        document.getElementById('transactionNote').value = '';
+        closeBudgetModals();
+    } catch (e) {
+        console.error(e);
+    }
 }
 
 // --- 3. SET MONTHLY BUDGET ---
@@ -653,36 +712,6 @@ function openTransactionModal(type) {
 function addIncome() { openTransactionModal('income'); }
 function addExpense() { openTransactionModal('expense'); }
 
-function saveTransaction() {
-    let type = document.getElementById('transactionType').value;
-    let walletId = parseInt(document.getElementById('transactionWallet').value);
-    let amount = parseFloat(document.getElementById('transactionAmount').value);
-    let note = document.getElementById('transactionNote').value;
-
-    if (!amount || isNaN(amount)) {
-        alert("Pakilagay ang tamang halaga!");
-        return;
-    }
-
-    let walletIndex = myWallets.findIndex(w => w.id === walletId);
-    
-    if (type === 'income') {
-        myWallets[walletIndex].balance += amount;
-    } else if (type === 'expense') {
-        if (myWallets[walletIndex].balance < amount) {
-            alert("Oops! Kulang ang pondo mo sa wallet na ito.");
-            return;
-        }
-        myWallets[walletIndex].balance -= amount;
-        monthlySpent += amount;
-    }
-
-    document.getElementById('transactionAmount').value = '';
-    document.getElementById('transactionNote').value = '';
-    closeBudgetModals();
-    updateBudgetDashboard();
-}
-
 function closeBudgetModals() {
     document.getElementById('walletModal').style.display = 'none';
     document.getElementById('transactionModal').style.display = 'none';
@@ -690,6 +719,18 @@ function closeBudgetModals() {
 
 // I-run agad pagka-load ng page
 updateBudgetDashboard();
+
+function startApp() {
+    if (window.db && window.dbMethods) {
+        initRealtimeUtang();
+        initRealtimeTasks();
+        initRealtimeFood();
+        initRealtimeBudget(); // Idagdag mo ito para mag-load ang pera mo!
+    } else {
+        setTimeout(startApp, 500);
+    }
+}
+startApp();
 
 
 // ==========================================
