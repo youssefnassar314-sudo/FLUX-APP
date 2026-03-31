@@ -1,0 +1,353 @@
+/* FLUX - ULTRA AESTHETIC DARK GLASS EDITION */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+:root {
+    --bg-dark: #0f172a;
+    --bg-glow: #1e1b4b;
+    --primary: #38bdf8; /* Neon Blue */
+    --secondary: #c084fc; /* Neon Purple */
+    --glass-bg: rgba(255, 255, 255, 0.03);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --success: #10b981;
+    --danger: #f43f5e;
+}
+
+* {
+    box-sizing: border-box;
+    font-family: 'Plus Jakarta Sans', sans-serif; /* Mas modern kaysa Poppins */
+}
+
+/* Animated Dark Gradient Background */
+body {
+    background: radial-gradient(circle at top left, var(--bg-glow), var(--bg-dark) 80%);
+    color: var(--text-main);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+}
+
+/* 📱 The Phone/App Container (Glassmorphism) */
+.app-container {
+    width: 100%;
+    max-width: 420px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    min-height: 85vh;
+    border-radius: 40px;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 30px 60px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(255,255,255,0.05);
+    padding: 30px 25px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* ✨ FLUX Branding */
+.app-header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+.logo {
+    font-weight: 800;
+    font-size: 36px;
+    margin: 0;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    color: transparent;
+    letter-spacing: 3px;
+    filter: drop-shadow(0 0 15px rgba(192, 132, 252, 0.4));
+}
+.subtitle {
+    margin: 0;
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+/* Screen Management */
+.screen { display: none; animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+.active-screen { display: block; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(15px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* --- DASHBOARD --- */
+.motivation-box {
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(192, 132, 252, 0.1));
+    border: 1px solid rgba(192, 132, 252, 0.2);
+    padding: 20px;
+    border-radius: 20px;
+    text-align: center;
+    margin-bottom: 25px;
+    font-style: italic;
+    color: var(--primary);
+    font-weight: 500;
+    font-size: 13px;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 80px;
+}
+
+.grid-item {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    padding: 25px 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.grid-item .icon { font-size: 32px; display: block; margin-bottom: 12px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
+.grid-item p { margin: 0; font-weight: 600; font-size: 13px; color: var(--text-main); }
+
+.grid-item.active:hover { 
+    transform: translateY(-8px);
+    border-color: var(--primary);
+    background: rgba(56, 189, 248, 0.05);
+    box-shadow: 0 15px 30px -5px rgba(56, 189, 248, 0.2);
+}
+
+.grid-item.disabled { opacity: 0.4; cursor: not-allowed; filter: grayscale(100%); }
+
+/* --- UTANG TRACKER --- */
+.back-btn {
+    background: none; border: none; font-size: 14px;
+    color: var(--text-muted); cursor: pointer; padding: 0;
+    margin-bottom: 20px; font-weight: 600; transition: 0.2s;
+}
+.back-btn:hover { color: var(--text-main); }
+
+/* The 2-Column Summary Box */
+.summary-box { display: flex; gap: 15px; margin-bottom: 25px; }
+.stat-col {
+    flex: 1; background: var(--glass-bg); padding: 15px;
+    border-radius: 20px; text-align: center; border: 1px solid var(--glass-border);
+}
+.stat-col p { margin: 0 0 5px 0; font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+.stat-col h3 { margin: 0; font-size: 22px; font-weight: 800; }
+.text-danger { color: var(--danger); text-shadow: 0 0 10px rgba(244, 63, 94, 0.3); }
+.text-success { color: var(--success); text-shadow: 0 0 10px rgba(16, 185, 129, 0.3); }
+
+/* Buttons */
+.add-btn, .save-btn, .google-btn, .receipt-btn {
+    width: 100%; border: none; padding: 16px; border-radius: 16px;
+    font-size: 14px; font-weight: 700; cursor: pointer; color: white;
+    transition: all 0.3s ease; letter-spacing: 0.5px;
+}
+.add-btn, .save-btn, .google-btn {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    box-shadow: 0 8px 20px rgba(192, 132, 252, 0.3);
+    margin-bottom: 20px;
+}
+.add-btn:hover, .save-btn:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 12px 25px rgba(56, 189, 248, 0.4); }
+
+.secondary-btn {
+    width: 100%; background: rgba(255,255,255,0.05) !important; color: var(--text-main) !important;
+    border: 1px dashed var(--glass-border) !important; padding: 12px; border-radius: 12px;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    margin-bottom: 20px; transition: 0.2s;
+}
+.secondary-btn:hover { background: rgba(255,255,255,0.1) !important; }
+
+.receipt-btn { background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border); backdrop-filter: blur(10px); position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); width: 85%; }
+
+/* Inputs & Form */
+.hidden-form {
+    background: rgba(0,0,0,0.2); padding: 20px; border-radius: 24px;
+    border: 1px solid var(--glass-border); margin-bottom: 25px;
+}
+.hidden-form label { font-size: 11px; color: var(--primary); font-weight: 700; display: block; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+
+/* Idinagdag natin ang type="time" at textarea */
+input[type="text"], input[type="number"], input[type="date"], input[type="time"], textarea {
+    width: 100%; padding: 14px; margin-bottom: 15px;
+    background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); 
+    border-radius: 12px; font-size: 14px; color: var(--text-main); 
+    outline: none; transition: 0.3s;
+}
+textarea {
+    resize: vertical;
+    min-height: 80px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+input:focus, textarea:focus { border-color: var(--primary); background: rgba(255,255,255,0.08); box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }
+
+/* Fix para sa dark mode icons (Calendar at Orasan) */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator { 
+    filter: invert(1); opacity: 0.6; cursor: pointer; 
+}
+
+/* Dagdag para sa textarea para hindi sumobra ang liit */
+textarea {
+    resize: vertical;
+    min-height: 80px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+input:focus { border-color: var(--primary); background: rgba(255,255,255,0.08); box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }
+
+/* Fix para sa dark mode calendar icon sa ibang browser */
+input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.6; cursor: pointer; }
+
+/* Month Navigation */
+.month-nav {
+    display: flex; justify-content: space-between; align-items: center;
+    background: var(--glass-bg); border: 1px solid var(--glass-border);
+    padding: 12px 20px; border-radius: 20px; margin-bottom: 20px;
+}
+.month-nav h3 { margin: 0; font-size: 15px; font-weight: 700; letter-spacing: 1px; }
+.month-nav button { background: none; border: none; color: var(--primary); font-size: 18px; cursor: pointer; transition: 0.2s; }
+.month-nav button:hover { transform: scale(1.3); text-shadow: 0 0 10px var(--primary); }
+
+/* Utang Cards (Holographic look) */
+.utang-card {
+    background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); 
+    border-left: 4px solid var(--primary);
+    border-radius: 16px; padding: 20px; margin-bottom: 15px;
+    transition: 0.3s; position: relative; overflow: hidden;
+}
+.utang-card::before {
+    content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+    background: linear-gradient(to right, transparent, rgba(255,255,255,0.05), transparent);
+    transform: skewX(-20deg); transition: 0.5s;
+}
+.utang-card:hover::before { left: 150%; }
+.utang-card h4 { margin: 0 0 8px 0; display: flex; justify-content: space-between; font-size: 15px; font-weight: 700; }
+.utang-card p { margin: 0; font-size: 12px; }
+
+/* Overriding JS inline styles for the delete button */
+.due-row button { background: rgba(244, 63, 94, 0.1) !important; color: var(--danger) !important; border: 1px solid rgba(244, 63, 94, 0.2) !important; transition: 0.2s; }
+.due-row button:hover { background: rgba(244, 63, 94, 0.3) !important; transform: scale(1.1); }
+
+.paid-btn {
+    background: transparent; color: var(--primary); border: 1px solid var(--primary);
+    padding: 10px 15px; border-radius: 10px; cursor: pointer;
+    width: 100%; margin-top: 15px; font-weight: 600; font-size: 13px; transition: 0.3s;
+}
+.paid-btn:hover:not(:disabled) { background: var(--primary); color: var(--bg-dark); box-shadow: 0 0 15px rgba(56, 189, 248, 0.4); }
+.paid-btn:disabled { background: rgba(16, 185, 129, 0.1); color: var(--success); border-color: rgba(16, 185, 129, 0.3); opacity: 1; }
+
+/* --- CATEGORY BADGES & DROPDOWN --- */
+.glass-select {
+    width: 100%; padding: 14px; margin-bottom: 15px;
+    background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); 
+    border-radius: 12px; font-size: 14px; color: var(--text-main); 
+    outline: none; transition: 0.3s; appearance: none;
+    cursor: pointer;
+}
+.glass-select option {
+    background: var(--bg-dark); /* Dark background para mabasa yung options */
+    color: var(--text-main);
+}
+.glass-select:focus { border-color: var(--primary); box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }
+
+.badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.badge-primary {
+    background: rgba(56, 189, 248, 0.1);
+    color: var(--primary);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+}
+.badge-secondary {
+    background: rgba(192, 132, 252, 0.1);
+    color: var(--secondary);
+    border: 1px solid rgba(192, 132, 252, 0.3);
+}
+/* --- KANBAN BOARD STYLES --- */
+.kanban-board {
+    display: flex;
+    gap: 15px;
+    overflow-x: auto; /* Para pwede i-swipe pakaliwa/pakanan */
+    padding-bottom: 20px;
+    scroll-snap-type: x mandatory; /* Para saktong titigil per column */
+}
+
+/* Custom Scrollbar para sa Kanban */
+.kanban-board::-webkit-scrollbar { height: 8px; }
+.kanban-board::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); border-radius: 10px; }
+.kanban-board::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+
+.kanban-col {
+    min-width: 280px; /* Sakto sa phone screen */
+    flex: 1;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    scroll-snap-align: center; /* Snap sa gitna pag swipe */
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.kanban-col h4 {
+    margin: 0 0 15px 0;
+    text-transform: uppercase;
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-align: center;
+    background: rgba(0,0,0,0.2);
+    padding: 10px;
+    border-radius: 12px;
+}
+
+.kanban-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 12px;
+    transition: 0.3s;
+}
+
+.kanban-card:hover {
+    border-color: var(--primary);
+    transform: translateY(-3px);
+}
+
+.kanban-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+    border-top: 1px dashed var(--glass-border);
+    padding-top: 10px;
+}
+
+.kb-btn {
+    background: rgba(255,255,255,0.05);
+    color: var(--text-muted);
+    border: none;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.kb-btn:hover {
+    background: var(--primary);
+    color: white;
+}
