@@ -99,11 +99,50 @@ async function saveUtang() {
     } catch (e) { console.error(e); alert("May error sa pag-save ng utang!"); }
 }
 
-async function markPaid(id) {
+// BAGO: Buksan ang modal para pumili ng pambayad
+function openPayUtangModal(id, amount, utangIdLabel) {
+    if (myWallets.length === 0) return alert("Gumawa ka muna ng wallet sa Budget tab!");
+    
+    document.getElementById('payUtangId').value = id;
+    document.getElementById('payUtangAmount').value = amount;
+    document.getElementById('payUtangDetails').innerText = `Babayaran: ID ${utangIdLabel} (₱${amount.toLocaleString()})`;
+
+    let select = document.getElementById('payUtangWallet');
+    select.innerHTML = '<option value="">Saan kukunin ang pera?</option>';
+    myWallets.forEach(w => { 
+        select.innerHTML += `<option value="${w.id}">${w.name} (Bal: ₱${parseFloat(w.balance).toLocaleString()})</option>`; 
+    });
+
+    document.getElementById('payUtangModal').style.display = 'flex';
+}
+
+// BAGO: I-confirm ang bayad at ikaltas sa wallet
+async function confirmPayUtang() {
+    let utangId = document.getElementById('payUtangId').value;
+    let amount = parseFloat(document.getElementById('payUtangAmount').value);
+    let walletId = document.getElementById('payUtangWallet').value;
+
+    if (!walletId) return alert("Pumili ng wallet na pagkukunan!");
+
+    let walletObj = myWallets.find(w => w.id === walletId);
+    if (!walletObj || parseFloat(walletObj.balance) < amount) {
+        return alert("Oops! Kulang ang pondo mo sa wallet na ito para pambayad.");
+    }
+
     try {
-        const docRef = window.dbMethods.doc(window.db, "utang", id);
-        await window.dbMethods.updateDoc(docRef, { isPaid: true });
-    } catch (e) { console.error(e); }
+        // 1. Ikaltas sa Wallet
+        let newBal = parseFloat(walletObj.balance) - amount;
+        monthlySpent += amount; 
+        await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletId), { balance: newBal });
+
+        // 2. I-update ang Utang as Paid
+        await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "utang", utangId), { isPaid: true });
+
+        closeBudgetModals();
+    } catch (e) { 
+        console.error(e); 
+        alert("May error sa pagproseso ng bayad."); 
+    }
 }
 
 function changeMonth(offset) {
@@ -167,7 +206,7 @@ function renderUtangList() {
                 <div style="margin-bottom: 10px;">${badgeHTML}</div>
                 <h4><span style="font-family: monospace; letter-spacing: 1px; color: var(--primary);">ID: ${utang.utangId}</span> <span>₱${utang.amount.toFixed(2)}</span></h4>
                 <p style="color: var(--danger); font-weight: bold;"><i class="ph-bold ph-calendar-x"></i> Due On: ${shortMonth} ${day}</p>
-                <button class="paid-btn" onclick="markPaid('${utang.id}')" ${utang.isPaid ? 'disabled' : ''}>${utang.isPaid ? '<i class="ph-bold ph-check"></i> Paid' : 'Mark as Full Paid'}</button>
+                <button class="paid-btn" onclick="openPayUtangModal('${utang.id}', ${utang.amount}, '${utang.utangId}')" ${utang.isPaid ? 'disabled' : ''}>${utang.isPaid ? '<i class="ph-bold ph-check"></i> Paid' : 'Pay via Wallet'}</button>
             </div>
         `;
     });
@@ -574,7 +613,12 @@ function openTransactionModal(type) {
 function addIncome() { openTransactionModal('income'); }
 function addExpense() { openTransactionModal('expense'); }
 function addTransfer() { openTransactionModal('transfer'); } // BAGO
-function closeBudgetModals() { document.getElementById('walletModal').style.display = 'none'; document.getElementById('transactionModal').style.display = 'none'; }
+function closeBudgetModals() { 
+    document.getElementById('walletModal').style.display = 'none'; 
+    document.getElementById('transactionModal').style.display = 'none'; 
+    let payUtangModal = document.getElementById('payUtangModal');
+    if (payUtangModal) payUtangModal.style.display = 'none';
+}
 
 // ==========================================
 // 🚀 INITIALIZE SYSTEM
@@ -599,7 +643,8 @@ window.showAddForm = showAddForm;
 window.addDueRow = addDueRow;
 window.saveUtang = saveUtang;
 window.changeMonth = changeMonth;
-window.markPaid = markPaid;
+window.openPayUtangModal = openPayUtangModal; // BAGO
+window.confirmPayUtang = confirmPayUtang; // BAGO
 window.estimateAITask = estimateAITask;
 window.saveManualTask = saveManualTask;
 window.saveHabit = saveHabit;
@@ -610,10 +655,10 @@ window.deleteFood = deleteFood;
 window.analyzeFoodAI = analyzeFoodAI;
 window.showAddWalletModal = showAddWalletModal;
 window.saveWallet = saveWallet;
-window.deleteWallet = deleteWallet; // BAGO
+window.deleteWallet = deleteWallet;
 window.setMonthlyBudget = setMonthlyBudget;
 window.addIncome = addIncome;
 window.addExpense = addExpense;
-window.addTransfer = addTransfer; // BAGO
+window.addTransfer = addTransfer;
 window.saveTransaction = saveTransaction;
 window.closeBudgetModals = closeBudgetModals;
