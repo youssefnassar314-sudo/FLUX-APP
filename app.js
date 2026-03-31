@@ -14,6 +14,7 @@ let monthlySpent = 0;
 
 let dueCounter = 1; 
 let currentDateView = new Date(); 
+let transactionDatabase = [];
 
 // 1. Pampa-switch ng screens
 function switchScreen(screenId) {
@@ -558,13 +559,72 @@ async function deleteWallet(id) {
     }
 }
 
+// BAGO: I-fetch at i-render ang Transaction History
+function initRealtimeTransactions() {
+    const q = window.dbMethods.query(window.dbMethods.collection(window.db, "transactions"));
+    window.dbMethods.onSnapshot(q, (snapshot) => {
+        transactionDatabase = [];
+        snapshot.forEach(doc => transactionDatabase.push({ id: doc.id, ...doc.data() }));
+        // I-sort from latest to oldest
+        transactionDatabase.sort((a, b) => b.createdAt - a.createdAt); 
+        renderTransactions();
+    });
+}
 
+function renderTransactions() {
+    let container = document.getElementById('transactionListContainer');
+    if (!container) return;
+    container.innerHTML = '';
+
+    if (transactionDatabase.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: var(--text-muted); font-size: 12px; font-style: italic;">Walang recent transactions.</p>';
+        return;
+    }
+
+    // Ipapakita lang natin yung pinaka-latest na 10 transactions para hindi masyadong mahaba
+    let recentTx = transactionDatabase.slice(0, 10);
+
+    recentTx.forEach(t => {
+        let isIncome = t.type === 'income';
+        let isTransfer = t.type === 'transfer';
+        
+        let icon = isIncome ? 'ph-trend-up' : (isTransfer ? 'ph-arrows-left-right' : 'ph-trend-down');
+        let color = isIncome ? 'var(--success)' : (isTransfer ? 'var(--secondary)' : 'var(--danger)');
+        let sign = isIncome ? '+' : (isTransfer ? '' : '-');
+        
+        // Hanapin yung pangalan ng wallet
+        let walletObj = myWallets.find(w => w.id === t.walletId);
+        let walletName = walletObj ? walletObj.name : 'Deleted Wallet';
+        let dateStr = new Date(t.createdAt).toLocaleDateString('default', { month: 'short', day: 'numeric' });
+
+        let displayNote = t.note && t.note !== "N/A" ? t.note : t.category;
+
+        container.innerHTML += `
+            <div class="utang-card" style="padding: 12px 15px; margin-bottom: 10px; background: rgba(255,255,255,0.02); display: flex; justify-content: space-between; align-items: center; border-left-color: ${color};">
+                <div style="display: flex; gap: 12px; align-items: center; overflow: hidden;">
+                    <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px; color: ${color};">
+                        <i class="ph-bold ${icon}" style="font-size: 16px;"></i>
+                    </div>
+                    <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        <p style="margin: 0; font-size: 13px; font-weight: 600; color: var(--text-main);">${displayNote}</p>
+                        <p style="margin: 2px 0 0 0; font-size: 11px; color: var(--text-muted);">${walletName} • ${dateStr}</p>
+                    </div>
+                </div>
+                <div style="text-align: right; flex-shrink: 0; margin-left: 10px;">
+                    <h4 style="margin: 0; font-size: 14px; color: ${color};">${sign}₱${parseFloat(t.amount).toLocaleString()}</h4>
+                </div>
+            </div>
+        `;
+    });
+}
+
+// BAGO: Na-update ang Save Transaction para i-log LAHAT sa history
 async function saveTransaction() {
     let type = document.getElementById('transactionType').value;
     let walletId = document.getElementById('transactionWallet').value; 
     let amount = parseFloat(document.getElementById('transactionAmount').value);
     let note = document.getElementById('transactionNote').value;
-    let category = document.getElementById('transactionCategory').value; // Kinukuha ang category
+    let category = document.getElementById('transactionCategory').value;
 
     if (!amount || isNaN(amount) || amount <= 0) return alert("Maglagay ng tamang halaga!");
     let walletObj = myWallets.find(w => w.id === walletId);
@@ -577,14 +637,17 @@ async function saveTransaction() {
     if (type === 'income') {
         newBal += amount;
         await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletId), { balance: newBal });
+        // I-save sa History
+        await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "transactions"), {
+            type: 'income', walletId: walletId, amount: amount, note: note || "N/A", category: "Income", createdAt: Date.now()
+        });
     } 
     else if (type === 'expense') { 
         if (newBal < amount) return alert("Kulang pondo sa wallet na ito!"); 
         newBal -= amount; 
-        monthlySpent += amount; // Ito lang ang expenses na babawas sa Budget Limit
+        monthlySpent += amount; 
         await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletId), { balance: newBal });
-        
-        // Optional: Naka-ready na para i-save sa future transaction history 
+        // I-save sa History
         await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "transactions"), {
             type: 'expense', walletId: walletId, amount: amount, note: note || "N/A", category: category, createdAt: Date.now()
         });
@@ -601,12 +664,16 @@ async function saveTransaction() {
 
         await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletId), { balance: newBal });
         await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletToId), { balance: newTargetBal });
+        // I-save sa History
+        await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "transactions"), {
+            type: 'transfer', walletId: walletId, walletToId: walletToId, amount: amount, note: note || "Wallet Transfer", category: "Transfer", createdAt: Date.now()
+        });
     }
 
     try {
         document.getElementById('transactionAmount').value = ''; 
         document.getElementById('transactionNote').value = ''; 
-        document.getElementById('transactionCategory').value = ''; // Reset
+        document.getElementById('transactionCategory').value = ''; 
         closeBudgetModals();
         updateBudgetDashboard();
     } catch (e) { console.error(e); }
@@ -699,6 +766,7 @@ function startApp() {
                     initRealtimeTasks();
                     initRealtimeFood();
                     initRealtimeBudget();
+                    initRealtimeTransactions();
                     isAppInitialized = true;
                 }
             } else {
