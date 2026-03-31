@@ -9,8 +9,10 @@ let myWallets = [];
 
 let runningTotalUtang = 0;
 let runningTotalBayad = 0;
+// BAGO: Ibabalik natin sa 0 dahil sa Firebase na kukunin, at may budgetDocId na para sa database
 let monthlyTarget = 0;
 let monthlySpent = 0;
+let budgetDocId = null;
 
 let dueCounter = 1; 
 let currentDateView = new Date(); 
@@ -450,8 +452,9 @@ function initRealtimeFood() {
     window.dbMethods.onSnapshot(q, (snapshot) => {
         foodDatabase = [];
         snapshot.forEach(doc => foodDatabase.push({ id: doc.id, ...doc.data() }));
-        foodDatabase.sort((a, b) => b.createdAt - a.createdAt); // Latest sa taas
+        foodDatabase.sort((a, b) => b.createdAt - a.createdAt);
         renderFoodList();
+        updateBudgetDashboard(); // BAGO
     });
 }
 
@@ -498,6 +501,7 @@ async function analyzeFoodAI() {
 // 💰 MODULE 4: MULTI-WALLET & BUDGET SYSTEM (FIREBASE)
 // ==========================================
 
+// BAGO: Auto-compute ng mga nagastos mo (Food + Expenses) para kahit mag-refresh, hindi zero!
 function updateBudgetDashboard() {
     let totalPera = myWallets.reduce((sum, wallet) => sum + parseFloat(wallet.balance), 0);
     document.getElementById('totalNetWorth').innerText = `₱${totalPera.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
@@ -506,7 +510,6 @@ function updateBudgetDashboard() {
     if (myWallets.length === 0) container.innerHTML = `<p style="color: var(--text-muted); font-size: 12px; font-style: italic;">Wala pang wallet.</p>`;
     else {
         myWallets.forEach(wallet => {
-            // BAGO: May delete (X) button na ang bawat wallet
             container.innerHTML += `
                 <div style="position: relative; min-width: 120px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; flex-shrink: 0;">
                     <button onclick="deleteWallet('${wallet.id}')" style="position: absolute; top: 8px; right: 8px; background: none; border: none; color: var(--danger); cursor: pointer; padding: 0;"><i class="ph-bold ph-x"></i></button>
@@ -517,6 +520,37 @@ function updateBudgetDashboard() {
         });
     }
 
+    // --- AUTO-COMPUTE SPENT (Ngayong Buwan) ---
+    let now = new Date();
+    let computedSpent = 0;
+    
+    // 1. Idagdag ang lahat ng nasa Transaction History na "expense"
+    if (typeof transactionDatabase !== 'undefined') {
+        transactionDatabase.forEach(tx => {
+            if (tx.type === 'expense') {
+                let d = new Date(tx.createdAt);
+                if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
+                    computedSpent += parseFloat(tx.amount);
+                }
+            }
+        });
+    }
+
+    // 2. Idagdag ang mga biniling Food na may nilagay kang presyo
+    if (typeof foodDatabase !== 'undefined') {
+        foodDatabase.forEach(food => {
+            if (food.cost > 0) {
+                let d = new Date(food.createdAt);
+                if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
+                    computedSpent += parseFloat(food.cost);
+                }
+            }
+        });
+    }
+    
+    monthlySpent = computedSpent; // Finalize spent value
+
+    // --- UPDATE UI UI ---
     document.getElementById('monthlyTarget').innerText = `₱${parseFloat(monthlyTarget).toLocaleString()}`;
     document.getElementById('monthlySpent').innerText = `₱${parseFloat(monthlySpent).toLocaleString()}`;
     
@@ -565,9 +599,9 @@ function initRealtimeTransactions() {
     window.dbMethods.onSnapshot(q, (snapshot) => {
         transactionDatabase = [];
         snapshot.forEach(doc => transactionDatabase.push({ id: doc.id, ...doc.data() }));
-        // I-sort from latest to oldest
         transactionDatabase.sort((a, b) => b.createdAt - a.createdAt); 
         renderTransactions();
+        updateBudgetDashboard(); // BAGO
     });
 }
 
@@ -679,9 +713,42 @@ async function saveTransaction() {
     } catch (e) { console.error(e); }
 }
 
-function setMonthlyBudget() {
+
+// BAGO: Nagsi-save na directly sa Firebase Collection na "budgetConfig"
+async function setMonthlyBudget() {
     let target = prompt("Magkano ang limit ng budget mo for this month?");
-    if (target && !isNaN(target)) { monthlyTarget = parseFloat(target); updateBudgetDashboard(); }
+    if (target && !isNaN(target)) { 
+        let parsedTarget = parseFloat(target); 
+        
+        try {
+            if (budgetDocId) {
+                // Kung may na-set na dati, i-update lang sa database
+                await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "budgetConfig", budgetDocId), { target: parsedTarget });
+            } else {
+                // Kung first time mag-set, gagawa ng bagong record sa database
+                let docRef = await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "budgetConfig"), { target: parsedTarget });
+                budgetDocId = docRef.id;
+            }
+        } catch (e) {
+            console.error("Error saving budget:", e);
+            alert("May error sa pag-save ng budget sa database.");
+        }
+    }
+}
+
+// BAGO: Realtime listener para sa Target Budget
+function initRealtimeBudgetConfig() {
+    const q = window.dbMethods.query(window.dbMethods.collection(window.db, "budgetConfig"));
+    window.dbMethods.onSnapshot(q, (snapshot) => {
+        if (!snapshot.empty) {
+            let doc = snapshot.docs[0]; // Kunin yung nagi-isang record ng budget
+            budgetDocId = doc.id;
+            monthlyTarget = doc.data().target || 0;
+        } else {
+            monthlyTarget = 0;
+        }
+        updateBudgetDashboard(); // I-refresh ang UI UI pag nakuha na ang data
+    });
 }
 
 // BAGO: Na-update para i-handle ang UI ng "Transfer"
@@ -767,6 +834,7 @@ function startApp() {
                     initRealtimeFood();
                     initRealtimeBudget();
                     initRealtimeTransactions();
+                    initRealtimeBudgetConfig();
                     isAppInitialized = true;
                 }
             } else {
