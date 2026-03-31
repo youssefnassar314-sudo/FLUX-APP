@@ -265,7 +265,31 @@
                 ✨ Analyze My Day (AI)
             </button>
         </div>
+<div id="walletModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; padding: 20px; align-items: center; justify-content: center;">
+        <div class="utang-card" style="width: 100%; max-width: 400px; background: var(--bg-color); padding: 20px; position: relative;">
+            <h3 style="margin-top: 0; color: var(--primary);">🏦 Add New Wallet</h3>
+            <input type="text" id="walletName" placeholder="Pangalan (e.g. GCash, BPI, Cash)" style="margin-bottom: 10px;">
+            <input type="number" id="walletBalance" placeholder="Initial Balance (₱)" style="margin-bottom: 15px;">
+            <button onclick="saveWallet()" class="save-btn" style="margin-bottom: 10px;">Save Wallet</button>
+            <button onclick="closeBudgetModals()" style="width: 100%; background: transparent; color: var(--text-muted); border: none;">Cancel</button>
+        </div>
+    </div>
 
+    <div id="transactionModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; padding: 20px; align-items: center; justify-content: center;">
+        <div class="utang-card" style="width: 100%; max-width: 400px; background: var(--bg-color); padding: 20px; position: relative;">
+            <h3 id="transactionTitle" style="margin-top: 0; color: var(--primary);">Add Transaction</h3>
+            <input type="hidden" id="transactionType">
+            
+            <select id="transactionWallet" class="glass-select" style="margin-bottom: 10px;">
+                </select>
+            
+            <input type="number" id="transactionAmount" placeholder="Amount (₱)" style="margin-bottom: 10px;">
+            <input type="text" id="transactionNote" placeholder="Saan galing / Saan ginastos?" style="margin-bottom: 15px;">
+            
+            <button onclick="saveTransaction()" class="save-btn" id="saveTransactionBtn" style="margin-bottom: 10px;">Save</button>
+            <button onclick="closeBudgetModals()" style="width: 100%; background: transparent; color: var(--text-muted); border: none;">Cancel</button>
+        </div>
+    </div>
     </div>
 
     <script src="app.js"></script>
