@@ -32,7 +32,7 @@ function addDueRow() {
         <div style="display: flex; gap: 5px; margin-bottom: 10px;">
             <input type="number" class="dynamic-amt" placeholder="Amount" style="flex: 1;">
             <input type="date" class="dynamic-date" style="flex: 1;">
-            <button type="button" onclick="this.closest('.due-row').remove()" style="background: rgba(244, 63, 94, 0.1); color: var(--danger); border: 1px solid rgba(244, 63, 94, 0.2); padding: 0 10px; border-radius: 5px; cursor: pointer; font-size: 16px;">🗑️</button>
+            <button type="button" onclick="this.closest('.due-row').remove()" style="background: rgba(244, 63, 94, 0.1); color: var(--danger); border: 1px solid rgba(244, 63, 94, 0.2); padding: 0 10px; border-radius: 5px; cursor: pointer; font-size: 16px;"><i class="ph-bold ph-trash"></i></button>
         </div>
     `;
     container.appendChild(newRow);
@@ -45,7 +45,7 @@ function saveUtang() {
     let utangId = document.getElementById('utangId').value;
 
     if (!utangId) { alert("Engineer, pakilagay yung 6-digit Utang ID!"); return; }
-    if (!appName) appName = "N/A"; // Default kung naiwang blangko
+    if (!appName) appName = "N/A";
 
     let amounts = document.querySelectorAll('.dynamic-amt');
     let dates = document.querySelectorAll('.dynamic-date');
@@ -68,10 +68,8 @@ function saveUtang() {
         }
     }
 
-    // Update Header
     document.getElementById('displayTotalUtang').innerText = runningTotalUtang.toFixed(2);
 
-    // Reset buong Form
     document.getElementById('utangId').value = '';
     document.getElementById('utangCategory').value = 'My App';
     document.getElementById('appName').value = '';
@@ -97,63 +95,54 @@ function changeMonth(offset) {
     renderUtangList();
 }
 
-// 6. THE RENDER ENGINE (May Kasamang Badges at ID display)
+// 6. THE RENDER ENGINE
 function renderUtangList() {
     let container = document.getElementById('utangListContainer');
     container.innerHTML = ''; 
 
-    // Update Month Label
     let viewMonthName = currentDateView.toLocaleString('default', { month: 'long', year: 'numeric' });
     document.getElementById('currentMonthLabel').innerText = viewMonthName;
 
-    // Filter by Month & Year
     let filteredUtang = utangDatabase.filter(utang => {
         return utang.dueDate.getMonth() === currentDateView.getMonth() &&
                utang.dueDate.getFullYear() === currentDateView.getFullYear();
     });
 
-    // Sort by Unpaid first, then by Date
     filteredUtang.sort((a, b) => a.isPaid - b.isPaid || a.dueDate - b.dueDate);
 
-    // Kung walang laman
     if (filteredUtang.length === 0) {
-        container.innerHTML = `<p style="text-align: center; color: var(--text-muted); font-style: italic; margin-top: 30px;">Walang due para sa buwang ito. 🎉</p>`;
+        container.innerHTML = `<p style="text-align: center; color: var(--text-muted); font-style: italic; margin-top: 30px;">Walang due para sa buwang ito.</p>`;
         return;
     }
 
     let hasRenderedPaidHeader = false;
 
-    // I-display ang listahan
     filteredUtang.forEach(utang => {
         let day = utang.dueDate.getDate();
         let shortMonth = utang.dueDate.toLocaleString('default', { month: 'short' });
         let formattedDate = `${shortMonth} ${day}`;
 
-        // Paid Header
         if (utang.isPaid && !hasRenderedPaidHeader) {
-            container.innerHTML += `<div class="date-section"><h3 style="color: var(--success); border-bottom: 2px solid rgba(16, 185, 129, 0.2); padding-bottom: 5px; font-size: 14px; margin-top: 25px;">✅ Paid This Month</h3></div>`;
+            container.innerHTML += `<div class="date-section"><h3 style="color: var(--success); border-bottom: 2px solid rgba(16, 185, 129, 0.2); padding-bottom: 5px; font-size: 14px; margin-top: 25px;"><i class="ph-bold ph-check-circle"></i> Paid This Month</h3></div>`;
             hasRenderedPaidHeader = true;
         } 
 
-        // Card Styling
         let cardStyle = utang.isPaid ? 'opacity: 0.5; background-color: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.05);' : 'background: rgba(255,255,255,0.02);';
-        let btnText = utang.isPaid ? 'Paid na! ✅' : 'Mark as Full Paid';
+        let btnText = utang.isPaid ? '<i class="ph-bold ph-check"></i> Paid' : 'Mark as Full Paid';
         let btnDisabled = utang.isPaid ? 'disabled' : '';
 
-        // Badge Generation
         let badgeHTML = '';
         if (utang.category === 'My App') {
-            badgeHTML = `<span class="badge badge-primary">📱 My App: ${utang.appName}</span>`;
+            badgeHTML = `<span class="badge badge-primary"><i class="ph-bold ph-device-mobile"></i> My App: ${utang.appName}</span>`;
         } else {
-            badgeHTML = `<span class="badge badge-secondary">🧑 Under their: ${utang.appName}</span>`;
+            badgeHTML = `<span class="badge badge-secondary"><i class="ph-bold ph-user"></i> Under their: ${utang.appName}</span>`;
         }
 
-        // Final Card HTML (Gumamit tayo ng monospace font para sa ID para mukhang system code)
         let cardHTML = `
             <div class="utang-card" style="${cardStyle}">
                 <div style="margin-bottom: 10px;">${badgeHTML}</div>
                 <h4><span style="font-family: monospace; letter-spacing: 1px; color: var(--primary);">ID: ${utang.utangId}</span> <span>₱${utang.amount.toFixed(2)}</span></h4>
-                <p style="color: var(--danger); font-weight: bold;">Due On: ${formattedDate}</p>
+                <p style="color: var(--danger); font-weight: bold;"><i class="ph-bold ph-calendar-x"></i> Due On: ${formattedDate}</p>
                 <button class="paid-btn" onclick="markPaid(${utang.id})" ${btnDisabled}>${btnText}</button>
             </div>
         `;
@@ -180,13 +169,11 @@ function markPaid(id) {
 }
 
 // ==========================================
-// 🚀 MODULE 2: TASKS, DEADLINES & HABITS 🚀
+// 🚀 MODULE 2: TASKS, DEADLINES & HABITS
 // ==========================================
 
 let taskDatabase = [];
 let habitDatabase = [];
-
-// (Panatilihin ang existing switchScreen, addDueRow, saveUtang, etc. sa itaas)
 
 // --- 1. MOCK AI ESTIMATOR ---
 function estimateAITask() {
@@ -197,15 +184,15 @@ function estimateAITask() {
     if (!title || !dateVal) { alert("Engineer, pakilagay ang Task Title at Date!"); return; }
 
     let estMins = Math.floor(Math.random() * 90) + 30; 
-    alert(`🤖 FLUX AI says: Naisip ko na! Yung "${title}" aabutin yan ng mga ${estMins} minutes.`);
+    alert(`FLUX AI says: Naisip ko na! Yung "${title}" aabutin yan ng mga ${estMins} minutes.`);
 
     taskDatabase.push({
         id: Date.now(),
-        title: title + ' ✨', 
+        title: title,
         category: category,
         dueDate: new Date(dateVal),
         estMins: estMins,
-        status: 'todo' // <--- BAGONG DAGDAG (todo, doing, done)
+        status: 'todo'
     });
 
     document.getElementById('aiTaskTitle').value = '';
@@ -213,7 +200,7 @@ function estimateAITask() {
     document.getElementById('aiTaskDate').value = '';
 
     renderTasks();
-    renderKanban(); // I-update din ang Kanban sa likod
+    renderKanban();
 }
 
 // --- 2. MANUAL TASK SAVE ---
@@ -230,8 +217,8 @@ function saveManualTask() {
         title: title,
         category: category,
         dueDate: new Date(dateVal),
-        estMins: mins ? parseInt(mins) : 0, 
-        status: 'todo' // <--- BAGONG DAGDAG
+        estMins: mins ? parseInt(mins) : 0,
+        status: 'todo'
     });
 
     document.getElementById('manualTaskTitle').value = '';
@@ -242,13 +229,14 @@ function saveManualTask() {
     renderKanban(); 
 }
 
-// --- 3. DAILY HABIT SAVE --- (Hayaan mo lang itong existing code mo)
+// --- 3. DAILY HABIT SAVE ---
 function saveHabit() {
     let name = document.getElementById('habitName').value;
     let timeVal = document.getElementById('habitTime').value;
     if (!name || !timeVal) { alert("Pakilagay yung Habit at Oras!"); return; }
     habitDatabase.push({ id: Date.now() + 2, name: name, time: timeVal, isDone: false });
-    document.getElementById('habitName').value = ''; document.getElementById('habitTime').value = '';
+    document.getElementById('habitName').value = '';
+    document.getElementById('habitTime').value = '';
     renderTasks();
 }
 
@@ -257,10 +245,9 @@ function renderTasks() {
     let taskContainer = document.getElementById('taskListContainer');
     let habitContainer = document.getElementById('habitListContainer');
     
-    taskContainer.innerHTML = '<h3 style="color: var(--text-main); margin-top: 30px; font-size: 14px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px;">📋 PENDING TASKS</h3>';
-    habitContainer.innerHTML = '<h3 style="color: var(--success); margin-top: 30px; font-size: 14px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px;">🔄 DAILY HABITS</h3>';
+    taskContainer.innerHTML = `<h3 style="color: var(--text-main); margin-top: 30px; font-size: 14px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px;"><i class="ph-duotone ph-list-checks"></i> PENDING TASKS</h3>`;
+    habitContainer.innerHTML = `<h3 style="color: var(--success); margin-top: 30px; font-size: 14px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px;"><i class="ph-duotone ph-arrows-clockwise"></i> DAILY HABITS</h3>`;
 
-    // Sort by status ('done' goes down)
     let sortedTasks = taskDatabase.sort((a, b) => (a.status === 'done') - (b.status === 'done') || a.dueDate - b.dueDate);
     
     if (sortedTasks.length === 0) taskContainer.innerHTML += '<p style="color: var(--text-muted); font-size: 12px; font-style: italic;">No tasks yet.</p>';
@@ -271,7 +258,11 @@ function renderTasks() {
         
         let isDone = task.status === 'done';
         let cardStyle = isDone ? 'opacity: 0.5; background: rgba(255,255,255,0.02);' : 'background: rgba(192, 132, 252, 0.05); border-left: 4px solid var(--secondary);';
-        let btnText = isDone ? 'Done ✅' : (task.status === 'doing' ? 'Doing ⏳' : 'Mark Done');
+        let btnText = isDone
+            ? '<i class="ph-bold ph-check"></i> Done'
+            : (task.status === 'doing'
+                ? '<i class="ph-bold ph-hourglass"></i> Doing'
+                : 'Mark Done');
         let badgeColor = task.category === 'Work' ? '#38bdf8' : task.category === 'School' ? '#c084fc' : '#10b981';
 
         taskContainer.innerHTML += `
@@ -279,15 +270,14 @@ function renderTasks() {
                 <span style="font-size: 10px; font-weight: 700; background: rgba(255,255,255,0.05); color: ${badgeColor}; padding: 3px 8px; border-radius: 5px; text-transform: uppercase;">${task.category}</span>
                 <h4 style="margin: 8px 0; font-size: 15px; color: var(--text-main);">${task.title}</h4>
                 <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--text-muted);">
-                    <span>📅 ${shortMonth} ${day}</span>
-                    <span>⏱️ ${task.estMins} mins</span>
+                    <span><i class="ph-bold ph-calendar"></i> ${shortMonth} ${day}</span>
+                    <span><i class="ph-bold ph-timer"></i> ${task.estMins} mins</span>
                 </div>
                 <button class="paid-btn" style="border-color: var(--secondary); color: var(--secondary); margin-top: 10px; padding: 6px;" onclick="moveTaskStatus(${task.id}, 'done')" ${isDone ? 'disabled' : ''}>${btnText}</button>
             </div>
         `;
     });
 
-    // Habits Rendering (Hayaan lang yung existing code mo dito)
     if (habitDatabase.length === 0) habitContainer.innerHTML += '<p style="color: var(--text-muted); font-size: 12px; font-style: italic;">No habits yet.</p>';
     habitDatabase.forEach(habit => {
         let timeParts = habit.time.split(':');
@@ -296,24 +286,26 @@ function renderTasks() {
         hour = hour % 12; hour = hour ? hour : 12; 
         let formattedTime = hour + ':' + timeParts[1] + ' ' + ampm;
         let cardStyle = habit.isDone ? 'opacity: 0.5; background: rgba(255,255,255,0.02);' : 'background: rgba(16, 185, 129, 0.05); border-left: 4px solid var(--success);';
-        let btnText = habit.isDone ? 'Done ✅' : 'Mark Done';
+        let btnText = habit.isDone ? '<i class="ph-bold ph-check"></i> Done' : 'Mark Done';
 
         habitContainer.innerHTML += `
             <div class="utang-card" style="${cardStyle} margin-bottom: 10px; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
-                <div><h4 style="margin: 0 0 5px 0; font-size: 15px; color: var(--success);">${habit.name}</h4><span style="font-size: 12px; color: var(--text-muted);">⏰ ${formattedTime}</span></div>
+                <div>
+                    <h4 style="margin: 0 0 5px 0; font-size: 15px; color: var(--success);">${habit.name}</h4>
+                    <span style="font-size: 12px; color: var(--text-muted);"><i class="ph-bold ph-clock"></i> ${formattedTime}</span>
+                </div>
                 <button class="paid-btn" style="width: auto; margin-top: 0; padding: 6px 12px; border-color: var(--success); color: var(--success);" onclick="markHabitDone(${habit.id})" ${habit.isDone ? 'disabled' : ''}>${btnText}</button>
             </div>
         `;
     });
 }
 
-// --- 5. THE KANBAN RENDER ENGINE (BAGONG DAGDAG!) ---
+// --- 5. THE KANBAN RENDER ENGINE ---
 function renderKanban() {
     let colTodo = document.getElementById('kb-todo');
     let colDoing = document.getElementById('kb-doing');
     let colDone = document.getElementById('kb-done');
 
-    // Linisin muna lahat ng columns
     colTodo.innerHTML = ''; colDoing.innerHTML = ''; colDone.innerHTML = '';
 
     taskDatabase.forEach(task => {
@@ -321,24 +313,23 @@ function renderKanban() {
         let day = task.dueDate.getDate();
         let badgeColor = task.category === 'Work' ? '#38bdf8' : task.category === 'School' ? '#c084fc' : '#10b981';
 
-        // Gawa ng buttons base sa current status
         let actionButtons = '';
         if (task.status === 'todo') {
-            actionButtons = `<button class="kb-btn" style="width: 100%; color: var(--primary);" onclick="moveTaskStatus(${task.id}, 'doing')">Move to DOING ➔</button>`;
+            actionButtons = `<button class="kb-btn" style="width: 100%; color: var(--primary);" onclick="moveTaskStatus(${task.id}, 'doing')">Move to DOING <i class="ph-bold ph-arrow-right"></i></button>`;
         } else if (task.status === 'doing') {
             actionButtons = `
-                <button class="kb-btn" style="color: var(--danger);" onclick="moveTaskStatus(${task.id}, 'todo')">⬅ To Do</button>
-                <button class="kb-btn" style="color: var(--success);" onclick="moveTaskStatus(${task.id}, 'done')">Done ✅</button>
+                <button class="kb-btn" style="color: var(--danger);" onclick="moveTaskStatus(${task.id}, 'todo')"><i class="ph-bold ph-arrow-left"></i> To Do</button>
+                <button class="kb-btn" style="color: var(--success);" onclick="moveTaskStatus(${task.id}, 'done')"><i class="ph-bold ph-check"></i> Done</button>
             `;
         } else if (task.status === 'done') {
-            actionButtons = `<button class="kb-btn" style="width: 100%; color: var(--text-muted);" onclick="moveTaskStatus(${task.id}, 'doing')">⬅ Back to Doing</button>`;
+            actionButtons = `<button class="kb-btn" style="width: 100%; color: var(--text-muted);" onclick="moveTaskStatus(${task.id}, 'doing')"><i class="ph-bold ph-arrow-left"></i> Back to Doing</button>`;
         }
 
         let cardHTML = `
             <div class="kanban-card">
                 <span style="font-size: 9px; font-weight: 700; background: rgba(255,255,255,0.05); color: ${badgeColor}; padding: 3px 6px; border-radius: 4px; text-transform: uppercase;">${task.category}</span>
                 <h4 style="margin: 8px 0; font-size: 14px; color: var(--text-main);">${task.title}</h4>
-                <p style="margin: 0; font-size: 11px; color: var(--text-muted);">📅 Due: ${shortMonth} ${day}</p>
+                <p style="margin: 0; font-size: 11px; color: var(--text-muted);"><i class="ph-bold ph-calendar"></i> Due: ${shortMonth} ${day}</p>
                 <div class="kanban-actions">${actionButtons}</div>
             </div>
         `;
@@ -354,8 +345,8 @@ function moveTaskStatus(id, newStatus) {
     let task = taskDatabase.find(t => t.id === id);
     if (task) { 
         task.status = newStatus; 
-        renderTasks();  // I-update ang normal view
-        renderKanban(); // I-update ang Kanban view
+        renderTasks();
+        renderKanban();
     }
 }
 
@@ -365,7 +356,7 @@ function markHabitDone(id) {
 }
 
 // ==========================================
-// 🍔 MODULE 3: FOOD LOG & MULTIMODAL AI 🍔
+// MODULE 3: FOOD LOG & MULTIMODAL AI
 // ==========================================
 
 let foodDatabase = [];
@@ -378,52 +369,39 @@ document.getElementById('foodImage').addEventListener('change', function(e) {
     if (!file) return;
     
     let display = document.getElementById('fileNameDisplay');
-    display.innerText = "⏳ Compressing: " + file.name + "...";
+    display.innerText = "Compressing: " + file.name + "...";
     display.style.display = "block";
-    display.style.color = "var(--secondary)"; // Gawing purple habang nag-iisip
+    display.style.color = "var(--secondary)";
 
     let reader = new FileReader();
     reader.onload = function(event) {
         let img = new Image();
         img.onload = function() {
-            // Gumawa ng invisible canvas para liitan ang picture
             let canvas = document.createElement('canvas');
             let ctx = canvas.getContext('2d');
             
-            // Set max width/height para hindi mabigat kay Vercel
             let MAX_WIDTH = 800; 
             let MAX_HEIGHT = 800;
             let width = img.width;
             let height = img.height;
 
             if (width > height) {
-                if (width > MAX_WIDTH) {
-                    height *= MAX_WIDTH / width;
-                    width = MAX_WIDTH;
-                }
+                if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
             } else {
-                if (height > MAX_HEIGHT) {
-                    width *= MAX_HEIGHT / height;
-                    height = MAX_HEIGHT;
-                }
+                if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
             }
 
             canvas.width = width;
             canvas.height = height;
-            
-            // I-drawing sa canvas yung niliitang picture
             ctx.drawImage(img, 0, 0, width, height);
 
-            // I-convert pabalik to text (Base64), pero JPEG na may 70% quality lang
             let compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
-
             let split = compressedDataUrl.split(',');
             currentMimeType = split[0].match(/:(.*?);/)[1];
             currentBase64 = split[1]; 
 
-            // Update UI pag tapos na
-            display.innerText = "✅ Ready: " + file.name;
-            display.style.color = "var(--success)"; // Gawing green
+            display.innerText = "Ready: " + file.name;
+            display.style.color = "var(--success)";
         };
         img.src = event.target.result;
     };
@@ -431,10 +409,9 @@ document.getElementById('foodImage').addEventListener('change', function(e) {
 });
 
 // --- 2. I-SAVE ANG FOOD LOG ---
-// --- 2. I-SAVE ANG FOOD LOG ---
 function saveFood() {
     let mealType = document.getElementById('mealType').value;
-    let foodSource = document.getElementById('foodSource').value; // 🆕 Kinuha natin yung source
+    let foodSource = document.getElementById('foodSource').value;
     let foodItem = document.getElementById('foodItem').value;
 
     if (!foodItem && !currentBase64) { 
@@ -445,14 +422,13 @@ function saveFood() {
     foodDatabase.push({
         id: Date.now(),
         meal: mealType,
-        source: foodSource, // 🆕 I-save natin sa database
+        source: foodSource,
         item: foodItem || "*(May Picture)*",
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         image64: currentBase64,
         mimeType: currentMimeType
     });
 
-    // I-reset ang form
     document.getElementById('foodItem').value = '';
     document.getElementById('foodImage').value = '';
     document.getElementById('fileNameDisplay').style.display = 'none';
@@ -462,27 +438,27 @@ function saveFood() {
     
     renderFoodList();
 }
+
 // --- 3. I-RENDER ANG FOOD LIST ---
 function renderFoodList() {
     let container = document.getElementById('foodListContainer');
-    container.innerHTML = '<h3 style="color: var(--text-main); margin-top: 10px; font-size: 14px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px;">🍽️ FOOD LOG TODAY</h3>';
+    container.innerHTML = `<h3 style="color: var(--text-main); margin-top: 10px; font-size: 14px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px;"><i class="ph-duotone ph-fork-knife"></i> FOOD LOG TODAY</h3>`;
 
     if (foodDatabase.length === 0) {
         container.innerHTML += '<p style="color: var(--text-muted); font-size: 12px; font-style: italic;">Wala ka pang kinakain today. Tubig tubig din!</p>';
         return;
     }
 
-    // Hanapin mo yung block na gumagawa ng HTML ng utang-card at i-replace nito:
     foodDatabase.forEach(food => {
         let badgeColor = food.meal === 'Breakfast' ? '#fbbf24' : food.meal === 'Lunch' ? '#38bdf8' : food.meal === 'Dinner' ? '#c084fc' : '#f43f5e';
-        let picIcon = food.image64 ? ' 📷' : '';
+        let picIcon = food.image64 ? ' <i class="ph-bold ph-image"></i>' : '';
 
         container.innerHTML += `
             <div class="utang-card" style="background: rgba(255,255,255,0.02); margin-bottom: 10px; padding: 15px;">
                 <span style="font-size: 9px; font-weight: 700; background: rgba(255,255,255,0.05); color: ${badgeColor}; padding: 3px 8px; border-radius: 5px; text-transform: uppercase;">${food.meal} • ${food.source}</span>
                 <span style="float: right; font-size: 11px; color: var(--text-muted);">${food.time}</span>
                 <h4 style="margin: 10px 0 0 0; font-size: 14px; color: var(--text-main); font-weight: 500;">${food.item}${picIcon}</h4>
-                <button onclick="deleteFood(${food.id})" style="background: none; border: none; color: var(--danger); font-size: 12px; margin-top: 8px; cursor: pointer; padding: 0;">🗑️ Remove</button>
+                <button onclick="deleteFood(${food.id})" style="background: none; border: none; color: var(--danger); font-size: 12px; margin-top: 8px; cursor: pointer; padding: 0;"><i class="ph-bold ph-trash"></i> Remove</button>
             </div>
         `;
     });
@@ -490,21 +466,17 @@ function renderFoodList() {
 
 function deleteFood(id) { foodDatabase = foodDatabase.filter(f => f.id !== id); renderFoodList(); }
 
-// --- 4. TOTOONG GEMINI VISION AI CALL ---
+// --- 4. AI FOOD ANALYSIS CALL ---
 async function analyzeFoodAI() {
     if (foodDatabase.length === 0) { alert("Kumain ka muna!"); return; }
 
     let aiBtn = document.querySelector('button[onclick="analyzeFoodAI()"]');
     let originalText = aiBtn.innerHTML;
-    aiBtn.innerHTML = "⏳ Scanning food with AI...";
+    aiBtn.innerHTML = '<i class="ph-bold ph-hourglass"></i> Scanning food with AI...';
     aiBtn.disabled = true;
 
-    // Kunin lahat ng text
-    // Hanapin yung nagme-merge ng text at i-replace nito:
-    // 🆕 Isasama na natin sa text yung "[Source]" bago ibato sa Vercel
     let allFoodText = foodDatabase.map(f => `${f.meal} [${f.source}]: ${f.item}`).join(" | ");
     
-    // Kunin lahat ng images
     let payloadImages = foodDatabase.filter(f => f.image64).map(f => ({
         mimeType: f.mimeType,
         data: f.image64
@@ -534,22 +506,20 @@ async function analyzeFoodAI() {
 }
 
 // ==========================================
-// 💰 MODULE 1: MULTI-WALLET & BUDGET SYSTEM
+// MODULE 1: MULTI-WALLET & BUDGET SYSTEM
 // ==========================================
 
-let myWallets = []; // Array ng mga bangko/wallets mo
+let myWallets = [];
 let monthlyTarget = 0;
 let monthlySpent = 0;
 
 // --- 1. UI UPDATES ---
 function updateBudgetDashboard() {
-    // A. I-compute ang Total Net Worth (Lahat ng laman ng wallets)
     let totalPera = myWallets.reduce((sum, wallet) => sum + parseFloat(wallet.balance), 0);
     document.getElementById('totalNetWorth').innerText = `₱${totalPera.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
 
-    // B. I-render ang mga Wallet Cards
     let container = document.getElementById('walletsContainer');
-    container.innerHTML = ''; // I-clear muna
+    container.innerHTML = '';
     
     if (myWallets.length === 0) {
         container.innerHTML = `<p style="color: var(--text-muted); font-size: 12px; font-style: italic;">Wala pang wallet. Mag-add na sa taas!</p>`;
@@ -564,7 +534,6 @@ function updateBudgetDashboard() {
         });
     }
 
-    // C. I-update ang Monthly Budget Progress
     document.getElementById('monthlyTarget').innerText = `₱${parseFloat(monthlyTarget).toLocaleString()}`;
     document.getElementById('monthlySpent').innerText = `₱${parseFloat(monthlySpent).toLocaleString()}`;
     
@@ -576,8 +545,6 @@ function updateBudgetDashboard() {
     
     let bar = document.getElementById('budgetProgressBar');
     bar.style.width = `${progress}%`;
-    
-    // Gawing red ang bar kapag over budget na (lampas 90%)
     bar.style.background = progress >= 90 ? 'var(--danger)' : 'var(--success)';
 }
 
@@ -595,11 +562,7 @@ function saveWallet() {
         return;
     }
 
-    myWallets.push({
-        id: Date.now(),
-        name: name,
-        balance: parseFloat(bal)
-    });
+    myWallets.push({ id: Date.now(), name: name, balance: parseFloat(bal) });
 
     document.getElementById('walletName').value = '';
     document.getElementById('walletBalance').value = '';
@@ -630,16 +593,15 @@ function openTransactionModal(type) {
     let btn = document.getElementById('saveTransactionBtn');
     
     if (type === 'income') {
-        title.innerText = '📈 Add Income';
+        title.innerHTML = '<i class="ph-bold ph-trend-up"></i> Add Income';
         title.style.color = 'var(--success)';
         btn.style.background = 'var(--success)';
     } else {
-        title.innerText = '📉 Add Expense';
+        title.innerHTML = '<i class="ph-bold ph-trend-down"></i> Add Expense';
         title.style.color = 'var(--danger)';
         btn.style.background = 'var(--danger)';
     }
 
-    // Populate wallet dropdown
     let walletSelect = document.getElementById('transactionWallet');
     walletSelect.innerHTML = '';
     myWallets.forEach(wallet => {
@@ -661,7 +623,6 @@ function saveTransaction() {
         return;
     }
 
-    // Hanapin yung specific wallet na pinili
     let walletIndex = myWallets.findIndex(w => w.id === walletId);
     
     if (type === 'income') {
@@ -672,7 +633,7 @@ function saveTransaction() {
             return;
         }
         myWallets[walletIndex].balance -= amount;
-        monthlySpent += amount; // Idagdag sa nagastos mo this month
+        monthlySpent += amount;
     }
 
     document.getElementById('transactionAmount').value = '';
