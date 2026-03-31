@@ -117,6 +117,7 @@ function openPayUtangModal(id, amount, utangIdLabel) {
 }
 
 // BAGO: I-confirm ang bayad at ikaltas sa wallet
+
 async function confirmPayUtang() {
     let utangId = document.getElementById('payUtangId').value;
     let amount = parseFloat(document.getElementById('payUtangAmount').value);
@@ -130,9 +131,8 @@ async function confirmPayUtang() {
     }
 
     try {
-        // 1. Ikaltas sa Wallet
+        // 1. Ikaltas sa Wallet (Tinanggal na ang monthlySpent para di magalaw ang Budget target)
         let newBal = parseFloat(walletObj.balance) - amount;
-        monthlySpent += amount; 
         await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletId), { balance: newBal });
 
         // 2. I-update ang Utang as Paid
@@ -558,15 +558,19 @@ async function deleteWallet(id) {
     }
 }
 
-// BAGO: Na-update ang Save Transaction para isama ang "Transfer"
+
 async function saveTransaction() {
     let type = document.getElementById('transactionType').value;
     let walletId = document.getElementById('transactionWallet').value; 
     let amount = parseFloat(document.getElementById('transactionAmount').value);
+    let note = document.getElementById('transactionNote').value;
+    let category = document.getElementById('transactionCategory').value; // Kinukuha ang category
 
     if (!amount || isNaN(amount) || amount <= 0) return alert("Maglagay ng tamang halaga!");
     let walletObj = myWallets.find(w => w.id === walletId);
     if (!walletObj) return alert("Pumili ng wallet!");
+
+    if (type === 'expense' && !category) return alert("Pumili ng category para sa expense!"); 
 
     let newBal = parseFloat(walletObj.balance);
 
@@ -577,8 +581,13 @@ async function saveTransaction() {
     else if (type === 'expense') { 
         if (newBal < amount) return alert("Kulang pondo sa wallet na ito!"); 
         newBal -= amount; 
-        monthlySpent += amount; 
+        monthlySpent += amount; // Ito lang ang expenses na babawas sa Budget Limit
         await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletId), { balance: newBal });
+        
+        // Optional: Naka-ready na para i-save sa future transaction history 
+        await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "transactions"), {
+            type: 'expense', walletId: walletId, amount: amount, note: note || "N/A", category: category, createdAt: Date.now()
+        });
     } 
     else if (type === 'transfer') {
         let walletToId = document.getElementById('transactionWalletTo').value;
@@ -590,13 +599,16 @@ async function saveTransaction() {
         let newTargetBal = parseFloat(walletToObj.balance) + amount;
         newBal -= amount;
 
-        // I-update pareho yung dalawang wallets (From and To)
         await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletId), { balance: newBal });
         await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletToId), { balance: newTargetBal });
     }
 
     try {
-        document.getElementById('transactionAmount').value = ''; document.getElementById('transactionNote').value = ''; closeBudgetModals();
+        document.getElementById('transactionAmount').value = ''; 
+        document.getElementById('transactionNote').value = ''; 
+        document.getElementById('transactionCategory').value = ''; // Reset
+        closeBudgetModals();
+        updateBudgetDashboard();
     } catch (e) { console.error(e); }
 }
 
@@ -606,6 +618,7 @@ function setMonthlyBudget() {
 }
 
 // BAGO: Na-update para i-handle ang UI ng "Transfer"
+// BAGO: Na-update para i-handle ang UI ng "Category"
 function openTransactionModal(type) {
     if (myWallets.length === 0) return alert("Gumawa ka muna ng wallet!");
     if (type === 'transfer' && myWallets.length < 2) return alert("Kailangan mo ng at least 2 wallets para makapag-transfer!");
@@ -616,15 +629,19 @@ function openTransactionModal(type) {
     let title = document.getElementById('transactionTitle'); 
     let btn = document.getElementById('saveTransactionBtn');
     let selectTo = document.getElementById('transactionWalletTo');
+    let selectCat = document.getElementById('transactionCategory'); // Idinagdag ang Category dropdown
     
     if (type === 'income') { 
-        title.innerHTML = '<i class="ph-bold ph-trend-up"></i> Add Income'; title.style.color = 'var(--success)'; btn.style.background = 'var(--success)'; selectTo.style.display = 'none';
+        title.innerHTML = '<i class="ph-bold ph-trend-up"></i> Add Income'; title.style.color = 'var(--success)'; btn.style.background = 'var(--success)'; 
+        selectTo.style.display = 'none'; selectCat.style.display = 'none';
     } 
     else if (type === 'expense') { 
-        title.innerHTML = '<i class="ph-bold ph-trend-down"></i> Add Expense'; title.style.color = 'var(--danger)'; btn.style.background = 'var(--danger)'; selectTo.style.display = 'none';
+        title.innerHTML = '<i class="ph-bold ph-trend-down"></i> Add Expense'; title.style.color = 'var(--danger)'; btn.style.background = 'var(--danger)'; 
+        selectTo.style.display = 'none'; selectCat.style.display = 'block'; // Papalabasin lang pag Expense
     }
     else if (type === 'transfer') {
-        title.innerHTML = '<i class="ph-bold ph-arrows-left-right"></i> Transfer Funds'; title.style.color = 'var(--secondary)'; btn.style.background = 'var(--secondary)'; selectTo.style.display = 'block';
+        title.innerHTML = '<i class="ph-bold ph-arrows-left-right"></i> Transfer Funds'; title.style.color = 'var(--secondary)'; btn.style.background = 'var(--secondary)'; 
+        selectTo.style.display = 'block'; selectCat.style.display = 'none';
     }
 
     let select = document.getElementById('transactionWallet'); select.innerHTML = type === 'transfer' ? '<option value="">Transfer From...</option>' : '';
@@ -635,7 +652,6 @@ function openTransactionModal(type) {
         selectTo.innerHTML += `<option value="${w.id}">${w.name}</option>`; 
     });
 }
-
 function addIncome() { openTransactionModal('income'); }
 function addExpense() { openTransactionModal('expense'); }
 function addTransfer() { openTransactionModal('transfer'); } // BAGO
