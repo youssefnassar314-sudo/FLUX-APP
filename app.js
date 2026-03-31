@@ -365,32 +365,62 @@ function markHabitDone(id) {
 }
 
 // ==========================================
-// 🍔 MODULE 3: FOOD LOG & AI ANALYZER 🍔
+// 🍔 MODULE 3: FOOD LOG & MULTIMODAL AI 🍔
 // ==========================================
 
 let foodDatabase = [];
+let currentBase64 = null;
+let currentMimeType = null;
 
-// --- 1. I-SAVE ANG FOOD LOG ---
+// --- 1. IMAGE UPLOAD HANDLER ---
+document.getElementById('foodImage').addEventListener('change', function(e) {
+    let file = e.target.files[0];
+    if (!file) return;
+    
+    document.getElementById('fileNameDisplay').innerText = "📸 Attached: " + file.name;
+    document.getElementById('fileNameDisplay').style.display = "block";
+
+    let reader = new FileReader();
+    reader.onload = function(event) {
+        let dataUrl = event.target.result;
+        let split = dataUrl.split(',');
+        currentMimeType = split[0].match(/:(.*?);/)[1];
+        currentBase64 = split[1]; // Ito yung raw text ng image mo
+    };
+    reader.readAsDataURL(file);
+});
+
+// --- 2. I-SAVE ANG FOOD LOG ---
 function saveFood() {
     let mealType = document.getElementById('mealType').value;
     let foodItem = document.getElementById('foodItem').value;
 
-    if (!foodItem) { alert("Anong kinain mo? Wag mong gutumin sarili mo, engineer!"); return; }
+    if (!foodItem && !currentBase64) { 
+        alert("Engineer, piktyuran mo o i-type mo yung kinain mo!"); 
+        return; 
+    }
 
     foodDatabase.push({
         id: Date.now(),
         meal: mealType,
-        item: foodItem,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        item: foodItem || "*(May Picture)*",
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        image64: currentBase64,
+        mimeType: currentMimeType
     });
 
-    document.getElementById('foodItem').value = ''; // Reset input
-    document.getElementById('aiFoodResult').style.display = 'none'; // Itago muna ang AI result kung may bagong kain
+    // I-reset ang form
+    document.getElementById('foodItem').value = '';
+    document.getElementById('foodImage').value = '';
+    document.getElementById('fileNameDisplay').style.display = 'none';
+    currentBase64 = null;
+    currentMimeType = null;
+    document.getElementById('aiFoodResult').style.display = 'none'; 
     
     renderFoodList();
 }
 
-// --- 2. I-RENDER ANG FOOD LIST ---
+// --- 3. I-RENDER ANG FOOD LIST ---
 function renderFoodList() {
     let container = document.getElementById('foodListContainer');
     container.innerHTML = '<h3 style="color: var(--text-main); margin-top: 10px; font-size: 14px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px;">🍽️ FOOD LOG TODAY</h3>';
@@ -401,70 +431,58 @@ function renderFoodList() {
     }
 
     foodDatabase.forEach(food => {
-        let badgeColor = '#f43f5e'; // Default red/pink
-        if (food.meal === 'Breakfast') badgeColor = '#fbbf24'; // Yellow
-        else if (food.meal === 'Lunch') badgeColor = '#38bdf8'; // Blue
-        else if (food.meal === 'Dinner') badgeColor = '#c084fc'; // Purple
+        let badgeColor = food.meal === 'Breakfast' ? '#fbbf24' : food.meal === 'Lunch' ? '#38bdf8' : food.meal === 'Dinner' ? '#c084fc' : '#f43f5e';
+        let picIcon = food.image64 ? ' 📷' : '';
 
         container.innerHTML += `
             <div class="utang-card" style="background: rgba(255,255,255,0.02); margin-bottom: 10px; padding: 15px;">
                 <span style="font-size: 9px; font-weight: 700; background: rgba(255,255,255,0.05); color: ${badgeColor}; padding: 3px 8px; border-radius: 5px; text-transform: uppercase;">${food.meal}</span>
                 <span style="float: right; font-size: 11px; color: var(--text-muted);">${food.time}</span>
-                <h4 style="margin: 10px 0 0 0; font-size: 14px; color: var(--text-main); font-weight: 500;">${food.item}</h4>
+                <h4 style="margin: 10px 0 0 0; font-size: 14px; color: var(--text-main); font-weight: 500;">${food.item}${picIcon}</h4>
                 <button onclick="deleteFood(${food.id})" style="background: none; border: none; color: var(--danger); font-size: 12px; margin-top: 8px; cursor: pointer; padding: 0;">🗑️ Remove</button>
             </div>
         `;
     });
 }
 
-// --- 3. DELETE FOOD ---
-function deleteFood(id) {
-    foodDatabase = foodDatabase.filter(f => f.id !== id);
-    renderFoodList();
-}
+function deleteFood(id) { foodDatabase = foodDatabase.filter(f => f.id !== id); renderFoodList(); }
 
-// --- 4. THE MOCK AI ANALYZER ---
-// NA-UPDATE NA FUNCTION SA app.js
+// --- 4. TOTOONG GEMINI VISION AI CALL ---
 async function analyzeFoodAI() {
-    if (foodDatabase.length === 0) {
-        alert("Wala ka pang kinakain, paano ko ia-analyze 'yan? Kumain ka muna!");
-        return;
-    }
+    if (foodDatabase.length === 0) { alert("Kumain ka muna!"); return; }
 
-    // Baguhin natin yung text ng button para alam mong nag-iisip siya
     let aiBtn = document.querySelector('button[onclick="analyzeFoodAI()"]');
     let originalText = aiBtn.innerHTML;
-    aiBtn.innerHTML = "⏳ FLUX AI is thinking...";
+    aiBtn.innerHTML = "⏳ Scanning food with AI...";
     aiBtn.disabled = true;
 
-    // Pagsama-samahin lahat ng kinain mo today
+    // Kunin lahat ng text
     let allFoodText = foodDatabase.map(f => `${f.meal}: ${f.item}`).join(" | ");
     
+    // Kunin lahat ng images
+    let payloadImages = foodDatabase.filter(f => f.image64).map(f => ({
+        mimeType: f.mimeType,
+        data: f.image64
+    }));
+    
     try {
-        // TATAWAGIN NA NATIN YUNG SARILI MONG BACKEND SA VERCEL!
         const response = await fetch('/api/analyze', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ foodLog: allFoodText })
+            body: JSON.stringify({ foodLog: allFoodText, images: payloadImages })
         });
 
         const data = await response.json();
+        if(data.error) throw new Error(data.error);
 
-        // I-display ang result galing sa totoong AI
         let resultBox = document.getElementById('aiFoodResult');
-        let textBox = document.getElementById('aiVerdictText');
-        
         resultBox.style.display = 'block';
-        resultBox.style.background = 'rgba(192, 132, 252, 0.1)'; // Aesthetic Purple para sa AI
-        resultBox.style.borderColor = 'var(--secondary)';
-        document.querySelector('#aiFoodResult h3').style.color = 'var(--secondary)';
-        
-        textBox.innerHTML = data.verdict;
+        document.getElementById('aiVerdictText').innerHTML = data.verdict;
 
     } catch (error) {
-        alert("Oops! May error sa connection natin kay Gemini.");
+        console.error(error);
+        alert("Oops! May error sa Vercel API connection natin.");
     } finally {
-        // Ibalik sa dati yung button
         aiBtn.innerHTML = originalText;
         aiBtn.disabled = false;
     }
