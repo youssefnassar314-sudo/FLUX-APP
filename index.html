@@ -326,6 +326,29 @@
 
     </div>
 
-    <script src="app.js"></script>
+    <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    // 1. Dito mo i-paste yung nakuha mong config sa Firebase Console
+    const firebaseConfig = {
+        apiKey: "AIzaSyADsCX5UOybPnbVLTlFHz9_pchxfNgTMCU",
+        authDomain: "flux-os.firebaseapp.com",
+        projectId: "flux-os",
+        storageBucket: "flux-os.firebasestorage.app",
+        messagingSenderId: "460355221542",
+        appId: "1:460355221542:web:a2e0117283ba237e470ee7"
+    };
+
+    // 2. Initialize Firebase & Firestore
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // 3. I-expose natin ang Firestore sa app.js
+    window.db = db;
+    window.dbMethods = { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy };
+</script>
+
+<script src="app.js"></script>
 </body>
 </html>
