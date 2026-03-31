@@ -440,9 +440,11 @@ function updateBudgetDashboard() {
     if (myWallets.length === 0) container.innerHTML = `<p style="color: var(--text-muted); font-size: 12px; font-style: italic;">Wala pang wallet.</p>`;
     else {
         myWallets.forEach(wallet => {
+            // BAGO: May delete (X) button na ang bawat wallet
             container.innerHTML += `
-                <div style="min-width: 120px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; flex-shrink: 0;">
-                    <p style="margin: 0; font-size: 11px; color: var(--text-muted); text-transform: uppercase;">${wallet.name}</p>
+                <div style="position: relative; min-width: 120px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; flex-shrink: 0;">
+                    <button onclick="deleteWallet('${wallet.id}')" style="position: absolute; top: 8px; right: 8px; background: none; border: none; color: var(--danger); cursor: pointer; padding: 0;"><i class="ph-bold ph-x"></i></button>
+                    <p style="margin: 0; font-size: 11px; color: var(--text-muted); text-transform: uppercase; padding-right: 15px;">${wallet.name}</p>
                     <h4 style="margin: 5px 0 0 0; color: var(--text-main); font-size: 16px;">₱${parseFloat(wallet.balance).toLocaleString()}</h4>
                 </div>
             `;
@@ -482,21 +484,53 @@ async function saveWallet() {
     } catch (e) { console.error(e); alert("May error sa pag-save!"); }
 }
 
+// BAGO: Delete Wallet Logic
+async function deleteWallet(id) {
+    if (confirm("Sigurado ka bang gusto mong burahin ang wallet na ito? Hindi na ito maibabalik.")) {
+        try {
+            await window.dbMethods.deleteDoc(window.dbMethods.doc(window.db, "wallets", id));
+        } catch (e) { console.error(e); alert("May error sa pagbura ng wallet."); }
+    }
+}
+
+// BAGO: Na-update ang Save Transaction para isama ang "Transfer"
 async function saveTransaction() {
     let type = document.getElementById('transactionType').value;
     let walletId = document.getElementById('transactionWallet').value; 
     let amount = parseFloat(document.getElementById('transactionAmount').value);
 
-    if (!amount || isNaN(amount)) return alert("Maling halaga!");
+    if (!amount || isNaN(amount) || amount <= 0) return alert("Maglagay ng tamang halaga!");
     let walletObj = myWallets.find(w => w.id === walletId);
-    if (!walletObj) return;
+    if (!walletObj) return alert("Pumili ng wallet!");
 
     let newBal = parseFloat(walletObj.balance);
-    if (type === 'income') newBal += amount;
-    else { if (newBal < amount) return alert("Kulang pondo!"); newBal -= amount; monthlySpent += amount; }
+
+    if (type === 'income') {
+        newBal += amount;
+        await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletId), { balance: newBal });
+    } 
+    else if (type === 'expense') { 
+        if (newBal < amount) return alert("Kulang pondo sa wallet na ito!"); 
+        newBal -= amount; 
+        monthlySpent += amount; 
+        await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletId), { balance: newBal });
+    } 
+    else if (type === 'transfer') {
+        let walletToId = document.getElementById('transactionWalletTo').value;
+        if (!walletToId || walletId === walletToId) return alert("Pumili ng tamang wallet na paglilipatan!");
+        
+        let walletToObj = myWallets.find(w => w.id === walletToId);
+        if (newBal < amount) return alert("Kulang ang pondo pampa-transfer!");
+
+        let newTargetBal = parseFloat(walletToObj.balance) + amount;
+        newBal -= amount;
+
+        // I-update pareho yung dalawang wallets (From and To)
+        await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletId), { balance: newBal });
+        await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletToId), { balance: newTargetBal });
+    }
 
     try {
-        await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletId), { balance: newBal });
         document.getElementById('transactionAmount').value = ''; document.getElementById('transactionNote').value = ''; closeBudgetModals();
     } catch (e) { console.error(e); }
 }
@@ -506,20 +540,40 @@ function setMonthlyBudget() {
     if (target && !isNaN(target)) { monthlyTarget = parseFloat(target); updateBudgetDashboard(); }
 }
 
+// BAGO: Na-update para i-handle ang UI ng "Transfer"
 function openTransactionModal(type) {
     if (myWallets.length === 0) return alert("Gumawa ka muna ng wallet!");
-    document.getElementById('transactionModal').style.display = 'flex'; document.getElementById('transactionType').value = type;
-    let title = document.getElementById('transactionTitle'); let btn = document.getElementById('saveTransactionBtn');
-    
-    if (type === 'income') { title.innerHTML = '<i class="ph-bold ph-trend-up"></i> Add Income'; title.style.color = 'var(--success)'; btn.style.background = 'var(--success)'; } 
-    else { title.innerHTML = '<i class="ph-bold ph-trend-down"></i> Add Expense'; title.style.color = 'var(--danger)'; btn.style.background = 'var(--danger)'; }
+    if (type === 'transfer' && myWallets.length < 2) return alert("Kailangan mo ng at least 2 wallets para makapag-transfer!");
 
-    let select = document.getElementById('transactionWallet'); select.innerHTML = '';
-    myWallets.forEach(w => { select.innerHTML += `<option value="${w.id}">${w.name} (Bal: ₱${w.balance})</option>`; });
+    document.getElementById('transactionModal').style.display = 'flex'; 
+    document.getElementById('transactionType').value = type;
+    
+    let title = document.getElementById('transactionTitle'); 
+    let btn = document.getElementById('saveTransactionBtn');
+    let selectTo = document.getElementById('transactionWalletTo');
+    
+    if (type === 'income') { 
+        title.innerHTML = '<i class="ph-bold ph-trend-up"></i> Add Income'; title.style.color = 'var(--success)'; btn.style.background = 'var(--success)'; selectTo.style.display = 'none';
+    } 
+    else if (type === 'expense') { 
+        title.innerHTML = '<i class="ph-bold ph-trend-down"></i> Add Expense'; title.style.color = 'var(--danger)'; btn.style.background = 'var(--danger)'; selectTo.style.display = 'none';
+    }
+    else if (type === 'transfer') {
+        title.innerHTML = '<i class="ph-bold ph-arrows-left-right"></i> Transfer Funds'; title.style.color = 'var(--secondary)'; btn.style.background = 'var(--secondary)'; selectTo.style.display = 'block';
+    }
+
+    let select = document.getElementById('transactionWallet'); select.innerHTML = type === 'transfer' ? '<option value="">Transfer From...</option>' : '';
+    selectTo.innerHTML = '<option value="">Transfer To...</option>';
+
+    myWallets.forEach(w => { 
+        select.innerHTML += `<option value="${w.id}">${w.name} (Bal: ₱${parseFloat(w.balance).toLocaleString()})</option>`; 
+        selectTo.innerHTML += `<option value="${w.id}">${w.name}</option>`; 
+    });
 }
 
 function addIncome() { openTransactionModal('income'); }
 function addExpense() { openTransactionModal('expense'); }
+function addTransfer() { openTransactionModal('transfer'); } // BAGO
 function closeBudgetModals() { document.getElementById('walletModal').style.display = 'none'; document.getElementById('transactionModal').style.display = 'none'; }
 
 // ==========================================
@@ -532,13 +586,13 @@ function startApp() {
         initRealtimeFood();
         initRealtimeBudget(); 
     } else {
-        setTimeout(startApp, 500); // Retry kung hindi pa ready ang Firebase script
+        setTimeout(startApp, 500); 
     }
 }
 startApp();
 
 // ==========================================
-// 🌍 GLOBAL EXPORTS (Wag buburahin, kailangan 'to ng HTML onclick)
+// 🌍 GLOBAL EXPORTS 
 // ==========================================
 window.switchScreen = switchScreen;
 window.showAddForm = showAddForm;
@@ -556,8 +610,10 @@ window.deleteFood = deleteFood;
 window.analyzeFoodAI = analyzeFoodAI;
 window.showAddWalletModal = showAddWalletModal;
 window.saveWallet = saveWallet;
+window.deleteWallet = deleteWallet; // BAGO
 window.setMonthlyBudget = setMonthlyBudget;
 window.addIncome = addIncome;
 window.addExpense = addExpense;
+window.addTransfer = addTransfer; // BAGO
 window.saveTransaction = saveTransaction;
 window.closeBudgetModals = closeBudgetModals;
