@@ -236,15 +236,22 @@
                 </div>
                 
                 <div style="display: flex; gap: 10px; margin-bottom: 15px; align-items: center;">
-                    <input type="text" id="foodItem" placeholder="Ano kinain mo? (Optional kung may pic)" style="flex: 2; margin-bottom: 0;">
-                    
-                    <label for="foodImage" class="badge" style="flex: 1; text-align: center; padding: 12px; cursor: pointer; border-radius: 12px; border: 1px solid var(--primary); background: rgba(56, 189, 248, 0.1); color: var(--primary); font-size: 13px;">
-                        <i class="ph-bold ph-camera"></i> Attach Pic
-                    </label>
-                    <input type="file" id="foodImage" accept="image/*" style="display: none;">
-                </div>
-                
-                <p id="fileNameDisplay" style="font-size: 11px; color: var(--primary); margin-top: -5px; margin-bottom: 15px; display: none;"></p>
+    <input type="text" id="foodItem" placeholder="Ano kinain mo? (Optional kung may pic)" style="flex: 2; margin-bottom: 0;">
+    
+    <label for="foodImage" class="badge" style="flex: 1; text-align: center; padding: 12px; cursor: pointer; border-radius: 12px; border: 1px solid var(--primary); background: rgba(56, 189, 248, 0.1); color: var(--primary); font-size: 13px;">
+        <i class="ph-bold ph-camera"></i> Attach Pic
+    </label>
+    <input type="file" id="foodImage" accept="image/*" style="display: none;">
+</div>
+
+<p id="fileNameDisplay" style="font-size: 11px; color: var(--primary); margin-top: -5px; margin-bottom: 15px; display: none;"></p>
+
+<div style="display: flex; gap: 10px; margin-bottom: 15px;">
+    <input type="number" id="foodPrice" placeholder="Magkano? (₱)" style="margin-bottom: 0; flex: 1;">
+    <select id="foodWallet" class="glass-select" style="margin-bottom: 0; flex: 1;">
+        <option value="">Saan ibabawas?</option>
+    </select>
+</div>
                 
                 <button class="save-btn" onclick="saveFood()" style="margin-bottom: 0; background: linear-gradient(135deg, #f43f5e, #fb923c); box-shadow: 0 0 15px rgba(244, 63, 94, 0.4);">
                     <i class="ph-bold ph-plus"></i> Log Food
