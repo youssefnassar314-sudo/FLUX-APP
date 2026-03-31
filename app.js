@@ -421,9 +421,29 @@ function saveFood() {
     let foodSource = document.getElementById('foodSource').value;
     let foodItem = document.getElementById('foodItem').value;
 
+    // BAGO: Kunin ang presyo at kung saang wallet ibabawas
+    let priceInput = document.getElementById('foodPrice');
+    let walletInput = document.getElementById('foodWallet');
+    let price = priceInput ? parseFloat(priceInput.value || 0) : 0;
+    let walletId = walletInput ? parseInt(walletInput.value) : null;
+
     if (!foodItem && !currentBase64) { 
         alert("Engineer, piktyuran mo o i-type mo yung kinain mo!"); 
         return; 
+    }
+
+    // BAGO: Bawasan ang wallet at idagdag sa expenses kung may presyo
+    if (price > 0 && walletId) {
+        let walletIndex = myWallets.findIndex(w => w.id === walletId);
+        if (walletIndex !== -1) {
+            if (myWallets[walletIndex].balance < price) {
+                alert("Oops! Kulang ang pondo mo sa wallet na ito pambili ng pagkain.");
+                return; 
+            }
+            myWallets[walletIndex].balance -= price;
+            monthlySpent += price;
+            updateBudgetDashboard(); 
+        }
     }
 
     foodDatabase.push({
@@ -431,12 +451,14 @@ function saveFood() {
         meal: mealType,
         source: foodSource,
         item: foodItem || "*(May Picture)*",
+        cost: price, 
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         image64: currentBase64,
         mimeType: currentMimeType
     });
 
     document.getElementById('foodItem').value = '';
+    if (priceInput) priceInput.value = ''; 
     document.getElementById('foodImage').value = '';
     document.getElementById('fileNameDisplay').style.display = 'none';
     currentBase64 = null;
