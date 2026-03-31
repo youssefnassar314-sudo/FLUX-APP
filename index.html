@@ -51,7 +51,7 @@
                 </div>
             </div>
 
-            <button class="receipt-btn">📷 Snap a Receipt</button>
+            <button class="receipt-btn"><i class="ph-bold ph-camera"></i> Snap a Receipt</button>
         </div>
 
         <div id="utangScreen" class="screen">
@@ -76,8 +76,8 @@
                 
                 <label>Category</label>
                 <select id="utangCategory" class="glass-select">
-                    <option value="My App">📱 My Account / App</option>
-                    <option value="Other Person">🧑 Other Person's Account</option>
+                    <option value="My App">My Account / App</option>
+                    <option value="Other Person">Other Person's Account</option>
                 </select>
 
                 <label>App Used</label>
@@ -96,14 +96,14 @@
                     </div>
                 </div>
 
-                <button class="secondary-btn" type="button" onclick="addDueRow()">+ Add Another Due</button>
-                <button class="save-btn" onclick="saveUtang()">Save & Sync to FLUX</button>
+                <button class="secondary-btn" type="button" onclick="addDueRow()"><i class="ph-bold ph-plus"></i> Add Another Due</button>
+                <button class="save-btn" onclick="saveUtang()"><i class="ph-bold ph-floppy-disk"></i> Save & Sync to FLUX</button>
             </div>
 
             <div class="month-nav">
-                <button onclick="changeMonth(-1)">◀</button>
+                <button onclick="changeMonth(-1)"><i class="ph-bold ph-caret-left"></i></button>
                 <h3 id="currentMonthLabel">March 2026</h3>
-                <button onclick="changeMonth(1)">▶</button>
+                <button onclick="changeMonth(1)"><i class="ph-bold ph-caret-right"></i></button>
             </div>
 
             <div id="utangListContainer"></div>
@@ -122,21 +122,21 @@
                 
                 <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                     <select id="aiTaskCategory" class="glass-select" style="margin-bottom: 0; flex: 1;">
-                        <option value="Work">💼 Work</option>
-                        <option value="School">🎓 School</option>
-                        <option value="Personal">🎸 Personal</option>
+                        <option value="Work">Work</option>
+                        <option value="School">School</option>
+                        <option value="Personal">Personal</option>
                     </select>
                     <input type="date" id="aiTaskDate" style="margin-bottom: 0; flex: 1;">
                 </div>
                 
                 <button class="save-btn" onclick="estimateAITask()" style="margin-bottom: 0; box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);">
-                    ✨ Estimate with FLUX AI
+                    <i class="ph-bold ph-sparkle"></i> Estimate with FLUX AI
                 </button>
             </div>
 
             <div class="hidden-form" style="display: block; background: rgba(192, 132, 252, 0.05); border-color: rgba(192, 132, 252, 0.2); margin-bottom: 20px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h3 style="color: var(--secondary); margin: 0; font-size: 16px; display: flex; align-items: center; gap: 8px;">📅 Schedule & Deadlines</h3>
+                    <h3 style="color: var(--secondary); margin: 0; font-size: 16px; display: flex; align-items: center; gap: 8px;"><i class="ph-duotone ph-calendar"></i> Schedule & Deadlines</h3>
                     <button class="badge badge-secondary" onclick="switchScreen('kanbanScreen')">
                         <i class="ph-bold ph-columns"></i> Kanban View
                     </button>
@@ -145,9 +145,9 @@
                 <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                     <input type="text" id="manualTaskTitle" placeholder="Ex: Finish HTML layout" style="margin-bottom: 0; flex: 2;">
                     <select id="manualTaskCategory" class="glass-select" style="margin-bottom: 0; flex: 1;">
-                        <option value="Work">💼 Work</option>
-                        <option value="School">🎓 School</option>
-                        <option value="Personal">🎸 Personal</option>
+                        <option value="Work">Work</option>
+                        <option value="School">School</option>
+                        <option value="Personal">Personal</option>
                     </select>
                 </div>
                 
@@ -162,7 +162,7 @@
             </div>
 
             <div class="hidden-form" style="display: block; background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.2);">
-                <h3 style="color: var(--success); margin-top: 0; margin-bottom: 15px; font-size: 16px; display: flex; align-items: center; gap: 8px;">🔄 Daily Habits</h3>
+                <h3 style="color: var(--success); margin-top: 0; margin-bottom: 15px; font-size: 16px; display: flex; align-items: center; gap: 8px;"><i class="ph-duotone ph-arrows-clockwise"></i> Daily Habits</h3>
                 
                 <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                     <input type="text" id="habitName" placeholder="Ex: Inom Vitamins" style="margin-bottom: 0; flex: 2;">
@@ -170,7 +170,7 @@
                 </div>
                 
                 <button class="save-btn" onclick="saveHabit()" style="margin-bottom: 0; background: linear-gradient(135deg, var(--success), #059669); box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);">
-                    + Add Daily Habit
+                    <i class="ph-bold ph-plus"></i> Add Daily Habit
                 </button>
             </div>
 
@@ -183,21 +183,21 @@
                 <i class="ph-bold ph-caret-left"></i> Back to Tasks
             </button>
             
-            <h2 style="color: var(--primary); margin-top: 0; margin-bottom: 20px; font-weight: 800; letter-spacing: 1px;">🗂️ Kanban Board</h2>
+            <h2 style="color: var(--primary); margin-top: 0; margin-bottom: 20px; font-weight: 800; letter-spacing: 1px;"><i class="ph-duotone ph-columns"></i> Kanban Board</h2>
 
             <div class="kanban-board">
                 <div class="kanban-col">
-                    <h4 style="color: var(--danger);">📌 TO DO</h4>
+                    <h4 style="color: var(--danger);"><i class="ph-bold ph-push-pin"></i> TO DO</h4>
                     <div id="kb-todo" class="kanban-list"></div>
                 </div>
 
                 <div class="kanban-col">
-                    <h4 style="color: var(--primary);">🚀 DOING</h4>
+                    <h4 style="color: var(--primary);"><i class="ph-bold ph-rocket"></i> DOING</h4>
                     <div id="kb-doing" class="kanban-list"></div>
                 </div>
 
                 <div class="kanban-col">
-                    <h4 style="color: var(--success);">✅ DONE</h4>
+                    <h4 style="color: var(--success);"><i class="ph-bold ph-check-circle"></i> DONE</h4>
                     <div id="kb-done" class="kanban-list"></div>
                 </div>
             </div>
@@ -215,23 +215,23 @@
                 
                 <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                     <select id="mealType" class="glass-select" style="margin-bottom: 0; flex: 1;">
-                        <option value="Breakfast">🍳 Breakfast</option>
-                        <option value="Lunch">🍱 Lunch</option>
-                        <option value="Dinner">🍽️ Dinner</option>
-                        <option value="Snack">🍫 Snack</option>
+                        <option value="Breakfast">Breakfast</option>
+                        <option value="Lunch">Lunch</option>
+                        <option value="Dinner">Dinner</option>
+                        <option value="Snack">Snack</option>
                     </select>
                     
                     <select id="foodSource" class="glass-select" style="margin-bottom: 0; flex: 1;">
-                        <option value="Homecooked">🏠 Luto sa Bahay</option>
-                        <option value="Carinderia">🍲 Carinderia / Turo-turo</option>
-                        <option value="Panaderya">🥐 Panaderya</option>
-                        <option value="SariSariStore">🥫 Tindahan / De-lata</option>
-                        <option value="ConvenienceStore">🏪 7-Eleven / Alfamart</option>
-                        <option value="StreetFood">🍢 Street Food / Pares</option>
-                        <option value="FastFood">🍔 Fast Food</option>
-                        <option value="Delivery">🛵 Delivery App</option>
-                        <option value="Cafe">☕ Coffee Shop</option>
-                        <option value="Libre">🎁 Libre / Bigay</option>
+                        <option value="Homecooked">Luto sa Bahay</option>
+                        <option value="Carinderia">Carinderia / Turo-turo</option>
+                        <option value="Panaderya">Panaderya</option>
+                        <option value="SariSariStore">Tindahan / De-lata</option>
+                        <option value="ConvenienceStore">7-Eleven / Alfamart</option>
+                        <option value="StreetFood">Street Food / Pares</option>
+                        <option value="FastFood">Fast Food</option>
+                        <option value="Delivery">Delivery App</option>
+                        <option value="Cafe">Coffee Shop</option>
+                        <option value="Libre">Libre / Bigay</option>
                     </select>
                 </div>
                 
@@ -239,7 +239,7 @@
                     <input type="text" id="foodItem" placeholder="Ano kinain mo? (Optional kung may pic)" style="flex: 2; margin-bottom: 0;">
                     
                     <label for="foodImage" class="badge" style="flex: 1; text-align: center; padding: 12px; cursor: pointer; border-radius: 12px; border: 1px solid var(--primary); background: rgba(56, 189, 248, 0.1); color: var(--primary); font-size: 13px;">
-                        📷 Attach Pic
+                        <i class="ph-bold ph-camera"></i> Attach Pic
                     </label>
                     <input type="file" id="foodImage" accept="image/*" style="display: none;">
                 </div>
@@ -247,19 +247,19 @@
                 <p id="fileNameDisplay" style="font-size: 11px; color: var(--primary); margin-top: -5px; margin-bottom: 15px; display: none;"></p>
                 
                 <button class="save-btn" onclick="saveFood()" style="margin-bottom: 0; background: linear-gradient(135deg, #f43f5e, #fb923c); box-shadow: 0 0 15px rgba(244, 63, 94, 0.4);">
-                    + Log Food
+                    <i class="ph-bold ph-plus"></i> Log Food
                 </button>
             </div>
 
             <div id="foodListContainer" style="margin-bottom: 20px;"></div>
 
             <div id="aiFoodResult" style="display: none; background: rgba(56, 189, 248, 0.1); border: 1px solid var(--primary); border-radius: 16px; padding: 20px; margin-bottom: 20px; text-align: center;">
-                <h3 style="color: var(--primary); margin: 0 0 10px 0;">🧠 AI Verdict</h3>
+                <h3 style="color: var(--primary); margin: 0 0 10px 0;"><i class="ph-duotone ph-brain"></i> AI Verdict</h3>
                 <p id="aiVerdictText" style="font-size: 13px; color: var(--text-main); margin: 0; font-style: italic; line-height: 1.5;"></p>
             </div>
 
             <button class="add-btn" onclick="analyzeFoodAI()" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); width: 100%;">
-                ✨ Analyze My Day (AI)
+                <i class="ph-bold ph-sparkle"></i> Analyze My Day (AI)
             </button>
         </div>
 
@@ -276,10 +276,10 @@
                 </button>
             </div>
 
-            <h3 style="color: var(--text-main); font-size: 14px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px; margin-top: 25px;">💳 MY WALLETS</h3>
+            <h3 style="color: var(--text-main); font-size: 14px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px; margin-top: 25px;"><i class="ph-duotone ph-credit-card"></i> MY WALLETS</h3>
             <div id="walletsContainer" style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px;"></div>
 
-            <h3 style="color: var(--text-main); font-size: 14px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px; margin-top: 15px;">📊 BUDGET THIS MONTH</h3>
+            <h3 style="color: var(--text-main); font-size: 14px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px; margin-top: 15px;"><i class="ph-duotone ph-chart-bar"></i> BUDGET THIS MONTH</h3>
             <div class="utang-card" style="padding: 15px; background: rgba(255,255,255,0.02);">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
                     <span style="font-size: 12px; color: var(--text-muted);">Target: <strong id="monthlyTarget" style="color: var(--text-main);">₱0.00</strong></span>
@@ -289,19 +289,19 @@
                     <div id="budgetProgressBar" style="width: 0%; height: 100%; background: var(--success); transition: 0.3s;"></div>
                 </div>
                 <button onclick="setMonthlyBudget()" style="width: 100%; margin-top: 15px; background: none; border: 1px dashed var(--glass-border); color: var(--text-muted); padding: 10px; border-radius: 8px;">
-                    ⚙️ Set Budget Goal
+                    <i class="ph-bold ph-gear"></i> Set Budget Goal
                 </button>
             </div>
 
             <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <button onclick="addIncome()" class="save-btn" style="flex: 1; margin: 0; background: rgba(56, 189, 248, 0.2); color: #38bdf8;">+ Income</button>
-                <button onclick="addExpense()" class="save-btn" style="flex: 1; margin: 0; background: rgba(244, 63, 94, 0.2); color: #f43f5e;">- Expense</button>
+                <button onclick="addIncome()" class="save-btn" style="flex: 1; margin: 0; background: rgba(56, 189, 248, 0.2); color: #38bdf8;"><i class="ph-bold ph-trend-up"></i> Income</button>
+                <button onclick="addExpense()" class="save-btn" style="flex: 1; margin: 0; background: rgba(244, 63, 94, 0.2); color: #f43f5e;"><i class="ph-bold ph-trend-down"></i> Expense</button>
             </div>
         </div>
 
         <div id="walletModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; padding: 20px; align-items: center; justify-content: center;">
             <div class="utang-card" style="width: 100%; max-width: 400px; background: var(--bg-color); padding: 20px; position: relative;">
-                <h3 style="margin-top: 0; color: var(--primary);">🏦 Add New Wallet</h3>
+                <h3 style="margin-top: 0; color: var(--primary);"><i class="ph-duotone ph-bank"></i> Add New Wallet</h3>
                 <input type="text" id="walletName" placeholder="Pangalan (e.g. GCash, BPI, Cash)" style="margin-bottom: 10px;">
                 <input type="number" id="walletBalance" placeholder="Initial Balance (₱)" style="margin-bottom: 15px;">
                 <button onclick="saveWallet()" class="save-btn" style="margin-bottom: 10px;">Save Wallet</button>
