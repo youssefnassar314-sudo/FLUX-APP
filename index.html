@@ -55,9 +55,11 @@
         </div>
 
         <div id="utangScreen" class="screen">
-            <button class="back-btn" onclick="switchScreen('dashboardScreen')">
-                <span style="font-size: 20px; vertical-align: middle;">←</span> Dashboard
-            </button>
+    <button class="back-btn" onclick="switchScreen('dashboardScreen')">
+        <i class="ph-bold ph-caret-left"></i> Dashboard
+    </button>
+    <button class="add-btn" onclick="showAddForm()"><i class="ph-bold ph-plus"></i> Add New Utang</button>
+</div>
             
             <div class="summary-box">
                 <div class="stat-col">
@@ -116,7 +118,7 @@
             </button>
             
             <div class="hidden-form" style="display: block; margin-bottom: 20px; background: rgba(56, 189, 248, 0.05); border-color: rgba(56, 189, 248, 0.2);">
-                <h3 style="color: var(--primary); margin-top: 0; margin-bottom: 15px; font-size: 16px; display: flex; align-items: center; gap: 8px;">🤖 AI Task Estimator</h3>
+                <h3 style="color: var(--primary); margin-top: 0; margin-bottom: 15px; font-size: 16px; display: flex; align-items: center; gap: 8px;"><i class="ph-duotone ph-cpu"></i> AI Task Estimator</h3>
                 
                 <input type="text" id="aiTaskTitle" placeholder="Task Title (Ex: Review Integral Calculus)">
                 <textarea id="aiTaskDetails" placeholder="Give details to get a better estimate (Ex: I need to solve 50 practice problems...)"></textarea>
@@ -138,8 +140,8 @@
             <div class="hidden-form" style="display: block; background: rgba(192, 132, 252, 0.05); border-color: rgba(192, 132, 252, 0.2); margin-bottom: 20px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                     <h3 style="color: var(--secondary); margin: 0; font-size: 16px; display: flex; align-items: center; gap: 8px;">📅 Schedule & Deadlines</h3>
-                    <button class="badge badge-secondary" onclick="switchScreen('kanbanScreen')" style="background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border); cursor: pointer; transition: 0.3s;" onmouseover="this.style.background='var(--secondary)'; this.style.color='white'" onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.color='var(--secondary)'">
-    🗂️ Kanban View
+                    <button class="badge badge-secondary" onclick="switchScreen('kanbanScreen')">
+    <i class="ph-bold ph-columns"></i> Kanban View
 </button>
                 </div>
                 
@@ -214,7 +216,7 @@
             
             <div class="hidden-form" style="display: block; margin-bottom: 20px; background: rgba(244, 63, 94, 0.05); border-color: rgba(244, 63, 94, 0.2);">
                 <h3 style="color: var(--danger); margin-top: 0; margin-bottom: 15px; font-size: 16px; display: flex; align-items: center; gap: 8px;">
-                    🍔 Quick Food Log
+                    <i class="ph-duotone ph-sparkle"></i> Quick Food Log</h3>
                 </h3>
                 
 <div style="display: flex; gap: 10px; margin-bottom: 15px;">
