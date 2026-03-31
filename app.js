@@ -431,8 +431,10 @@ document.getElementById('foodImage').addEventListener('change', function(e) {
 });
 
 // --- 2. I-SAVE ANG FOOD LOG ---
+// --- 2. I-SAVE ANG FOOD LOG ---
 function saveFood() {
     let mealType = document.getElementById('mealType').value;
+    let foodSource = document.getElementById('foodSource').value; // 🆕 Kinuha natin yung source
     let foodItem = document.getElementById('foodItem').value;
 
     if (!foodItem && !currentBase64) { 
@@ -443,6 +445,7 @@ function saveFood() {
     foodDatabase.push({
         id: Date.now(),
         meal: mealType,
+        source: foodSource, // 🆕 I-save natin sa database
         item: foodItem || "*(May Picture)*",
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         image64: currentBase64,
@@ -459,7 +462,6 @@ function saveFood() {
     
     renderFoodList();
 }
-
 // --- 3. I-RENDER ANG FOOD LIST ---
 function renderFoodList() {
     let container = document.getElementById('foodListContainer');
@@ -470,13 +472,14 @@ function renderFoodList() {
         return;
     }
 
+    // Hanapin mo yung block na gumagawa ng HTML ng utang-card at i-replace nito:
     foodDatabase.forEach(food => {
         let badgeColor = food.meal === 'Breakfast' ? '#fbbf24' : food.meal === 'Lunch' ? '#38bdf8' : food.meal === 'Dinner' ? '#c084fc' : '#f43f5e';
         let picIcon = food.image64 ? ' 📷' : '';
 
         container.innerHTML += `
             <div class="utang-card" style="background: rgba(255,255,255,0.02); margin-bottom: 10px; padding: 15px;">
-                <span style="font-size: 9px; font-weight: 700; background: rgba(255,255,255,0.05); color: ${badgeColor}; padding: 3px 8px; border-radius: 5px; text-transform: uppercase;">${food.meal}</span>
+                <span style="font-size: 9px; font-weight: 700; background: rgba(255,255,255,0.05); color: ${badgeColor}; padding: 3px 8px; border-radius: 5px; text-transform: uppercase;">${food.meal} • ${food.source}</span>
                 <span style="float: right; font-size: 11px; color: var(--text-muted);">${food.time}</span>
                 <h4 style="margin: 10px 0 0 0; font-size: 14px; color: var(--text-main); font-weight: 500;">${food.item}${picIcon}</h4>
                 <button onclick="deleteFood(${food.id})" style="background: none; border: none; color: var(--danger); font-size: 12px; margin-top: 8px; cursor: pointer; padding: 0;">🗑️ Remove</button>
@@ -497,7 +500,9 @@ async function analyzeFoodAI() {
     aiBtn.disabled = true;
 
     // Kunin lahat ng text
-    let allFoodText = foodDatabase.map(f => `${f.meal}: ${f.item}`).join(" | ");
+    // Hanapin yung nagme-merge ng text at i-replace nito:
+    // 🆕 Isasama na natin sa text yung "[Source]" bago ibato sa Vercel
+    let allFoodText = foodDatabase.map(f => `${f.meal} [${f.source}]: ${f.item}`).join(" | ");
     
     // Kunin lahat ng images
     let payloadImages = foodDatabase.filter(f => f.image64).map(f => ({
