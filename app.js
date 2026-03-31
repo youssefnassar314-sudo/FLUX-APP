@@ -578,6 +578,15 @@ function updateBudgetDashboard() {
     let bar = document.getElementById('budgetProgressBar');
     bar.style.width = `${progress}%`;
     bar.style.background = progress >= 90 ? 'var(--danger)' : 'var(--success)';
+
+    // BAGO: I-update din yung dropdown sa Food Log para laging updated ang listahan ng wallets
+    let foodWalletSelect = document.getElementById('foodWallet');
+    if (foodWalletSelect) {
+        foodWalletSelect.innerHTML = '<option value="">Saan ibabawas?</option>';
+        myWallets.forEach(wallet => {
+            foodWalletSelect.innerHTML += `<option value="${wallet.id}">${wallet.name} (Bal: ₱${parseFloat(wallet.balance).toLocaleString()})</option>`;
+        });
+    }
 }
 
 // --- 2. ADD WALLET LOGIC ---
