@@ -372,20 +372,60 @@ let foodDatabase = [];
 let currentBase64 = null;
 let currentMimeType = null;
 
-// --- 1. IMAGE UPLOAD HANDLER ---
+// --- 1. IMAGE UPLOAD HANDLER (WITH AUTO-COMPRESSOR) ---
 document.getElementById('foodImage').addEventListener('change', function(e) {
     let file = e.target.files[0];
     if (!file) return;
     
-    document.getElementById('fileNameDisplay').innerText = "📸 Attached: " + file.name;
-    document.getElementById('fileNameDisplay').style.display = "block";
+    let display = document.getElementById('fileNameDisplay');
+    display.innerText = "⏳ Compressing: " + file.name + "...";
+    display.style.display = "block";
+    display.style.color = "var(--secondary)"; // Gawing purple habang nag-iisip
 
     let reader = new FileReader();
     reader.onload = function(event) {
-        let dataUrl = event.target.result;
-        let split = dataUrl.split(',');
-        currentMimeType = split[0].match(/:(.*?);/)[1];
-        currentBase64 = split[1]; // Ito yung raw text ng image mo
+        let img = new Image();
+        img.onload = function() {
+            // Gumawa ng invisible canvas para liitan ang picture
+            let canvas = document.createElement('canvas');
+            let ctx = canvas.getContext('2d');
+            
+            // Set max width/height para hindi mabigat kay Vercel
+            let MAX_WIDTH = 800; 
+            let MAX_HEIGHT = 800;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height) {
+                if (width > MAX_WIDTH) {
+                    height *= MAX_WIDTH / width;
+                    width = MAX_WIDTH;
+                }
+            } else {
+                if (height > MAX_HEIGHT) {
+                    width *= MAX_HEIGHT / height;
+                    height = MAX_HEIGHT;
+                }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            
+            // I-drawing sa canvas yung niliitang picture
+            ctx.drawImage(img, 0, 0, width, height);
+
+            // I-convert pabalik to text (Base64), pero JPEG na may 70% quality lang
+            let compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+
+            let split = compressedDataUrl.split(',');
+            currentMimeType = split[0].match(/:(.*?);/)[1];
+            currentBase64 = split[1]; 
+
+            // Update UI pag tapos na
+            display.innerText = "✅ Ready: " + file.name;
+            display.style.color = "var(--success)"; // Gawing green
+        };
+        img.src = event.target.result;
     };
     reader.readAsDataURL(file);
 });
