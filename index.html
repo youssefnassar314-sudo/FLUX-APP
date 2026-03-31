@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FLUX | Personal OS</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -32,23 +33,23 @@
             </div>
 
             <div class="dashboard-grid">
-                <div class="grid-item active" onclick="switchScreen('utangScreen')">
-                    <span class="icon">💸</span>
-                    <p>Utang Summary</p>
-                </div>
-                <div class="grid-item active" onclick="switchScreen('foodScreen')">
-    <span class="icon">🍔</span>
-    <p>Food Log</p>
+    <div class="grid-item active" onclick="switchScreen('utangScreen')">
+        <i class="ph-duotone ph-hand-coins icon-svg"></i>
+        <p>Utang Summary</p>
+    </div>
+    <div class="grid-item active" onclick="switchScreen('foodScreen')">
+        <i class="ph-duotone ph-hamburger icon-svg"></i>
+        <p>Food Log</p>
+    </div>
+    <div class="grid-item active" onclick="switchScreen('taskScreen')">
+        <i class="ph-duotone ph-calendar-check icon-svg"></i>
+        <p>Tasks & Events</p>
+    </div>
+    <div class="grid-item active" onclick="switchScreen('budgetScreen')">
+        <i class="ph-duotone ph-chart-pie-slice icon-svg"></i>
+        <p>Budget</p>
+    </div>
 </div>
-                <div class="grid-item active" onclick="switchScreen('taskScreen')">
-    <span class="icon">📅</span>
-    <p>Tasks & Events</p>
-</div>
-                <div class="grid-item active" onclick="switchScreen('budgetScreen')">
-    <span class="icon">📊</span>
-    <p>Budget</p>
-</div>
-            </div>
 
             <button class="receipt-btn">📷 Snap a Receipt</button>
         </div>
