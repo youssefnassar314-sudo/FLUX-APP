@@ -33,34 +33,32 @@
             </div>
 
             <div class="dashboard-grid">
-    <div class="grid-item active" onclick="switchScreen('utangScreen')">
-        <i class="ph-duotone ph-hand-coins icon-svg"></i>
-        <p>Utang Summary</p>
-    </div>
-    <div class="grid-item active" onclick="switchScreen('foodScreen')">
-        <i class="ph-duotone ph-hamburger icon-svg"></i>
-        <p>Food Log</p>
-    </div>
-    <div class="grid-item active" onclick="switchScreen('taskScreen')">
-        <i class="ph-duotone ph-calendar-check icon-svg"></i>
-        <p>Tasks & Events</p>
-    </div>
-    <div class="grid-item active" onclick="switchScreen('budgetScreen')">
-        <i class="ph-duotone ph-chart-pie-slice icon-svg"></i>
-        <p>Budget</p>
-    </div>
-</div>
+                <div class="grid-item active" onclick="switchScreen('utangScreen')">
+                    <i class="ph-duotone ph-hand-coins icon-svg"></i>
+                    <p>Utang Summary</p>
+                </div>
+                <div class="grid-item active" onclick="switchScreen('foodScreen')">
+                    <i class="ph-duotone ph-hamburger icon-svg"></i>
+                    <p>Food Log</p>
+                </div>
+                <div class="grid-item active" onclick="switchScreen('taskScreen')">
+                    <i class="ph-duotone ph-calendar-check icon-svg"></i>
+                    <p>Tasks & Events</p>
+                </div>
+                <div class="grid-item active" onclick="switchScreen('budgetScreen')">
+                    <i class="ph-duotone ph-chart-pie-slice icon-svg"></i>
+                    <p>Budget</p>
+                </div>
+            </div>
 
             <button class="receipt-btn">📷 Snap a Receipt</button>
         </div>
 
         <div id="utangScreen" class="screen">
-    <button class="back-btn" onclick="switchScreen('dashboardScreen')">
-        <i class="ph-bold ph-caret-left"></i> Dashboard
-    </button>
-    <button class="add-btn" onclick="showAddForm()"><i class="ph-bold ph-plus"></i> Add New Utang</button>
-</div>
-            
+            <button class="back-btn" onclick="switchScreen('dashboardScreen')">
+                <i class="ph-bold ph-caret-left"></i> Dashboard
+            </button>
+
             <div class="summary-box">
                 <div class="stat-col">
                     <p>Total Utang</p>
@@ -72,7 +70,7 @@
                 </div>
             </div>
 
-            <button class="add-btn" onclick="showAddForm()">+ Add New Utang</button>
+            <button class="add-btn" onclick="showAddForm()"><i class="ph-bold ph-plus"></i> Add New Utang</button>
 
             <div id="addUtangForm" class="hidden-form">
                 
@@ -109,13 +107,11 @@
             </div>
 
             <div id="utangListContainer"></div>
-
         </div>
-</div>
 
-<div id="taskScreen" class="screen">
+        <div id="taskScreen" class="screen">
             <button class="back-btn" onclick="switchScreen('dashboardScreen')">
-                <span style="font-size: 20px; vertical-align: middle;">←</span> Dashboard
+                <i class="ph-bold ph-caret-left"></i> Dashboard
             </button>
             
             <div class="hidden-form" style="display: block; margin-bottom: 20px; background: rgba(56, 189, 248, 0.05); border-color: rgba(56, 189, 248, 0.2);">
@@ -142,8 +138,8 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                     <h3 style="color: var(--secondary); margin: 0; font-size: 16px; display: flex; align-items: center; gap: 8px;">📅 Schedule & Deadlines</h3>
                     <button class="badge badge-secondary" onclick="switchScreen('kanbanScreen')">
-    <i class="ph-bold ph-columns"></i> Kanban View
-</button>
+                        <i class="ph-bold ph-columns"></i> Kanban View
+                    </button>
                 </div>
                 
                 <div style="display: flex; gap: 10px; margin-bottom: 15px;">
@@ -180,18 +176,16 @@
 
             <div id="taskListContainer"></div>
             <div id="habitListContainer"></div>
-
         </div>
 
-<div id="kanbanScreen" class="screen">
+        <div id="kanbanScreen" class="screen">
             <button class="back-btn" onclick="switchScreen('taskScreen')">
-                <span style="font-size: 20px; vertical-align: middle;">←</span> Back to Tasks
+                <i class="ph-bold ph-caret-left"></i> Back to Tasks
             </button>
             
             <h2 style="color: var(--primary); margin-top: 0; margin-bottom: 20px; font-weight: 800; letter-spacing: 1px;">🗂️ Kanban Board</h2>
 
             <div class="kanban-board">
-                
                 <div class="kanban-col">
                     <h4 style="color: var(--danger);">📌 TO DO</h4>
                     <div id="kb-todo" class="kanban-list"></div>
@@ -206,21 +200,20 @@
                     <h4 style="color: var(--success);">✅ DONE</h4>
                     <div id="kb-done" class="kanban-list"></div>
                 </div>
-
             </div>
         </div>
 
-<div id="foodScreen" class="screen">
+        <div id="foodScreen" class="screen">
             <button class="back-btn" onclick="switchScreen('dashboardScreen')">
-                <span style="font-size: 20px; vertical-align: middle;">←</span> Dashboard
+                <i class="ph-bold ph-caret-left"></i> Dashboard
             </button>
             
             <div class="hidden-form" style="display: block; margin-bottom: 20px; background: rgba(244, 63, 94, 0.05); border-color: rgba(244, 63, 94, 0.2);">
                 <h3 style="color: var(--danger); margin-top: 0; margin-bottom: 15px; font-size: 16px; display: flex; align-items: center; gap: 8px;">
-                    <i class="ph-duotone ph-sparkle"></i> Quick Food Log</h3>
+                    <i class="ph-duotone ph-sparkle"></i> Quick Food Log
                 </h3>
                 
-<div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                     <select id="mealType" class="glass-select" style="margin-bottom: 0; flex: 1;">
                         <option value="Breakfast">🍳 Breakfast</option>
                         <option value="Lunch">🍱 Lunch</option>
@@ -269,67 +262,68 @@
                 ✨ Analyze My Day (AI)
             </button>
         </div>
+
         <div id="budgetScreen" class="screen">
-    <button class="back-btn" onclick="switchScreen('dashboardScreen')">
-        <span style="font-size: 20px; vertical-align: middle;">←</span> Dashboard
-    </button>
+            <button class="back-btn" onclick="switchScreen('dashboardScreen')">
+                <i class="ph-bold ph-caret-left"></i> Dashboard
+            </button>
 
-    <div class="utang-card" style="text-align: center; padding: 20px; background: linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(192, 132, 252, 0.1)); border: 1px solid rgba(255,255,255,0.1);">
-        <p style="font-size: 12px; color: var(--text-muted); margin: 0; text-transform: uppercase; letter-spacing: 1px;">Overall Pera Ko</p>
-        <h1 id="totalNetWorth" style="font-size: 32px; color: var(--primary); margin: 10px 0;">₱0.00</h1>
-        <button onclick="showAddWalletModal()" style="background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); padding: 8px 15px; font-size: 12px; border-radius: 20px; color: var(--text-main);">
-            + Add Bank / Wallet
-        </button>
-    </div>
+            <div class="utang-card" style="text-align: center; padding: 20px; background: linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(192, 132, 252, 0.1)); border: 1px solid rgba(255,255,255,0.1);">
+                <p style="font-size: 12px; color: var(--text-muted); margin: 0; text-transform: uppercase; letter-spacing: 1px;">Overall Pera Ko</p>
+                <h1 id="totalNetWorth" style="font-size: 32px; color: var(--primary); margin: 10px 0;">₱0.00</h1>
+                <button onclick="showAddWalletModal()" style="background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); padding: 8px 15px; font-size: 12px; border-radius: 20px; color: var(--text-main);">
+                    + Add Bank / Wallet
+                </button>
+            </div>
 
-    <h3 style="color: var(--text-main); font-size: 14px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px; margin-top: 25px;">💳 MY WALLETS</h3>
-    <div id="walletsContainer" style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px;">
+            <h3 style="color: var(--text-main); font-size: 14px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px; margin-top: 25px;">💳 MY WALLETS</h3>
+            <div id="walletsContainer" style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px;"></div>
+
+            <h3 style="color: var(--text-main); font-size: 14px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px; margin-top: 15px;">📊 BUDGET THIS MONTH</h3>
+            <div class="utang-card" style="padding: 15px; background: rgba(255,255,255,0.02);">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <span style="font-size: 12px; color: var(--text-muted);">Target: <strong id="monthlyTarget" style="color: var(--text-main);">₱0.00</strong></span>
+                    <span style="font-size: 12px; color: var(--text-muted);">Spent: <strong id="monthlySpent" style="color: var(--danger);">₱0.00</strong></span>
+                </div>
+                <div style="width: 100%; background: rgba(255,255,255,0.1); border-radius: 10px; height: 10px; overflow: hidden;">
+                    <div id="budgetProgressBar" style="width: 0%; height: 100%; background: var(--success); transition: 0.3s;"></div>
+                </div>
+                <button onclick="setMonthlyBudget()" style="width: 100%; margin-top: 15px; background: none; border: 1px dashed var(--glass-border); color: var(--text-muted); padding: 10px; border-radius: 8px;">
+                    ⚙️ Set Budget Goal
+                </button>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button onclick="addIncome()" class="save-btn" style="flex: 1; margin: 0; background: rgba(56, 189, 248, 0.2); color: #38bdf8;">+ Income</button>
+                <button onclick="addExpense()" class="save-btn" style="flex: 1; margin: 0; background: rgba(244, 63, 94, 0.2); color: #f43f5e;">- Expense</button>
+            </div>
         </div>
 
-    <h3 style="color: var(--text-main); font-size: 14px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px; margin-top: 15px;">📊 BUDGET THIS MONTH</h3>
-    <div class="utang-card" style="padding: 15px; background: rgba(255,255,255,0.02);">
-        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-            <span style="font-size: 12px; color: var(--text-muted);">Target: <strong id="monthlyTarget" style="color: var(--text-main);">₱0.00</strong></span>
-            <span style="font-size: 12px; color: var(--text-muted);">Spent: <strong id="monthlySpent" style="color: var(--danger);">₱0.00</strong></span>
+        <div id="walletModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; padding: 20px; align-items: center; justify-content: center;">
+            <div class="utang-card" style="width: 100%; max-width: 400px; background: var(--bg-color); padding: 20px; position: relative;">
+                <h3 style="margin-top: 0; color: var(--primary);">🏦 Add New Wallet</h3>
+                <input type="text" id="walletName" placeholder="Pangalan (e.g. GCash, BPI, Cash)" style="margin-bottom: 10px;">
+                <input type="number" id="walletBalance" placeholder="Initial Balance (₱)" style="margin-bottom: 15px;">
+                <button onclick="saveWallet()" class="save-btn" style="margin-bottom: 10px;">Save Wallet</button>
+                <button onclick="closeBudgetModals()" style="width: 100%; background: transparent; color: var(--text-muted); border: none;">Cancel</button>
+            </div>
         </div>
-        <div style="width: 100%; background: rgba(255,255,255,0.1); border-radius: 10px; height: 10px; overflow: hidden;">
-            <div id="budgetProgressBar" style="width: 0%; height: 100%; background: var(--success); transition: 0.3s;"></div>
-        </div>
-        <button onclick="setMonthlyBudget()" style="width: 100%; margin-top: 15px; background: none; border: 1px dashed var(--glass-border); color: var(--text-muted); padding: 10px; border-radius: 8px;">
-            ⚙️ Set Budget Goal
-        </button>
-    </div>
 
-    <div style="display: flex; gap: 10px; margin-top: 20px;">
-        <button onclick="addIncome()" class="save-btn" style="flex: 1; margin: 0; background: rgba(56, 189, 248, 0.2); color: #38bdf8;">+ Income</button>
-        <button onclick="addExpense()" class="save-btn" style="flex: 1; margin: 0; background: rgba(244, 63, 94, 0.2); color: #f43f5e;">- Expense</button>
-    </div>
-</div>
-<div id="walletModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; padding: 20px; align-items: center; justify-content: center;">
-        <div class="utang-card" style="width: 100%; max-width: 400px; background: var(--bg-color); padding: 20px; position: relative;">
-            <h3 style="margin-top: 0; color: var(--primary);">🏦 Add New Wallet</h3>
-            <input type="text" id="walletName" placeholder="Pangalan (e.g. GCash, BPI, Cash)" style="margin-bottom: 10px;">
-            <input type="number" id="walletBalance" placeholder="Initial Balance (₱)" style="margin-bottom: 15px;">
-            <button onclick="saveWallet()" class="save-btn" style="margin-bottom: 10px;">Save Wallet</button>
-            <button onclick="closeBudgetModals()" style="width: 100%; background: transparent; color: var(--text-muted); border: none;">Cancel</button>
+        <div id="transactionModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; padding: 20px; align-items: center; justify-content: center;">
+            <div class="utang-card" style="width: 100%; max-width: 400px; background: var(--bg-color); padding: 20px; position: relative;">
+                <h3 id="transactionTitle" style="margin-top: 0; color: var(--primary);">Add Transaction</h3>
+                <input type="hidden" id="transactionType">
+                
+                <select id="transactionWallet" class="glass-select" style="margin-bottom: 10px;"></select>
+                
+                <input type="number" id="transactionAmount" placeholder="Amount (₱)" style="margin-bottom: 10px;">
+                <input type="text" id="transactionNote" placeholder="Saan galing / Saan ginastos?" style="margin-bottom: 15px;">
+                
+                <button onclick="saveTransaction()" class="save-btn" id="saveTransactionBtn" style="margin-bottom: 10px;">Save</button>
+                <button onclick="closeBudgetModals()" style="width: 100%; background: transparent; color: var(--text-muted); border: none;">Cancel</button>
+            </div>
         </div>
-    </div>
 
-    <div id="transactionModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; padding: 20px; align-items: center; justify-content: center;">
-        <div class="utang-card" style="width: 100%; max-width: 400px; background: var(--bg-color); padding: 20px; position: relative;">
-            <h3 id="transactionTitle" style="margin-top: 0; color: var(--primary);">Add Transaction</h3>
-            <input type="hidden" id="transactionType">
-            
-            <select id="transactionWallet" class="glass-select" style="margin-bottom: 10px;">
-                </select>
-            
-            <input type="number" id="transactionAmount" placeholder="Amount (₱)" style="margin-bottom: 10px;">
-            <input type="text" id="transactionNote" placeholder="Saan galing / Saan ginastos?" style="margin-bottom: 15px;">
-            
-            <button onclick="saveTransaction()" class="save-btn" id="saveTransactionBtn" style="margin-bottom: 10px;">Save</button>
-            <button onclick="closeBudgetModals()" style="width: 100%; background: transparent; color: var(--text-muted); border: none;">Cancel</button>
-        </div>
-    </div>
     </div>
 
     <script src="app.js"></script>
