@@ -621,14 +621,55 @@ function closeBudgetModals() {
 }
 
 // ==========================================
-// 🚀 INITIALIZE SYSTEM
+// 🔐 AUTHENTICATION & INITIALIZE SYSTEM
 // ==========================================
+let isAppInitialized = false;
+
+function handleLogin() {
+    window.authMethods.signInWithPopup(window.auth, window.provider)
+        .then((result) => {
+            console.log("Welcome back, Engineer:", result.user.displayName);
+        }).catch((error) => {
+            console.error("Login failed:", error);
+            alert("May error sa pag-login. Try again.");
+        });
+}
+
+function handleLogout() {
+    window.authMethods.signOut(window.auth).then(() => {
+        console.log("System offline.");
+    });
+}
+
 function startApp() {
-    if (window.db && window.dbMethods) {
-        initRealtimeUtang();
-        initRealtimeTasks();
-        initRealtimeFood();
-        initRealtimeBudget(); 
+    if (window.auth && window.authMethods && window.db) {
+        
+        // Listener: Binabantayan kung may nag-login o nag-logout
+        window.authMethods.onAuthStateChanged(window.auth, (user) => {
+            if (user) {
+                // KUNG NAKA-LOGIN:
+                document.getElementById('logoutBtn').style.display = 'block';
+                switchScreen('dashboardScreen');
+                
+                // Initialize database listeners once lang para iwas lag
+                if (!isAppInitialized) {
+                    initRealtimeUtang();
+                    initRealtimeTasks();
+                    initRealtimeFood();
+                    initRealtimeBudget();
+                    isAppInitialized = true;
+                }
+            } else {
+                // KUNG WALANG NAKA-LOGIN (o nag-logout):
+                document.getElementById('logoutBtn').style.display = 'none';
+                switchScreen('loginScreen');
+            }
+        });
+
+        // Attach buttons sa functions
+        document.getElementById('googleLoginBtn').addEventListener('click', handleLogin);
+        document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+
     } else {
         setTimeout(startApp, 500); 
     }
