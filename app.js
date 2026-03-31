@@ -532,3 +532,159 @@ async function analyzeFoodAI() {
         aiBtn.disabled = false;
     }
 }
+
+// ==========================================
+// 💰 MODULE 1: MULTI-WALLET & BUDGET SYSTEM
+// ==========================================
+
+let myWallets = []; // Array ng mga bangko/wallets mo
+let monthlyTarget = 0;
+let monthlySpent = 0;
+
+// --- 1. UI UPDATES ---
+function updateBudgetDashboard() {
+    // A. I-compute ang Total Net Worth (Lahat ng laman ng wallets)
+    let totalPera = myWallets.reduce((sum, wallet) => sum + parseFloat(wallet.balance), 0);
+    document.getElementById('totalNetWorth').innerText = `₱${totalPera.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+
+    // B. I-render ang mga Wallet Cards
+    let container = document.getElementById('walletsContainer');
+    container.innerHTML = ''; // I-clear muna
+    
+    if (myWallets.length === 0) {
+        container.innerHTML = `<p style="color: var(--text-muted); font-size: 12px; font-style: italic;">Wala pang wallet. Mag-add na sa taas!</p>`;
+    } else {
+        myWallets.forEach(wallet => {
+            container.innerHTML += `
+                <div style="min-width: 120px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; flex-shrink: 0;">
+                    <p style="margin: 0; font-size: 11px; color: var(--text-muted); text-transform: uppercase;">${wallet.name}</p>
+                    <h4 style="margin: 5px 0 0 0; color: var(--text-main); font-size: 16px;">₱${parseFloat(wallet.balance).toLocaleString()}</h4>
+                </div>
+            `;
+        });
+    }
+
+    // C. I-update ang Monthly Budget Progress
+    document.getElementById('monthlyTarget').innerText = `₱${parseFloat(monthlyTarget).toLocaleString()}`;
+    document.getElementById('monthlySpent').innerText = `₱${parseFloat(monthlySpent).toLocaleString()}`;
+    
+    let progress = 0;
+    if (monthlyTarget > 0) {
+        progress = (monthlySpent / monthlyTarget) * 100;
+        if (progress > 100) progress = 100;
+    }
+    
+    let bar = document.getElementById('budgetProgressBar');
+    bar.style.width = `${progress}%`;
+    
+    // Gawing red ang bar kapag over budget na (lampas 90%)
+    bar.style.background = progress >= 90 ? 'var(--danger)' : 'var(--success)';
+}
+
+// --- 2. ADD WALLET LOGIC ---
+function showAddWalletModal() {
+    document.getElementById('walletModal').style.display = 'flex';
+}
+
+function saveWallet() {
+    let name = document.getElementById('walletName').value;
+    let bal = document.getElementById('walletBalance').value;
+
+    if (!name || !bal) {
+        alert("Pakilagay ang pangalan at initial balance ng wallet!");
+        return;
+    }
+
+    myWallets.push({
+        id: Date.now(),
+        name: name,
+        balance: parseFloat(bal)
+    });
+
+    document.getElementById('walletName').value = '';
+    document.getElementById('walletBalance').value = '';
+    closeBudgetModals();
+    updateBudgetDashboard();
+}
+
+// --- 3. SET MONTHLY BUDGET ---
+function setMonthlyBudget() {
+    let target = prompt("Magkano ang limit ng budget mo for this month? (e.g. 5000)");
+    if (target && !isNaN(target)) {
+        monthlyTarget = parseFloat(target);
+        updateBudgetDashboard();
+    }
+}
+
+// --- 4. ADD INCOME & EXPENSE LOGIC ---
+function openTransactionModal(type) {
+    if (myWallets.length === 0) {
+        alert("Gumawa ka muna ng wallet sa taas bago mag-add ng pera!");
+        return;
+    }
+
+    document.getElementById('transactionModal').style.display = 'flex';
+    document.getElementById('transactionType').value = type;
+    
+    let title = document.getElementById('transactionTitle');
+    let btn = document.getElementById('saveTransactionBtn');
+    
+    if (type === 'income') {
+        title.innerText = '📈 Add Income';
+        title.style.color = 'var(--success)';
+        btn.style.background = 'var(--success)';
+    } else {
+        title.innerText = '📉 Add Expense';
+        title.style.color = 'var(--danger)';
+        btn.style.background = 'var(--danger)';
+    }
+
+    // Populate wallet dropdown
+    let walletSelect = document.getElementById('transactionWallet');
+    walletSelect.innerHTML = '';
+    myWallets.forEach(wallet => {
+        walletSelect.innerHTML += `<option value="${wallet.id}">${wallet.name} (Bal: ₱${wallet.balance})</option>`;
+    });
+}
+
+function addIncome() { openTransactionModal('income'); }
+function addExpense() { openTransactionModal('expense'); }
+
+function saveTransaction() {
+    let type = document.getElementById('transactionType').value;
+    let walletId = parseInt(document.getElementById('transactionWallet').value);
+    let amount = parseFloat(document.getElementById('transactionAmount').value);
+    let note = document.getElementById('transactionNote').value;
+
+    if (!amount || isNaN(amount)) {
+        alert("Pakilagay ang tamang halaga!");
+        return;
+    }
+
+    // Hanapin yung specific wallet na pinili
+    let walletIndex = myWallets.findIndex(w => w.id === walletId);
+    
+    if (type === 'income') {
+        myWallets[walletIndex].balance += amount;
+    } else if (type === 'expense') {
+        if (myWallets[walletIndex].balance < amount) {
+            alert("Oops! Kulang ang pondo mo sa wallet na ito.");
+            return;
+        }
+        myWallets[walletIndex].balance -= amount;
+        monthlySpent += amount; // Idagdag sa nagastos mo this month
+    }
+
+    document.getElementById('transactionAmount').value = '';
+    document.getElementById('transactionNote').value = '';
+    closeBudgetModals();
+    updateBudgetDashboard();
+}
+
+function closeBudgetModals() {
+    document.getElementById('walletModal').style.display = 'none';
+    document.getElementById('transactionModal').style.display = 'none';
+}
+
+// I-run agad pagka-load ng page
+updateBudgetDashboard();
