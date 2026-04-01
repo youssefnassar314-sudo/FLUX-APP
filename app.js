@@ -1142,120 +1142,137 @@ function openDailySummary(step) {
 }
 
 function renderSummarySection() {
-    console.log("Current Transactions:", transactionDatabase); // <--- DEBUG LINE
     const content = document.getElementById('summaryContent');
     const nextBtn = document.getElementById('summaryNextBtn');
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
     
-    let html = `<div class="thermal-receipt">`;
+    // Header ng Thermal Receipt (Laging andito)
+    let headerHtml = `
+        <div class="thermal-receipt">
+            <div class="receipt-header">
+                <h1 style="margin:0; font-size: 24px;">FLUX OS v3.0</h1>
+                <p style="font-size:10px; margin:5px 0;">ENGINEER TERMINAL: #001</p>
+                <p style="font-size:10px;">DATE: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}</p>
+                <div class="receipt-divider"></div>
+            </div>
+    `;
+
+    let bodyHtml = "";
 
     if (currentSummaryStep === 0) {
-        // --- SECTION 1: UTANG (SMART FILTER) ---
+        // --- SECTION 1: DEBT REPAYMENT ---
         let paidThisMonth = transactionDatabase.filter(t => {
-            // Check kung pasok sa petsa ngayong buwan
             let isThisMonth = t.createdAt >= startOfMonth;
-            // Check kung mukhang bayad sa utang (sa Category man o sa Note)
-            let isDebtPayment = 
-                (t.category && t.category.toLowerCase().includes("debt")) || 
-                (t.note && t.note.toLowerCase().includes("utang")) ||
-                (t.note && t.note.toLowerCase().includes("bayad"));
-            
-            return isThisMonth && isDebtPayment;
+            let note = (t.note || "").toLowerCase();
+            let cat = (t.category || "").toLowerCase();
+            return isThisMonth && (note.includes("utang") || note.includes("bayad") || note.includes("debt") || cat.includes("debt"));
         });
 
         let totalPaid = paidThisMonth.reduce((sum, t) => sum + t.amount, 0);
         
-        html += `
-            <div class="receipt-header">
-                <h2 style="margin:0; font-size: 18px;">DEBT REPAYMENT</h2>
-                <p style="font-size:10px;">PERIOD: ${new Date(startOfMonth).toLocaleDateString()} - PRESENT</p>
-            </div>
-            <div style="margin-bottom: 10px;">
+        bodyHtml = `
+            <div class="receipt-section-title">DEBT REPAYMENT</div>
+            <div style="margin: 15px 0;">
                 ${paidThisMonth.map(t => `
-                    <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;">
-                        <span style="max-width: 70%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                            ${t.note || 'Debt Payment'}
-                        </span>
+                    <div class="receipt-row">
+                        <span style="max-width: 65%; overflow: hidden;">${t.note || 'REPAYMENT'}</span>
                         <span>₱${t.amount.toFixed(2)}</span>
                     </div>
-                `).join('') || '<p style="text-align:center; font-size:12px; font-style:italic;">No recorded payments yet.</p>'}
+                `).join('') || '<p style="text-align:center; font-size:11px;">NO RECENT PAYMENTS FOUND</p>'}
             </div>
             <div class="receipt-divider"></div>
-            <div style="display:flex; justify-content:space-between; font-weight:bold; font-size: 14px;">
+            <div class="receipt-row" style="font-weight:bold; font-size: 16px;">
                 <span>TOTAL REPAID</span><span>₱${totalPaid.toFixed(2)}</span>
             </div>`;
         
-        nextBtn.innerHTML = `FOOD LOG <i class="ph-bold ph-arrow-right"></i>`;
+        nextBtn.innerHTML = `NEXT: FOOD LOG <i class="ph-bold ph-arrow-right"></i>`;
         nextBtn.onclick = () => openDailySummary(1);
 
     } else if (currentSummaryStep === 1) {
-        // --- SECTION 2: FOOD ---
+        // --- SECTION 2: FOOD LOG ---
         let foodThisMonth = foodDatabase.filter(f => f.createdAt >= startOfMonth);
         let totalFood = foodThisMonth.reduce((sum, f) => sum + (f.cost || 0), 0);
-        let aiVerdict = document.getElementById('aiVerdictText')?.innerText || "No AI analysis yet.";
+        
+        // HULING AI VERDICT (Permanent)
+        let lastAiVerdict = "NO ANALYSIS RECORDED";
+        if (typeof aiAnalyses !== 'undefined' && aiAnalyses.length > 0) {
+            lastAiVerdict = aiAnalyses[aiAnalyses.length - 1].verdict;
+        }
 
-        html += `
-            <div class="receipt-header"><h2 style="margin:0;">FOOD RECEIPT</h2></div>
-            ${foodThisMonth.map(f => `<div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:2px;">
-                <span>• ${f.item}</span><span>₱${(f.cost || 0).toFixed(2)}</span>
-            </div>`).join('')}
+        bodyHtml = `
+            <div class="receipt-section-title">FOOD CONSUMPTION</div>
+            <div style="margin: 15px 0;">
+                ${foodThisMonth.map(f => `
+                    <div class="receipt-row">
+                        <span>• ${f.item}</span><span>₱${(f.cost || 0).toFixed(2)}</span>
+                    </div>
+                `).join('')}
+            </div>
             <div class="receipt-divider"></div>
-            <p style="font-size:10px; font-style:italic; margin:10px 0;">AI SUMMARY: ${aiVerdict}</p>
-            <div style="display:flex; justify-content:space-between; font-weight:bold;">
-                <span>TOTAL SPENT</span><span>₱${totalFood.toFixed(2)}</span>
+            <p style="font-size:9px; line-height: 1.4; margin-bottom: 15px;">AI FEEDBACK: ${lastAiVerdict}</p>
+            <div class="receipt-row" style="font-weight:bold;">
+                <span>FOOD TOTAL</span><span>₱${totalFood.toFixed(2)}</span>
             </div>`;
-        nextBtn.innerHTML = `TASK PROGRESS <i class="ph-bold ph-arrow-right"></i>`;
+        
+        nextBtn.innerHTML = `NEXT: TASKS <i class="ph-bold ph-arrow-right"></i>`;
         nextBtn.onclick = () => openDailySummary(2);
 
     } else if (currentSummaryStep === 2) {
-        // --- SECTION 3: TASK ---
-        let doing = taskDatabase.filter(t => t.status === 'doing');
+        // --- SECTION 3: PRODUCTIVITY ---
         let doneMonth = taskDatabase.filter(t => t.status === 'done' && t.createdAt >= startOfMonth);
+        let totalMins = doneMonth.reduce((sum, t) => sum + (t.timeSpent || 0), 0);
 
-        html += `
-            <div class="receipt-header"><h2 style="margin:0;">TASK STATUS</h2></div>
-            <p style="font-size:10px; font-weight:bold;">[ CURRENTLY DOING ]</p>
-            ${doing.map(t => `<p style="font-size:12px;">- ${t.title}</p>`).join('') || '<p>None</p>'}
+        bodyHtml = `
+            <div class="receipt-section-title">TASK PROGRESS</div>
+            <div style="margin: 15px 0;">
+                ${doneMonth.map(t => `
+                    <div class="receipt-row">
+                        <span style="max-width: 75%;">${t.title}</span>
+                        <span>${t.timeSpent || 0}M</span>
+                    </div>
+                `).join('') || '<p style="text-align:center;">NO TASKS COMPLETED</p>'}
+            </div>
             <div class="receipt-divider"></div>
-            <p style="font-size:10px; font-weight:bold;">[ FINISHED THIS MONTH ]</p>
-            ${doneMonth.map(t => `<div style="display:flex; justify-content:space-between; font-size:11px;">
-                <span>${t.title}</span><span>${t.timeSpent || 0}m</span>
-            </div>`).join('')}
-        `;
-        nextBtn.innerHTML = `BUDGET RADAR <i class="ph-bold ph-arrow-right"></i>`;
+            <div class="receipt-row" style="font-weight:bold;">
+                <span>TIME INVESTED</span><span>${totalMins} MINS</span>
+            </div>`;
+        
+        nextBtn.innerHTML = `NEXT: BUDGET <i class="ph-bold ph-arrow-right"></i>`;
         nextBtn.onclick = () => openDailySummary(3);
 
     } else if (currentSummaryStep === 3) {
-        // --- SECTION 4: BUDGET ---
+        // --- SECTION 4: BUDGET STATUS ---
         let remaining = monthlyTarget - monthlySpent;
         let daysLeft = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() - now.getDate() + 1;
         let daily = remaining > 0 ? (remaining / daysLeft) : 0;
 
-        html += `
-            <div class="receipt-header"><h2 style="margin:0;">BUDGET RUN</h2></div>
-            <div style="font-size:12px;">
-                <div style="display:flex; justify-content:space-between;"><span>TARGET:</span><span>₱${parseFloat(monthlyTarget).toFixed(2)}</span></div>
-                <div style="display:flex; justify-content:space-between;"><span>TOTAL SPENT:</span><span>-₱${monthlySpent.toFixed(2)}</span></div>
-                <div class="receipt-divider"></div>
-                <div style="display:flex; justify-content:space-between; font-weight:bold;"><span>REMAINING:</span><span>₱${remaining.toFixed(2)}</span></div>
+        bodyHtml = `
+            <div class="receipt-section-title">BUDGET SUMMARY</div>
+            <div class="receipt-row"><span>TARGET:</span><span>₱${parseFloat(monthlyTarget).toFixed(2)}</span></div>
+            <div class="receipt-row"><span>SPENT:</span><span>-₱${monthlySpent.toFixed(2)}</span></div>
+            <div class="receipt-divider"></div>
+            <div class="receipt-row" style="font-weight:bold;"><span>REMAINING:</span><span>₱${remaining.toFixed(2)}</span></div>
+            
+            <div style="text-align:center; margin-top:20px; border:2px solid #111; padding:10px;">
+                <p style="font-size:9px; margin:0;">DAILY ALLOWANCE LEFT</p>
+                <h1 style="margin:5px 0; font-size: 32px;">₱${daily.toFixed(2)}</h1>
             </div>
-            <div style="text-align:center; margin-top:20px; border:1px solid #444; padding:10px;">
-                <p style="font-size:10px; margin:0;">DAILY ALLOWANCE LEFT:</p>
-                <h2 style="margin:5px 0;">₱${daily.toFixed(2)}</h2>
-            </div>
-            <div class="barcode">
-                <i class="ph-bold ph-barcode" style="font-size: 50px;"></i>
-                <p style="font-size:8px;">FLUX-OS-V2-${now.getMonth()+1}${now.getFullYear()}</p>
+            
+            <div class="receipt-divider"></div>
+            <div style="text-align:center; margin-top: 20px;">
+                <i class="ph-bold ph-barcode" style="font-size: 60px;"></i>
+                <p style="font-size:9px; letter-spacing: 3px;">FLUX-OS-MONTHLY-REPORT</p>
+                <p style="margin-top: 10px; font-weight: bold;">*** THANK YOU, ENGINEER ***</p>
             </div>`;
-        nextBtn.innerHTML = `CLOSE RECEIPT`;
+        
+        nextBtn.innerHTML = `FINISH REVIEW`;
         nextBtn.onclick = () => switchScreen('dashboardScreen');
     }
 
-    html += `</div>`;
-    content.innerHTML = html;
+    content.innerHTML = headerHtml + bodyHtml + `</div>`;
 }
-// Huwag kalimutang i-export ang function
+
 
 
 // ==========================================
