@@ -736,9 +736,22 @@ function renderFoodList() {
     let container = document.getElementById('foodListContainer');
     container.innerHTML = `<h3 style="color: var(--text-main); margin-top: 10px; font-size: 14px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px;"><i class="ph-duotone ph-fork-knife"></i> FOOD LOG TODAY</h3>`;
 
-    if (foodDatabase.length === 0) { container.innerHTML += '<p style="color: var(--text-muted); font-size: 12px; font-style: italic;">Wala ka pang kinakain today.</p>'; return; }
+    // 1. BAGO: Kunin ang petsa ngayon (YYYY-MM-DD)
+    let today = new Date().toLocaleDateString('en-CA');
 
-    foodDatabase.forEach(food => {
+    // 2. BAGO: I-filter ang database para yung 'createdAt' ay kapareho ng petsa ngayon
+    let todayFood = foodDatabase.filter(food => {
+        let foodDate = new Date(food.createdAt).toLocaleDateString('en-CA');
+        return foodDate === today;
+    });
+
+    // 3. I-update ang logic: gamitin ang 'todayFood' imbes na 'foodDatabase'
+    if (todayFood.length === 0) { 
+        container.innerHTML += '<p style="color: var(--text-muted); font-size: 12px; font-style: italic;">Wala ka pang kinakain today.</p>'; 
+        return; 
+    }
+
+    todayFood.forEach(food => {
         let badgeColor = food.meal === 'Breakfast' ? '#fbbf24' : food.meal === 'Lunch' ? '#38bdf8' : food.meal === 'Dinner' ? '#c084fc' : '#f43f5e';
         let picIcon = food.image64 ? ' <i class="ph-bold ph-image"></i>' : '';
         let priceTag = food.cost > 0 ? ` - ₱${food.cost}` : '';
@@ -1138,7 +1151,10 @@ function renderSummarySection() {
 
     if (currentSummaryStep === 0) {
         // --- SECTION 1: UTANG ---
-        let paidThisMonth = transactionDatabase.filter(t => t.category === "Education" || t.note.toLowerCase().includes("utang") && t.createdAt >= startOfMonth);
+        // Sa loob ng renderSummarySection, palitan ang Section 1 filter:
+let paidThisMonth = transactionDatabase.filter(t => 
+    t.category === "Debt Payment" && t.createdAt >= startOfMonth
+);
         let totalPaid = paidThisMonth.reduce((sum, t) => sum + t.amount, 0);
         
         html += `
