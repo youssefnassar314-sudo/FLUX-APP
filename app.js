@@ -546,25 +546,71 @@ function renderTasks() {
 }
 
 function renderKanban() {
-    let colTodo = document.getElementById('kb-todo'); let colDoing = document.getElementById('kb-doing'); let colDone = document.getElementById('kb-done');
-    if(!colTodo) return;
+    let colTodo = document.getElementById('kb-todo'); 
+    let colDoing = document.getElementById('kb-doing'); 
+    let colDone = document.getElementById('kb-done');
+    
+    // Safety check
+    if(!colTodo || !colDoing || !colDone) return;
+    
     colTodo.innerHTML = ''; colDoing.innerHTML = ''; colDone.innerHTML = '';
 
-    taskDatabase.forEach(task => {
-        let actionButtons = '';
-        if (task.status === 'todo') actionButtons = `<button class="kb-btn" style="width: 100%; color: var(--primary);" onclick="moveTaskStatus('${task.id}', 'doing')">Move to DOING <i class="ph-bold ph-arrow-right"></i></button>`;
-        else if (task.status === 'doing') actionButtons = `<button class="kb-btn" style="color: var(--danger);" onclick="moveTaskStatus('${task.id}', 'todo')"><i class="ph-bold ph-arrow-left"></i> To Do</button><button class="kb-btn" style="color: var(--success);" onclick="moveTaskStatus('${task.id}', 'done')"><i class="ph-bold ph-check"></i> Done</button>`;
-        else if (task.status === 'done') actionButtons = `<button class="kb-btn" style="width: 100%; color: var(--text-muted);" onclick="moveTaskStatus('${task.id}', 'doing')"><i class="ph-bold ph-arrow-left"></i> Back to Doing</button>`;
+    // BAGO: I-filter out ang "Sched" kasi whole day events 'yon, di bagay sa Kanban
+    let kanbanTasks = taskDatabase.filter(t => t.category !== 'Sched');
 
-        let cardHTML = `
-            <div class="kanban-card">
-                <h4 style="margin: 8px 0; font-size: 14px; color: var(--text-main);">${task.title}</h4>
-                <div class="kanban-actions">${actionButtons}</div>
-            </div>
-        `;
-        if (task.status === 'todo') colTodo.innerHTML += cardHTML;
-        else if (task.status === 'doing') colDoing.innerHTML += cardHTML;
-        else if (task.status === 'done') colDone.innerHTML += cardHTML;
+    kanbanTasks.forEach(task => {
+        let actionButtons = '';
+        let cardHTML = '';
+
+        // 1. TO DO COLUMN
+        if (task.status === 'todo') {
+            actionButtons = `<button class="kb-btn" style="width: 100%; color: var(--primary);" onclick="moveTaskStatus('${task.id}', 'doing')">Start Task <i class="ph-bold ph-play"></i></button>`;
+            cardHTML = `
+                <div class="kanban-card">
+                    <h4 style="margin: 8px 0; font-size: 14px; color: var(--text-main);">${task.title}</h4>
+                    <div class="kanban-actions">${actionButtons}</div>
+                </div>
+            `;
+            colTodo.innerHTML += cardHTML;
+        } 
+        
+        // 2. DOING COLUMN (Kasama na rito yung mga naka-PAUSE)
+        else if (task.status === 'doing' || task.status === 'paused') {
+            let isPaused = task.status === 'paused';
+            
+            // Kung naka-pause, Resume button ang lalabas. Kung tumatakbo, Pause button.
+            let playPauseBtn = isPaused 
+                ? `<button class="kb-btn" style="color: var(--primary);" onclick="moveTaskStatus('${task.id}', 'doing')"><i class="ph-bold ph-play"></i> Resume</button>`
+                : `<button class="kb-btn" style="color: var(--danger);" onclick="moveTaskStatus('${task.id}', 'paused')"><i class="ph-bold ph-pause"></i> Pause</button>`;
+            
+            actionButtons = `
+                ${playPauseBtn}
+                <button class="kb-btn" style="color: var(--success);" onclick="moveTaskStatus('${task.id}', 'done')"><i class="ph-bold ph-check"></i> Done</button>
+            `;
+            
+            let statusLabel = isPaused ? `<span style="font-size: 10px; font-weight: bold; color: var(--danger);">PAUSED</span>` : `<span style="font-size: 10px; font-weight: bold; color: var(--primary);">RUNNING...</span>`;
+            
+            cardHTML = `
+                <div class="kanban-card" style="${isPaused ? 'opacity: 0.6;' : 'border-left: 3px solid var(--primary);'}">
+                    ${statusLabel}
+                    <h4 style="margin: 4px 0 8px 0; font-size: 14px; color: var(--text-main);">${task.title}</h4>
+                    <div class="kanban-actions">${actionButtons}</div>
+                </div>
+            `;
+            colDoing.innerHTML += cardHTML;
+        } 
+        
+        // 3. DONE COLUMN
+        else if (task.status === 'done') {
+            actionButtons = `<button class="kb-btn" style="width: 100%; color: var(--text-muted);" onclick="moveTaskStatus('${task.id}', 'doing')"><i class="ph-bold ph-arrow-left"></i> Re-open</button>`;
+            cardHTML = `
+                <div class="kanban-card" style="opacity: 0.5; background: rgba(255,255,255,0.02);">
+                    <h4 style="margin: 8px 0; font-size: 14px; color: var(--text-muted); text-decoration: line-through;">${task.title}</h4>
+                    <div class="kanban-actions">${actionButtons}</div>
+                </div>
+            `;
+            colDone.innerHTML += cardHTML;
+        }
     });
 }
 
