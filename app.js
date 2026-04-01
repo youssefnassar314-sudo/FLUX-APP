@@ -354,45 +354,57 @@ function initRealtimeTasks() {
     });
 }
 
-function renderTasks() {
-    let taskContainer = document.getElementById('taskListContainer');
-    let habitContainer = document.getElementById('habitListContainer');
-    taskContainer.innerHTML = `<h3 style="color: var(--text-main); margin-top: 30px; font-size: 14px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px;"><i class="ph-duotone ph-list-checks"></i> PENDING TASKS</h3>`;
-    habitContainer.innerHTML = `<h3 style="color: var(--success); margin-top: 30px; font-size: 14px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px;"><i class="ph-duotone ph-arrows-clockwise"></i> DAILY HABITS</h3>`;
+// 1. BAGO: Delete Task ('X' button)
+async function deleteTask(id) {
+    if (confirm("Sigurado ka bang gusto mong burahin ang task na ito?")) {
+        try {
+            await window.dbMethods.deleteDoc(window.dbMethods.doc(window.db, "tasks", id));
+        } catch(e) { console.error(e); }
+    }
+}
 
-    let sortedTasks = taskDatabase.sort((a, b) => (a.status === 'done') - (b.status === 'done') || a.dueDate - b.dueDate);
-    if (sortedTasks.length === 0) taskContainer.innerHTML += '<p style="color: var(--text-muted); font-size: 12px; font-style: italic;">No tasks yet.</p>';
+// 2. IN-UPDATE: Play / Pause / Done Logic na may Timer computation
+async function moveTaskStatus(id, newState) {
+    let task = taskDatabase.find(t => t.id === id);
+    if(!task) return;
     
-    sortedTasks.forEach(task => {
-        let isDone = task.status === 'done';
-        let badgeColor = task.category === 'Work' ? '#38bdf8' : task.category === 'School' ? '#c084fc' : '#10b981';
-        let btnText = isDone ? '<i class="ph-bold ph-check"></i> Done' : (task.status === 'doing' ? '<i class="ph-bold ph-hourglass"></i> Doing' : 'Mark Done');
-        
-        taskContainer.innerHTML += `
-            <div class="utang-card" style="${isDone ? 'opacity: 0.5; background: rgba(255,255,255,0.02);' : 'background: rgba(192, 132, 252, 0.05); border-left: 4px solid var(--secondary);'} margin-bottom: 10px; padding: 15px;">
-                <span style="font-size: 10px; font-weight: 700; background: rgba(255,255,255,0.05); color: ${badgeColor}; padding: 3px 8px; border-radius: 5px; text-transform: uppercase;">${task.category}</span>
-                <h4 style="margin: 8px 0; font-size: 15px; color: var(--text-main);">${task.title}</h4>
-                <button class="paid-btn" style="border-color: var(--secondary); color: var(--secondary); margin-top: 10px; padding: 6px;" onclick="moveTaskStatus('${task.id}', 'done')" ${isDone ? 'disabled' : ''}>${btnText}</button>
-            </div>
-        `;
+    let now = Date.now();
+    let updates = { status: newState };
+    
+    // Compute time spent kapag pinause o tinapos
+    let elapsedMins = 0;
+    if (task.lastStarted && (newState === 'paused' || newState === 'done' || newState === 'todo')) {
+        elapsedMins = Math.floor((now - task.lastStarted) / 60000); // ms to minutes
+    }
+
+    if (newState === 'doing') {
+        updates.lastStarted = now; // Start timer
+    } else if (newState === 'paused' || newState === 'done' || newState === 'todo') {
+        updates.timeSpent = (task.timeSpent || 0) + Math.max(0, elapsedMins);
+        updates.lastStarted = null; // Stop timer
+    }
+
+    await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "tasks", id), updates);
+}
+
+// 3. IN-UPDATE: Magse-save na ng petsa para alam kung kailan huling ginawa
+async function saveHabit() {
+    let name = document.getElementById('habitName').value;
+    let timeVal = document.getElementById('habitTime').value;
+    if (!name || !timeVal) { alert("Pakilagay yung Habit at Oras!"); return; }
+
+    await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "habits"), {
+        name: name, time: timeVal, lastDoneDate: "", createdAt: Date.now()
     });
 
-    if (habitDatabase.length === 0) habitContainer.innerHTML += '<p style="color: var(--text-muted); font-size: 12px; font-style: italic;">No habits yet.</p>';
-    habitDatabase.forEach(habit => {
-        let timeParts = habit.time.split(':');
-        let hour = parseInt(timeParts[0]);
-        let formattedTime = (hour % 12 || 12) + ':' + timeParts[1] + (hour >= 12 ? ' PM' : ' AM');
-        
-        habitContainer.innerHTML += `
-            <div class="utang-card" style="${habit.isDone ? 'opacity: 0.5;' : 'background: rgba(16, 185, 129, 0.05); border-left: 4px solid var(--success);'} margin-bottom: 10px; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <h4 style="margin: 0 0 5px 0; font-size: 15px; color: var(--success);">${habit.name}</h4>
-                    <span style="font-size: 12px; color: var(--text-muted);"><i class="ph-bold ph-clock"></i> ${formattedTime}</span>
-                </div>
-                <button class="paid-btn" style="width: auto; margin-top: 0; padding: 6px 12px; border-color: var(--success); color: var(--success);" onclick="markHabitDone('${habit.id}')" ${habit.isDone ? 'disabled' : ''}>${habit.isDone ? '<i class="ph-bold ph-check"></i> Done' : 'Mark Done'}</button>
-            </div>
-        `;
-    });
+    document.getElementById('habitName').value = '';
+    document.getElementById('habitTime').value = '';
+}
+
+// 4. IN-UPDATE: I-save ang "Petsa Ngayon" kapag pinindot ang 'Done'
+async function markHabitDone(id) {
+    let todayStr = new Date().toLocaleDateString('en-CA'); // Ex: 2026-04-01
+    await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "habits", id), { lastDoneDate: todayStr });
 }
 
 function renderKanban() {
