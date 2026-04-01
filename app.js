@@ -1142,6 +1142,7 @@ function openDailySummary(step) {
 }
 
 function renderSummarySection() {
+    console.log("Current Transactions:", transactionDatabase); // <--- DEBUG LINE
     const content = document.getElementById('summaryContent');
     const nextBtn = document.getElementById('summaryNextBtn');
     const now = new Date();
@@ -1150,28 +1151,41 @@ function renderSummarySection() {
     let html = `<div class="thermal-receipt">`;
 
     if (currentSummaryStep === 0) {
-        // --- SECTION 1: UTANG ---
-        // Sa loob ng renderSummarySection, palitan ang Section 1 filter:
-let paidThisMonth = transactionDatabase.filter(t => 
-    t.category === "Debt Payment" && t.createdAt >= startOfMonth
-);
+        // --- SECTION 1: UTANG (SMART FILTER) ---
+        let paidThisMonth = transactionDatabase.filter(t => {
+            // Check kung pasok sa petsa ngayong buwan
+            let isThisMonth = t.createdAt >= startOfMonth;
+            // Check kung mukhang bayad sa utang (sa Category man o sa Note)
+            let isDebtPayment = 
+                (t.category && t.category.toLowerCase().includes("debt")) || 
+                (t.note && t.note.toLowerCase().includes("utang")) ||
+                (t.note && t.note.toLowerCase().includes("bayad"));
+            
+            return isThisMonth && isDebtPayment;
+        });
+
         let totalPaid = paidThisMonth.reduce((sum, t) => sum + t.amount, 0);
         
         html += `
             <div class="receipt-header">
-                <h2 style="margin:0;">UTANG REPORT</h2>
-                <p style="font-size:10px;">${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}</p>
+                <h2 style="margin:0; font-size: 18px;">DEBT REPAYMENT</h2>
+                <p style="font-size:10px;">PERIOD: ${new Date(startOfMonth).toLocaleDateString()} - PRESENT</p>
             </div>
-            ${paidThisMonth.map(t => {
-                let wallet = myWallets.find(w => w.id === t.walletId)?.name || "Wallet";
-                return `<div style="display:flex; justify-content:space-between; font-size:12px;">
-                    <span>${t.note} (via ${wallet})</span><span>₱${t.amount.toFixed(2)}</span>
-                </div>`;
-            }).join('') || '<p style="text-align:center;">No payments this month.</p>'}
+            <div style="margin-bottom: 10px;">
+                ${paidThisMonth.map(t => `
+                    <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;">
+                        <span style="max-width: 70%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            ${t.note || 'Debt Payment'}
+                        </span>
+                        <span>₱${t.amount.toFixed(2)}</span>
+                    </div>
+                `).join('') || '<p style="text-align:center; font-size:12px; font-style:italic;">No recorded payments yet.</p>'}
+            </div>
             <div class="receipt-divider"></div>
-            <div style="display:flex; justify-content:space-between; font-weight:bold;">
+            <div style="display:flex; justify-content:space-between; font-weight:bold; font-size: 14px;">
                 <span>TOTAL REPAID</span><span>₱${totalPaid.toFixed(2)}</span>
             </div>`;
+        
         nextBtn.innerHTML = `FOOD LOG <i class="ph-bold ph-arrow-right"></i>`;
         nextBtn.onclick = () => openDailySummary(1);
 
