@@ -358,3 +358,37 @@ input[type="time"]::-webkit-calendar-picker-indicator {
     filter: drop-shadow(0 0 12px rgba(192, 132, 252, 0.6));
     transform: scale(1.1);
 }
+
+.thermal-receipt {
+    background: #f8f8f8; /* Off-white paper */
+    color: #222;
+    font-family: 'Courier Prime', 'Courier New', monospace;
+    padding: 30px 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    position: relative;
+    min-height: 400px;
+    margin-top: 20px;
+}
+
+/* Serrated/Zigzag Edges */
+.thermal-receipt::before, .thermal-receipt::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 10px;
+    background-size: 20px 20px;
+    background-repeat: repeat-x;
+}
+.thermal-receipt::before {
+    top: -10px;
+    background-image: radial-gradient(circle at 10px 15px, transparent 12px, #f8f8f8 13px);
+}
+.thermal-receipt::after {
+    bottom: -10px;
+    background-image: radial-gradient(circle at 10px -5px, transparent 12px, #f8f8f8 13px);
+}
+
+.receipt-header { text-align: center; border-bottom: 1px dashed #444; padding-bottom: 15px; margin-bottom: 15px; }
+.receipt-divider { border-top: 1px dashed #444; margin: 10px 0; }
+.barcode { text-align: center; margin-top: 20px; filter: grayscale(1); opacity: 0.7; }
