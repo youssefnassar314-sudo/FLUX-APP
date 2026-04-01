@@ -1,4 +1,4 @@
-const CACHE_NAME = 'flux-os-v5';
+const CACHE_NAME = 'flux-os-v6';
 const assetsToCache = [
     './',
     './index.html',
