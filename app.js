@@ -6,6 +6,7 @@ let taskDatabase = [];
 let habitDatabase = [];
 let foodDatabase = [];
 let myWallets = [];
+let aiAnalyses = [];
 
 let runningTotalUtang = 0;
 let runningTotalBayad = 0;
@@ -138,18 +139,15 @@ async function confirmPayUtang() {
             balance: parseFloat(walletObj.balance) - amount 
         });
 
-        // 2. I-update ang Utang Record (Dagdag natin ang paidAt para sa Resibo)
-        await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "utang", utangId), { 
-            isPaid: true,
-            paidAt: Date.now() // <--- ETO ANG IMPORTANTE
-        });
+        // 2. Mark as Paid sa Utang Collection
+        await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "utang", utangId), { isPaid: true });
 
-        // 3. I-log din sa Transactions para sa history
+        // 3. BAGO: I-log as Transaction para lumabas sa Resibo!
         await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "transactions"), {
             type: 'expense',
             walletId: walletId,
             amount: amount,
-            note: `BAYAD: ${utangLabel}`,
+            note: `Bayad Utang: ${utangLabel.split('(')[0]}`,
             category: "Debt Payment", 
             createdAt: Date.now()
         });
@@ -796,6 +794,15 @@ async function analyzeFoodAI() {
     } catch (e) { alert("API Error."); } finally { aiBtn.innerHTML = originalText; aiBtn.disabled = false; }
 }
 
+function initRealtimeAiAnalyses() {
+    const q = window.dbMethods.query(window.dbMethods.collection(window.db, "aiAnalyses"));
+    window.dbMethods.onSnapshot(q, (snapshot) => {
+        aiAnalyses = [];
+        snapshot.forEach(doc => aiAnalyses.push({ id: doc.id, ...doc.data() }));
+        aiAnalyses.sort((a, b) => a.createdAt - b.createdAt); // Oldest to newest so last index = latest
+    });
+}
+
 // ==========================================
 // 💰 MODULE 4: MULTI-WALLET & BUDGET SYSTEM (FIREBASE)
 // ==========================================
@@ -1163,11 +1170,13 @@ function renderSummarySection() {
 
     let bodyHtml = "";
 
-   if (currentSummaryStep === 0) {
-        // --- SECTION 1: DIRETSO SA UTANG DATABASE (FIRST MODULE) ---
+    if (currentSummaryStep === 0) {
+        // --- SECTION 1: DEBT REPAYMENT ---
+        // Pull directly from utangDatabase — paid items this month (based on dueDate month)
         let paidThisMonth = utangDatabase.filter(u => {
-            // Check kung PAID na at kung binayaran ngayong buwan
-            return u.isPaid === true && u.paidAt >= startOfMonth;
+            if (!u.isPaid) return false;
+            let d = u.dueDate instanceof Date ? u.dueDate : new Date(u.dueDate);
+            return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
         });
 
         let totalPaid = paidThisMonth.reduce((sum, u) => sum + u.amount, 0);
@@ -1177,10 +1186,10 @@ function renderSummarySection() {
             <div style="margin: 15px 0;">
                 ${paidThisMonth.map(u => `
                     <div class="receipt-row">
-                        <span style="max-width: 65%;">ID: ${u.utangId}</span>
+                        <span style="max-width: 65%; overflow: hidden;">${u.utangId}</span>
                         <span>₱${u.amount.toFixed(2)}</span>
                     </div>
-                `).join('') || '<p style="text-align:center; font-size:11px;">NO RECENT PAYMENTS FOUND</p>'}
+                `).join('') || '<p style="text-align:center; font-size:11px;">NO DEBTS PAID THIS MONTH</p>'}
             </div>
             <div class="receipt-divider"></div>
             <div class="receipt-row" style="font-weight:bold; font-size: 16px;">
@@ -1189,16 +1198,15 @@ function renderSummarySection() {
         
         nextBtn.innerHTML = `NEXT: FOOD LOG <i class="ph-bold ph-arrow-right"></i>`;
         nextBtn.onclick = () => openDailySummary(1);
-    }
 
     } else if (currentSummaryStep === 1) {
         // --- SECTION 2: FOOD LOG ---
         let foodThisMonth = foodDatabase.filter(f => f.createdAt >= startOfMonth);
         let totalFood = foodThisMonth.reduce((sum, f) => sum + (f.cost || 0), 0);
         
-        // HULING AI VERDICT (Permanent)
-        let lastAiVerdict = "NO ANALYSIS RECORDED";
-        if (typeof aiAnalyses !== 'undefined' && aiAnalyses.length > 0) {
+        // HULING AI VERDICT — pulled from Firebase via initRealtimeAiAnalyses
+        let lastAiVerdict = "NO ANALYSIS RECORDED YET";
+        if (aiAnalyses.length > 0) {
             lastAiVerdict = aiAnalyses[aiAnalyses.length - 1].verdict;
         }
 
@@ -1316,6 +1324,7 @@ function startApp() {
                     initRealtimeBudget();
                     initRealtimeTransactions();
                     initRealtimeBudgetConfig();
+                    initRealtimeAiAnalyses();
                     isAppInitialized = true;
                 }
             } else {
