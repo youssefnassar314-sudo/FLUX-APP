@@ -260,11 +260,12 @@ async function estimateAITask() {
     aiBtn.disabled = true;
 
     try {
-        // TATAWAGIN ANG REAL AI VIA BACKEND MO
-        const response = await fetch('/api/estimate-task', {
+        // TATAWAGIN ANG IISANG API MO SA VERCEL
+        const response = await fetch('/api/analyze', {
             method: 'POST', 
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
+                action: 'estimateTask', // <-- BAGO: Eto yung tag para malaman ng Vercel na Task ito!
                 title: title, 
                 details: details, 
                 category: category 
