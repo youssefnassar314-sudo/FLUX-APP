@@ -138,10 +138,11 @@
                 
                 <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                     <select id="aiTaskCategory" class="glass-select" style="margin-bottom: 0; flex: 1;">
-                        <option value="Work">Work</option>
-                        <option value="School">School</option>
-                        <option value="Personal">Personal</option>
-                    </select>
+    <option value="Work">Work</option>
+    <option value="School">School</option>
+    <option value="Personal">Personal</option>
+    <option value="Sched">Sched (Whole Day)</option> 
+</select>
                     <input type="date" id="aiTaskDate" style="margin-bottom: 0; flex: 1;">
                 </div>
                 
@@ -160,11 +161,12 @@
                 
                 <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                     <input type="text" id="manualTaskTitle" placeholder="Ex: Finish HTML layout" style="margin-bottom: 0; flex: 2;">
-                    <select id="manualTaskCategory" class="glass-select" style="margin-bottom: 0; flex: 1;">
-                        <option value="Work">Work</option>
-                        <option value="School">School</option>
-                        <option value="Personal">Personal</option>
-                    </select>
+<select id="manualTaskCategory" class="glass-select" style="margin-bottom: 0; flex: 1;">
+    <option value="Work">Work</option>
+    <option value="School">School</option>
+    <option value="Personal">Personal</option>
+    <option value="Sched">Sched (Whole Day)</option>
+</select>
                 </div>
                 
                 <div style="display: flex; gap: 10px; margin-bottom: 15px;">
@@ -191,7 +193,8 @@
             </div>
 
             <div id="taskListContainer"></div>
-            <div id="habitListContainer"></div>
+<div id="habitListContainer"></div>
+<div id="schedListContainer" style="margin-bottom: 20px;"></div>
         </div>
 
         <div id="kanbanScreen" class="screen">
