@@ -59,7 +59,9 @@
                 </div>
             </div>
 
-            <button class="receipt-btn"><i class="ph-bold ph-camera"></i> Snap a Receipt</button>
+           <button class="receipt-btn" onclick="openDailySummary(0)">
+    <i class="ph-bold ph-article"></i> View Monthly Receipt
+</button>
         </div>
 
         <div id="utangScreen" class="screen">
@@ -379,6 +381,18 @@
             <button onclick="closeBudgetModals()" style="width: 100%; background: transparent; color: var(--text-muted); border: none;">Cancel</button>
         </div>
     </div>
+        <div id="summaryScreen" class="screen" style="padding-bottom: 80px;">
+    <button class="back-btn" onclick="switchScreen('dashboardScreen')">
+        <i class="ph-bold ph-caret-left"></i> Close Receipt
+    </button>
+    
+    <div id="summaryContent">
+        </div>
+
+    <button id="summaryNextBtn" class="save-btn" style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: 85%;">
+        Next Section <i class="ph-bold ph-caret-right"></i>
+    </button>
+</div>
         
 
     </div>
