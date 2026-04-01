@@ -125,27 +125,34 @@ async function confirmPayUtang() {
     let utangId = document.getElementById('payUtangId').value;
     let amount = parseFloat(document.getElementById('payUtangAmount').value);
     let walletId = document.getElementById('payUtangWallet').value;
+    let utangLabel = document.getElementById('payUtangDetails').innerText;
 
-    if (!walletId) return alert("Pumili ng wallet na pagkukunan!");
+    if (!walletId) return alert("Pumili ng wallet!");
 
     let walletObj = myWallets.find(w => w.id === walletId);
-    if (!walletObj || parseFloat(walletObj.balance) < amount) {
-        return alert("Oops! Kulang ang pondo mo sa wallet na ito para pambayad.");
-    }
+    if (!walletObj || parseFloat(walletObj.balance) < amount) return alert("Kulang ang pondo!");
 
     try {
-        // 1. Ikaltas sa Wallet (Tinanggal na ang monthlySpent para di magalaw ang Budget target)
-        let newBal = parseFloat(walletObj.balance) - amount;
-        await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletId), { balance: newBal });
+        // 1. Kaltas sa Wallet
+        await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletId), { 
+            balance: parseFloat(walletObj.balance) - amount 
+        });
 
-        // 2. I-update ang Utang as Paid
+        // 2. Mark as Paid sa Utang Collection
         await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "utang", utangId), { isPaid: true });
 
+        // 3. BAGO: I-log as Transaction para lumabas sa Resibo!
+        await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "transactions"), {
+            type: 'expense',
+            walletId: walletId,
+            amount: amount,
+            note: `Bayad Utang: ${utangLabel.split('(')[0]}`,
+            category: "Debt Payment", 
+            createdAt: Date.now()
+        });
+
         closeBudgetModals();
-    } catch (e) { 
-        console.error(e); 
-        alert("May error sa pagproseso ng bayad."); 
-    }
+    } catch (e) { console.error(e); }
 }
 
 function changeMonth(offset) {
@@ -750,7 +757,7 @@ function renderFoodList() {
 async function analyzeFoodAI() {
     if (foodDatabase.length === 0) { alert("Kumain ka muna!"); return; }
     let aiBtn = document.querySelector('button[onclick="analyzeFoodAI()"]');
-    let originalText = aiBtn.innerHTML; aiBtn.innerHTML = '<i class="ph-bold ph-hourglass"></i> Scanning...'; aiBtn.disabled = true;
+    let originalText = aiBtn.innerHTML; aiBtn.innerHTML = '<i class="ph-bold ph-hourglass"></i> Thinking...'; aiBtn.disabled = true;
 
     try {
         let allFoodText = foodDatabase.map(f => `${f.meal}: ${f.item}`).join(" | ");
@@ -759,8 +766,17 @@ async function analyzeFoodAI() {
             body: JSON.stringify({ foodLog: allFoodText, images: foodDatabase.filter(f => f.image64).map(f => ({ mimeType: f.mimeType, data: f.image64 })) })
         });
         const data = await response.json();
+        const verdict = data.verdict || "Error analyzing.";
+
+        // I-SAVE SA FIREBASE PARA HINDI MAWALA
+        await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "aiAnalyses"), {
+            verdict: verdict,
+            type: 'food',
+            createdAt: Date.now()
+        });
+
         document.getElementById('aiFoodResult').style.display = 'block';
-        document.getElementById('aiVerdictText').innerHTML = data.verdict || data.error;
+        document.getElementById('aiVerdictText').innerHTML = verdict;
     } catch (e) { alert("API Error."); } finally { aiBtn.innerHTML = originalText; aiBtn.disabled = false; }
 }
 
