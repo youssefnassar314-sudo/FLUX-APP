@@ -247,20 +247,60 @@ async function deleteUtang(id) {
 
 async function estimateAITask() {
     let title = document.getElementById('aiTaskTitle').value;
+    let details = document.getElementById('aiTaskDetails').value; // Kinuha natin ang details para sa AI context
     let category = document.getElementById('aiTaskCategory').value;
     let dateVal = document.getElementById('aiTaskDate').value;
+    
     if (!title || !dateVal) { alert("Engineer, pakilagay ang Task Title at Date!"); return; }
 
-    let estMins = Math.floor(Math.random() * 90) + 30; 
-    alert(`FLUX AI says: Naisip ko na! Yung "${title}" aabutin yan ng mga ${estMins} minutes.`);
+    // UX: I-disable muna ang button habang nag-iisip ang AI
+    let aiBtn = document.querySelector('button[onclick="estimateAITask()"]');
+    let originalText = aiBtn.innerHTML; 
+    aiBtn.innerHTML = '<i class="ph-bold ph-hourglass"></i> FLUX AI is thinking...'; 
+    aiBtn.disabled = true;
 
-    await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "tasks"), {
-        title: title, category: category, dueDate: dateVal, estMins: estMins, status: 'todo', createdAt: Date.now()
-    });
+    try {
+        // TATAWAGIN ANG REAL AI VIA BACKEND MO
+        const response = await fetch('/api/estimate-task', {
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                title: title, 
+                details: details, 
+                category: category 
+            })
+        });
 
-    document.getElementById('aiTaskTitle').value = '';
-    document.getElementById('aiTaskDetails').value = '';
-    document.getElementById('aiTaskDate').value = '';
+        const data = await response.json();
+        
+        // Expected natin na magbabalik ang backend mo ng JSON na may { estMins: <number> }
+        let estMins = data.estMins || 30; // 30 is fallback kung sakaling pumalya
+        
+        alert(`FLUX AI says: Naisip ko na! Yung "${title}" aabutin yan ng mga ${estMins} minutes.`);
+
+        // I-save sa Firebase
+        await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "tasks"), {
+            title: title, 
+            category: category, 
+            dueDate: dateVal, 
+            estMins: estMins, 
+            status: 'todo', 
+            createdAt: Date.now()
+        });
+
+        // I-clear ang form
+        document.getElementById('aiTaskTitle').value = '';
+        document.getElementById('aiTaskDetails').value = '';
+        document.getElementById('aiTaskDate').value = '';
+
+    } catch (e) {
+        console.error(e); 
+        alert("API Error. Hindi maka-connect sa FLUX AI.");
+    } finally {
+        // Ibalik sa dati yung button after mag-save o mag-error
+        aiBtn.innerHTML = originalText; 
+        aiBtn.disabled = false;
+    }
 }
 
 async function saveManualTask() {
