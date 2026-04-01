@@ -138,15 +138,18 @@ async function confirmPayUtang() {
             balance: parseFloat(walletObj.balance) - amount 
         });
 
-        // 2. Mark as Paid sa Utang Collection
-        await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "utang", utangId), { isPaid: true });
+        // 2. I-update ang Utang Record (Dagdag natin ang paidAt para sa Resibo)
+        await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "utang", utangId), { 
+            isPaid: true,
+            paidAt: Date.now() // <--- ETO ANG IMPORTANTE
+        });
 
-        // 3. BAGO: I-log as Transaction para lumabas sa Resibo!
+        // 3. I-log din sa Transactions para sa history
         await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "transactions"), {
             type: 'expense',
             walletId: walletId,
             amount: amount,
-            note: `Bayad Utang: ${utangLabel.split('(')[0]}`,
+            note: `BAYAD: ${utangLabel}`,
             category: "Debt Payment", 
             createdAt: Date.now()
         });
@@ -1160,24 +1163,22 @@ function renderSummarySection() {
 
     let bodyHtml = "";
 
-    if (currentSummaryStep === 0) {
-        // --- SECTION 1: DEBT REPAYMENT ---
-        let paidThisMonth = transactionDatabase.filter(t => {
-            let isThisMonth = t.createdAt >= startOfMonth;
-            let note = (t.note || "").toLowerCase();
-            let cat = (t.category || "").toLowerCase();
-            return isThisMonth && (note.includes("utang") || note.includes("bayad") || note.includes("debt") || cat.includes("debt"));
+   if (currentSummaryStep === 0) {
+        // --- SECTION 1: DIRETSO SA UTANG DATABASE (FIRST MODULE) ---
+        let paidThisMonth = utangDatabase.filter(u => {
+            // Check kung PAID na at kung binayaran ngayong buwan
+            return u.isPaid === true && u.paidAt >= startOfMonth;
         });
 
-        let totalPaid = paidThisMonth.reduce((sum, t) => sum + t.amount, 0);
+        let totalPaid = paidThisMonth.reduce((sum, u) => sum + u.amount, 0);
         
         bodyHtml = `
             <div class="receipt-section-title">DEBT REPAYMENT</div>
             <div style="margin: 15px 0;">
-                ${paidThisMonth.map(t => `
+                ${paidThisMonth.map(u => `
                     <div class="receipt-row">
-                        <span style="max-width: 65%; overflow: hidden;">${t.note || 'REPAYMENT'}</span>
-                        <span>₱${t.amount.toFixed(2)}</span>
+                        <span style="max-width: 65%;">ID: ${u.utangId}</span>
+                        <span>₱${u.amount.toFixed(2)}</span>
                     </div>
                 `).join('') || '<p style="text-align:center; font-size:11px;">NO RECENT PAYMENTS FOUND</p>'}
             </div>
@@ -1188,6 +1189,7 @@ function renderSummarySection() {
         
         nextBtn.innerHTML = `NEXT: FOOD LOG <i class="ph-bold ph-arrow-right"></i>`;
         nextBtn.onclick = () => openDailySummary(1);
+    }
 
     } else if (currentSummaryStep === 1) {
         // --- SECTION 2: FOOD LOG ---
