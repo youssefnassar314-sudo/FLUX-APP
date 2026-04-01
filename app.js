@@ -363,6 +363,15 @@ async function deleteTask(id) {
     }
 }
 
+// BAGO: Delete Habit ('X' button)
+async function deleteHabit(id) {
+    if (confirm("Sigurado ka bang gusto mong burahin ang habit na ito?")) {
+        try {
+            await window.dbMethods.deleteDoc(window.dbMethods.doc(window.db, "habits", id));
+        } catch(e) { console.error(e); }
+    }
+}
+
 // 2. IN-UPDATE: Play / Pause / Done Logic na may Timer computation
 async function moveTaskStatus(id, newState) {
     let task = taskDatabase.find(t => t.id === id);
@@ -410,6 +419,9 @@ async function markHabitDone(id) {
 // ==========================================
 // 🎨 RENDER TASKS, HABITS, & SCHED
 // ==========================================
+// ==========================================
+// 🎨 RENDER TASKS, HABITS, & SCHED
+// ==========================================
 function renderTasks() {
     let taskContainer = document.getElementById('taskListContainer');
     let habitContainer = document.getElementById('habitListContainer');
@@ -430,7 +442,9 @@ function renderTasks() {
     let normalTasks = taskDatabase.filter(t => t.category !== 'Sched');
     let schedTasks = taskDatabase.filter(t => t.category === 'Sched');
 
+    // ===========================
     // 1. RENDER NORMAL TASKS
+    // ===========================
     if (normalTasks.length === 0) {
         taskContainer.innerHTML += '<p style="color: var(--text-muted); font-size: 12px; font-style: italic;">No pending tasks.</p>';
     } else {
@@ -472,7 +486,9 @@ function renderTasks() {
         });
     }
 
+    // ===========================
     // 2. RENDER HABITS
+    // ===========================
     if (habitDatabase.length === 0) {
         habitContainer.innerHTML += '<p style="color: var(--text-muted); font-size: 12px; font-style: italic;">No habits yet.</p>';
     } else {
@@ -484,18 +500,21 @@ function renderTasks() {
             let isDoneToday = habit.lastDoneDate === todayDateStr; 
             
             habitContainer.innerHTML += `
-                <div class="utang-card" style="position: relative; ${isDoneToday ? 'opacity: 0.5;' : 'background: rgba(16, 185, 129, 0.05); border-left: 4px solid var(--success);'} margin-bottom: 10px; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <h4 style="margin: 0 0 5px 0; font-size: 15px; color: var(--success);">${habit.name}</h4>
-                        <span style="font-size: 12px; color: var(--text-muted);"><i class="ph-bold ph-clock"></i> ${formattedTime}</span>
-                    </div>
-                    <button class="paid-btn" style="width: auto; margin-top: 0; padding: 6px 12px; border-color: var(--success); color: var(--success);" onclick="markHabitDone('${habit.id}')" ${isDoneToday ? 'disabled' : ''}>${isDoneToday ? '<i class="ph-bold ph-check"></i> Done Today' : 'Mark Done'}</button>
+                <div class="utang-card" style="position: relative; ${isDoneToday ? 'opacity: 0.5;' : 'background: rgba(16, 185, 129, 0.05); border-left: 4px solid var(--success);'} margin-bottom: 10px; padding: 15px;">
+                    <button onclick="deleteHabit('${habit.id}')" style="position: absolute; top: 12px; right: 12px; background: none; border: none; color: var(--danger); cursor: pointer; font-size: 16px; padding: 0;"><i class="ph-bold ph-x"></i></button>
+                    
+                    <h4 style="margin: 0 0 5px 0; font-size: 15px; color: var(--success); padding-right: 25px;">${habit.name}</h4>
+                    <span style="font-size: 12px; color: var(--text-muted);"><i class="ph-bold ph-clock"></i> ${formattedTime}</span>
+                    
+                    <button class="paid-btn" style="border-color: var(--success); color: var(--success); margin-top: 10px; padding: 6px;" onclick="markHabitDone('${habit.id}')" ${isDoneToday ? 'disabled' : ''}>${isDoneToday ? '<i class="ph-bold ph-check"></i> Done Today' : 'Mark Done'}</button>
                 </div>
             `;
         });
     }
 
+    // ===========================
     // 3. RENDER UPCOMING SCHED
+    // ===========================
     if (schedContainer) {
         if (schedTasks.length === 0) {
             schedContainer.innerHTML += '<p style="color: var(--text-muted); font-size: 12px; font-style: italic;">No upcoming schedules.</p>';
@@ -816,7 +835,6 @@ function renderTransactions() {
         return;
     }
 
-    // Ipapakita lang natin yung pinaka-latest na 10 transactions para hindi masyadong mahaba
     let recentTx = transactionDatabase.slice(0, 10);
 
     recentTx.forEach(t => {
@@ -827,15 +845,17 @@ function renderTransactions() {
         let color = isIncome ? 'var(--success)' : (isTransfer ? 'var(--secondary)' : 'var(--danger)');
         let sign = isIncome ? '+' : (isTransfer ? '' : '-');
         
-        // Hanapin yung pangalan ng wallet
         let walletObj = myWallets.find(w => w.id === t.walletId);
         let walletName = walletObj ? walletObj.name : 'Deleted Wallet';
         let dateStr = new Date(t.createdAt).toLocaleDateString('default', { month: 'short', day: 'numeric' });
 
         let displayNote = t.note && t.note !== "N/A" ? t.note : t.category;
+        
+        // Pass empty string kung walang walletToId para hindi mag-error
+        let targetWalletId = t.walletToId || '';
 
         container.innerHTML += `
-            <div class="utang-card" style="padding: 12px 15px; margin-bottom: 10px; background: rgba(255,255,255,0.02); display: flex; justify-content: space-between; align-items: center; border-left-color: ${color};">
+            <div class="utang-card" style="padding: 12px 15px; margin-bottom: 10px; background: rgba(255,255,255,0.02); display: flex; justify-content: space-between; align-items: center; border-left-color: ${color}; position: relative;">
                 <div style="display: flex; gap: 12px; align-items: center; overflow: hidden;">
                     <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px; color: ${color};">
                         <i class="ph-bold ${icon}" style="font-size: 16px;"></i>
@@ -845,8 +865,11 @@ function renderTransactions() {
                         <p style="margin: 2px 0 0 0; font-size: 11px; color: var(--text-muted);">${walletName} • ${dateStr}</p>
                     </div>
                 </div>
-                <div style="text-align: right; flex-shrink: 0; margin-left: 10px;">
+                <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0; margin-left: 10px;">
                     <h4 style="margin: 0; font-size: 14px; color: ${color};">${sign}₱${parseFloat(t.amount).toLocaleString()}</h4>
+                    <button onclick="deleteTransaction('${t.id}', '${t.type}', ${t.amount}, '${t.walletId}', '${targetWalletId}')" style="background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 5px; transition: 0.2s;" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--text-muted)'">
+                        <i class="ph-bold ph-x"></i>
+                    </button>
                 </div>
             </div>
         `;
@@ -914,6 +937,43 @@ async function saveTransaction() {
     } catch (e) { console.error(e); }
 }
 
+// BAGO: Smart Delete Transaction (Nagre-replenish ng wallet)
+async function deleteTransaction(id, type, amount, walletId, walletToId) {
+    if (confirm("Burahin itong transaction? (Ire-reverse ang epekto nito sa wallet mo)")) {
+        try {
+            let walletObj = myWallets.find(w => w.id === walletId);
+            
+            if (walletObj) {
+                let currentBal = parseFloat(walletObj.balance);
+                
+                // REVERSE THE MATH
+                if (type === 'income') {
+                    // Kung income, ibabawas ulit natin
+                    await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletId), { balance: currentBal - amount });
+                } 
+                else if (type === 'expense') {
+                    // Kung expense, ibabalik natin yung pera
+                    await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletId), { balance: currentBal + amount });
+                } 
+                else if (type === 'transfer' && walletToId) {
+                    // Kung transfer, ibabalik sa pinanggalingan at ibabawas sa pinaglipatan
+                    let targetWallet = myWallets.find(w => w.id === walletToId);
+                    if (targetWallet) {
+                        await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletId), { balance: currentBal + amount });
+                        await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletToId), { balance: parseFloat(targetWallet.balance) - amount });
+                    }
+                }
+            }
+
+            // Pagkatapos ibalik ang pera, burahin na ang record sa history
+            await window.dbMethods.deleteDoc(window.dbMethods.doc(window.db, "transactions", id));
+
+        } catch (e) { 
+            console.error(e); 
+            alert("May error sa pagbura ng transaction."); 
+        }
+    }
+}
 
 // BAGO: Nagsi-save na directly sa Firebase Collection na "budgetConfig"
 async function setMonthlyBudget() {
@@ -1084,3 +1144,5 @@ window.saveTransaction = saveTransaction;
 window.closeBudgetModals = closeBudgetModals;
 window.deleteUtang = deleteUtang;
 window.deleteTask = deleteTask;
+window.deleteHabit = deleteHabit;
+window.deleteTransaction = deleteTransaction;
