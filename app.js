@@ -473,28 +473,59 @@ async function saveFood() {
     if (!foodItem && !currentBase64) { alert("Piktyuran mo o i-type mo yung kinain mo!"); return; }
 
     try {
-        // I-kaltas agad sa Firebase Wallet kung may presyo
+        // I-kaltas agad sa Firebase Wallet kung may presyo at may napiling wallet
         if (price > 0 && walletId) {
             let walletObj = myWallets.find(w => w.id === walletId);
-            if (!walletObj || walletObj.balance < price) { alert("Oops! Kulang ang pondo mo."); return; }
-            await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletId), { balance: walletObj.balance - price });
-            // Ang monthlySpent is local pa rin
+            if (!walletObj || parseFloat(walletObj.balance) < price) { 
+                alert("Oops! Kulang ang pondo mo sa wallet na ito."); 
+                return; 
+            }
+            
+            // 1. I-update ang balance ng wallet
+            await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletId), { 
+                balance: parseFloat(walletObj.balance) - price 
+            });
+            
             monthlySpent += price; 
+
+            // 2. BAGO: I-save rin agad sa Transaction History!
+            let transactionNote = foodItem ? `Food: ${foodItem}` : `Food: ${mealType} (${foodSource})`;
+            await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "transactions"), {
+                type: 'expense',
+                walletId: walletId,
+                amount: price,
+                note: transactionNote,
+                category: "Food & Drinks", // Naka-tag agad sa Food category
+                createdAt: Date.now()
+            });
         }
 
-        // I-save ang pagkain sa Firebase
+        // 3. I-save ang pagkain sa Food Logs collection
         await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "foodLogs"), {
-            meal: mealType, source: foodSource, item: foodItem || "*(May Picture)*", cost: price,
+            meal: mealType, 
+            source: foodSource, 
+            item: foodItem || "*(May Picture)*", 
+            cost: price,
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            image64: currentBase64, mimeType: currentMimeType, createdAt: Date.now()
+            image64: currentBase64, 
+            mimeType: currentMimeType, 
+            createdAt: Date.now()
         });
 
-        document.getElementById('foodItem').value = ''; if (priceInput) priceInput.value = '';
-        document.getElementById('foodImage').value = ''; document.getElementById('fileNameDisplay').style.display = 'none';
-        currentBase64 = null; currentMimeType = null; document.getElementById('aiFoodResult').style.display = 'none';
-    } catch (e) { console.error(e); alert("May error sa pag-save!"); }
+        // I-clear ang form pagkatapos
+        document.getElementById('foodItem').value = ''; 
+        if (priceInput) priceInput.value = '';
+        document.getElementById('foodImage').value = ''; 
+        document.getElementById('fileNameDisplay').style.display = 'none';
+        currentBase64 = null; 
+        currentMimeType = null; 
+        document.getElementById('aiFoodResult').style.display = 'none';
+        
+    } catch (e) { 
+        console.error(e); 
+        alert("May error sa pag-save!"); 
+    }
 }
-
 async function deleteFood(id) {
     await window.dbMethods.deleteDoc(window.dbMethods.doc(window.db, "foodLogs", id));
 }
