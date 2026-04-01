@@ -407,6 +407,124 @@ async function markHabitDone(id) {
     await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "habits", id), { lastDoneDate: todayStr });
 }
 
+// ==========================================
+// 🎨 RENDER TASKS, HABITS, & SCHED
+// ==========================================
+function renderTasks() {
+    let taskContainer = document.getElementById('taskListContainer');
+    let habitContainer = document.getElementById('habitListContainer');
+    let schedContainer = document.getElementById('schedListContainer');
+
+    if(!taskContainer || !habitContainer) return; 
+
+    taskContainer.innerHTML = `<h3 style="color: var(--text-main); margin-top: 30px; font-size: 14px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px;"><i class="ph-duotone ph-list-checks"></i> PENDING TASKS</h3>`;
+    habitContainer.innerHTML = `<h3 style="color: var(--success); margin-top: 30px; font-size: 14px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px;"><i class="ph-duotone ph-arrows-clockwise"></i> DAILY HABITS</h3>`;
+
+    if (schedContainer) {
+        schedContainer.innerHTML = `<h3 style="color: #fbbf24; margin-top: 30px; font-size: 14px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px;"><i class="ph-duotone ph-calendar-blank"></i> UPCOMING SCHED</h3>`;
+    }
+
+    let todayDateStr = new Date().toLocaleDateString('en-CA');
+
+    // Hatiin ang tasks
+    let normalTasks = taskDatabase.filter(t => t.category !== 'Sched');
+    let schedTasks = taskDatabase.filter(t => t.category === 'Sched');
+
+    // 1. RENDER NORMAL TASKS
+    if (normalTasks.length === 0) {
+        taskContainer.innerHTML += '<p style="color: var(--text-muted); font-size: 12px; font-style: italic;">No pending tasks.</p>';
+    } else {
+        normalTasks.forEach(task => {
+            let isDone = task.status === 'done';
+            let isDoing = task.status === 'doing';
+            let badgeColor = task.category === 'Work' ? '#38bdf8' : task.category === 'School' ? '#c084fc' : '#10b981';
+            
+            let totalSpent = task.timeSpent || 0;
+            let est = task.estMins || 0;
+            let runningText = isDoing ? `<span style="color: var(--primary); animation: pulse 1.5s infinite;"> • ⏱️ Running...</span>` : '';
+            let timeText = `<span style="font-size: 11px; color: var(--text-muted);"><i class="ph-bold ph-clock"></i> Spent: ${totalSpent}m / Est: ${est}m ${runningText}</span>`;
+
+            let controlsHTML = '';
+            if (isDone) {
+                controlsHTML = `<span style="color: var(--success); font-weight: bold; font-size: 12px;"><i class="ph-bold ph-check-circle"></i> Completed (${totalSpent}m spent)</span>`;
+            } else {
+                let playPauseBtn = isDoing 
+                    ? `<button style="background: rgba(244, 63, 94, 0.1); color: var(--danger); border: 1px solid var(--danger); padding: 6px 12px; border-radius: 8px; cursor: pointer;" onclick="moveTaskStatus('${task.id}', 'paused')"><i class="ph-bold ph-pause"></i> Pause</button>`
+                    : `<button style="background: rgba(56, 189, 248, 0.1); color: var(--primary); border: 1px solid var(--primary); padding: 6px 12px; border-radius: 8px; cursor: pointer;" onclick="moveTaskStatus('${task.id}', 'doing')"><i class="ph-bold ph-play"></i> Play</button>`;
+                    
+                controlsHTML = `
+                    <div style="display: flex; gap: 8px; margin-top: 10px;">
+                        ${playPauseBtn}
+                        <button style="background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid var(--success); padding: 6px 12px; border-radius: 8px; cursor: pointer; flex: 1;" onclick="moveTaskStatus('${task.id}', 'done')"><i class="ph-bold ph-check"></i> Finish Task</button>
+                    </div>
+                `;
+            }
+            
+            taskContainer.innerHTML += `
+                <div class="utang-card" style="position: relative; ${isDone ? 'opacity: 0.5; background: rgba(255,255,255,0.02);' : 'background: rgba(192, 132, 252, 0.05); border-left: 4px solid var(--secondary);'} margin-bottom: 10px; padding: 15px;">
+                    <button onclick="deleteTask('${task.id}')" style="position: absolute; top: 12px; right: 12px; background: none; border: none; color: var(--danger); cursor: pointer; font-size: 16px; padding: 0;"><i class="ph-bold ph-x"></i></button>
+                    <span style="font-size: 10px; font-weight: 700; background: rgba(255,255,255,0.05); color: ${badgeColor}; padding: 3px 8px; border-radius: 5px; text-transform: uppercase;">${task.category}</span>
+                    <h4 style="margin: 8px 0 2px 0; font-size: 15px; color: var(--text-main); padding-right: 25px;">${task.title}</h4>
+                    ${timeText}
+                    ${controlsHTML}
+                </div>
+            `;
+        });
+    }
+
+    // 2. RENDER HABITS
+    if (habitDatabase.length === 0) {
+        habitContainer.innerHTML += '<p style="color: var(--text-muted); font-size: 12px; font-style: italic;">No habits yet.</p>';
+    } else {
+        habitDatabase.forEach(habit => {
+            let timeParts = (habit.time || "12:00").split(':');
+            let hour = parseInt(timeParts[0]);
+            let formattedTime = (hour % 12 || 12) + ':' + (timeParts[1] || "00") + (hour >= 12 ? ' PM' : ' AM');
+            
+            let isDoneToday = habit.lastDoneDate === todayDateStr; 
+            
+            habitContainer.innerHTML += `
+                <div class="utang-card" style="position: relative; ${isDoneToday ? 'opacity: 0.5;' : 'background: rgba(16, 185, 129, 0.05); border-left: 4px solid var(--success);'} margin-bottom: 10px; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h4 style="margin: 0 0 5px 0; font-size: 15px; color: var(--success);">${habit.name}</h4>
+                        <span style="font-size: 12px; color: var(--text-muted);"><i class="ph-bold ph-clock"></i> ${formattedTime}</span>
+                    </div>
+                    <button class="paid-btn" style="width: auto; margin-top: 0; padding: 6px 12px; border-color: var(--success); color: var(--success);" onclick="markHabitDone('${habit.id}')" ${isDoneToday ? 'disabled' : ''}>${isDoneToday ? '<i class="ph-bold ph-check"></i> Done Today' : 'Mark Done'}</button>
+                </div>
+            `;
+        });
+    }
+
+    // 3. RENDER UPCOMING SCHED
+    if (schedContainer) {
+        if (schedTasks.length === 0) {
+            schedContainer.innerHTML += '<p style="color: var(--text-muted); font-size: 12px; font-style: italic;">No upcoming schedules.</p>';
+        } else {
+            schedTasks.forEach(task => {
+                let isDone = task.status === 'done';
+                let dateObj = new Date(task.dueDate);
+                let dateFormatted = isNaN(dateObj) ? "Date not set" : dateObj.toLocaleDateString('default', { month: 'short', day: 'numeric', year: 'numeric' });
+
+                let controlsHTML = isDone
+                    ? `<span style="color: var(--success); font-weight: bold; font-size: 12px;"><i class="ph-bold ph-check-circle"></i> Event Completed</span>`
+                    : `<button class="paid-btn" style="border-color: #fbbf24; color: #fbbf24; padding: 6px; margin-top: 10px;" onclick="moveTaskStatus('${task.id}', 'done')"><i class="ph-bold ph-check"></i> Mark Done</button>`;
+
+                schedContainer.innerHTML += `
+                    <div class="utang-card" style="position: relative; ${isDone ? 'opacity: 0.5; background: rgba(255,255,255,0.02);' : 'background: rgba(251, 191, 36, 0.05); border-left: 4px solid #fbbf24;'} margin-bottom: 10px; padding: 15px;">
+                        <button onclick="deleteTask('${task.id}')" style="position: absolute; top: 12px; right: 12px; background: none; border: none; color: var(--danger); cursor: pointer; font-size: 16px; padding: 0;"><i class="ph-bold ph-x"></i></button>
+
+                        <span style="font-size: 10px; font-weight: 700; background: rgba(255,255,255,0.05); color: #fbbf24; padding: 3px 8px; border-radius: 5px; text-transform: uppercase;">WHOLE DAY</span>
+                        <h4 style="margin: 8px 0 2px 0; font-size: 15px; color: var(--text-main); padding-right: 25px;">${task.title}</h4>
+                        <span style="font-size: 11px; color: var(--text-muted);"><i class="ph-bold ph-calendar"></i> ${dateFormatted}</span>
+
+                        <div style="margin-top: 10px;">${controlsHTML}</div>
+                    </div>
+                `;
+            });
+        }
+    }
+}
+
 function renderKanban() {
     let colTodo = document.getElementById('kb-todo'); let colDoing = document.getElementById('kb-doing'); let colDone = document.getElementById('kb-done');
     if(!colTodo) return;
@@ -965,3 +1083,4 @@ window.addTransfer = addTransfer;
 window.saveTransaction = saveTransaction;
 window.closeBudgetModals = closeBudgetModals;
 window.deleteUtang = deleteUtang;
+window.deleteTask = deleteTask;
