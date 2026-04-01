@@ -1,5 +1,5 @@
 /* ==========================================
-   🌐 FLUX OS v3.0 - CYBER-MINIMALISM THEME
+   🌐 FLUX OS v3.0 - FULL CYBER-MINIMALISM
    ========================================== */
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Courier+Prime&display=swap');
 
@@ -63,35 +63,54 @@ body {
 
 .app-container::-webkit-scrollbar { display: none; }
 
-/* 🚀 BRANDING */
+/* 🚀 BRANDING & HEADER */
+.app-header { text-align: center; margin-bottom: 25px; }
 .logo {
     font-weight: 800;
     font-size: 42px;
-    text-align: center;
     background: linear-gradient(135deg, var(--primary), var(--secondary));
     -webkit-background-clip: text;
     color: transparent;
     letter-spacing: 6px;
     filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.5));
-    margin-bottom: 5px;
+    margin: 0;
 }
-
 .subtitle {
-    text-align: center;
     font-size: 10px;
     color: var(--text-muted);
     font-weight: 700;
     letter-spacing: 3px;
     text-transform: uppercase;
-    margin-bottom: 30px;
+    margin: 0;
 }
 
-/* 🎛️ DASHBOARD GRID */
+/* 🖥️ SCREEN MANAGEMENT (IMPORTANTE!) */
+.screen { display: none; animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+.active-screen { display: block; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(15px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* 🎛️ DASHBOARD */
+.motivation-box {
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(129, 140, 248, 0.1));
+    border: 1px solid rgba(129, 140, 248, 0.2);
+    padding: 20px;
+    border-radius: 20px;
+    text-align: center;
+    margin-bottom: 25px;
+    font-style: italic;
+    color: var(--primary);
+    font-weight: 500;
+    font-size: 13px;
+}
+
 .dashboard-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 15px;
-    margin-top: 20px;
 }
 
 .grid-item {
@@ -105,8 +124,8 @@ body {
 }
 
 .grid-item:hover {
-    transform: translateY(-8px) scale(1.02);
-    background: rgba(56, 189, 248, 0.1);
+    transform: translateY(-8px);
+    background: rgba(56, 189, 248, 0.08);
     border-color: var(--primary);
     box-shadow: 0 15px 30px -5px rgba(56, 189, 248, 0.2);
 }
@@ -118,7 +137,7 @@ body {
     filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.4));
 }
 
-/* 💳 CARDS & MODULES */
+/* 💳 CARDS & COMPONENTS */
 .utang-card {
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid var(--glass-border);
@@ -128,16 +147,56 @@ body {
     margin-bottom: 15px;
     transition: 0.3s ease;
     position: relative;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 
 .utang-card:hover {
     background: rgba(255, 255, 255, 0.05);
-    border-color: var(--primary);
     transform: translateX(5px);
 }
 
-/* 🧾 THE THERMAL RECEIPT (AESTHETIC UPGRADE) */
+.summary-box { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 25px; }
+.stat-col {
+    background: var(--glass-bg);
+    padding: 15px;
+    border-radius: 20px;
+    text-align: center;
+    border: 1px solid var(--glass-border);
+}
+
+.back-btn {
+    background: none; border: none; font-size: 14px;
+    color: var(--text-muted); cursor: pointer; padding: 0;
+    margin-bottom: 20px; font-weight: 600;
+}
+
+/* 🔘 BUTTONS */
+.save-btn, .add-btn, .receipt-btn {
+    width: 100%; border: none; padding: 16px; border-radius: 16px;
+    font-size: 14px; font-weight: 800; cursor: pointer; color: white;
+    transition: all 0.3s ease; letter-spacing: 1px; text-transform: uppercase;
+}
+
+.save-btn, .add-btn {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    box-shadow: 0 8px 20px rgba(56, 189, 248, 0.3);
+    margin-bottom: 20px;
+}
+
+.receipt-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--glass-border);
+    position: absolute; bottom: 25px; left: 50%;
+    transform: translateX(-50%); width: 85%;
+}
+
+.paid-btn {
+    background: transparent; color: var(--primary); border: 1px solid var(--primary);
+    padding: 10px; border-radius: 12px; width: 100%; margin-top: 10px; font-weight: 700;
+}
+
+.paid-btn:disabled { border-color: var(--success); color: var(--success); opacity: 0.6; }
+
+/* 🧾 THERMAL RECEIPT */
 .thermal-receipt {
     background: #ffffff;
     color: #0f172a;
@@ -147,86 +206,33 @@ body {
     box-shadow: 0 20px 40px rgba(0,0,0,0.4);
     border-radius: 2px;
     margin: 20px 0;
-    filter: grayscale(0.1) contrast(1.1);
+    text-transform: uppercase;
 }
 
 .thermal-receipt::after {
-    content: "";
-    position: absolute;
-    bottom: -15px;
-    left: 0;
-    right: 0;
-    height: 15px;
-    background-image: linear-gradient(-135deg, transparent 10px, #fff 0), 
-                      linear-gradient(135deg, transparent 10px, #fff 0);
+    content: ""; position: absolute; bottom: -15px; left: 0; right: 0; height: 15px;
+    background-image: linear-gradient(-135deg, transparent 10px, #fff 0), linear-gradient(135deg, transparent 10px, #fff 0);
     background-size: 20px 40px;
 }
 
-.receipt-section-title {
-    border-top: 2px solid #000;
-    border-bottom: 2px solid #000;
-    text-align: center;
-    padding: 8px 0;
-    font-weight: 900;
-    margin: 20px 0 15px 0;
-}
+.receipt-divider { border-top: 2px dashed #333; margin: 15px 0; }
+.receipt-section-title { border: 2px solid #000; text-align: center; padding: 8px; font-weight: 900; margin: 15px 0; }
+.receipt-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 5px; }
 
-/* 🔘 BUTTONS */
-.save-btn, .add-btn {
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
-    border: none;
-    border-radius: 16px;
-    padding: 16px;
-    color: white;
-    font-weight: 800;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    box-shadow: 0 8px 20px rgba(56, 189, 248, 0.3);
-    cursor: pointer;
-    transition: 0.3s;
-}
+/* 📊 KANBAN & UTILS */
+.kanban-board { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 20px; }
+.kanban-col { min-width: 280px; background: rgba(0,0,0,0.2); border-radius: 24px; padding: 15px; border: 1px solid var(--glass-border); }
+.kanban-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 12px; padding: 15px; margin-bottom: 12px; }
 
-.save-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 25px rgba(56, 189, 248, 0.5);
-}
+.badge { display: inline-block; padding: 4px 10px; border-radius: 8px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+.badge-primary { background: rgba(56, 189, 248, 0.1); color: var(--primary); }
 
-/* 📊 KANBAN BOARD */
-.kanban-board {
-    display: flex;
-    gap: 15px;
-    overflow-x: auto;
-    padding-bottom: 20px;
-    scrollbar-width: thin;
-}
+.hidden-form { background: rgba(0,0,0,0.2); padding: 20px; border-radius: 24px; border: 1px solid var(--glass-border); margin-bottom: 25px; }
 
-.kanban-col {
-    min-width: 280px;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 24px;
-    padding: 15px;
-    border: 1px solid var(--glass-border);
-}
-
-/* 🧬 FORM INPUTS */
+/* 🧬 INPUTS */
 input, select, textarea {
-    background: rgba(255, 255, 255, 0.05) !important;
-    border: 1px solid var(--glass-border) !important;
-    border-radius: 14px !important;
-    color: var(--text-main) !important;
-    padding: 14px !important;
-    transition: 0.3s !important;
+    width: 100%; background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid var(--glass-border) !important; border-radius: 14px !important;
+    color: var(--text-main) !important; padding: 14px !important; margin-bottom: 15px;
 }
-
-input:focus {
-    border-color: var(--primary) !important;
-    box-shadow: 0 0 15px rgba(56, 189, 248, 0.2) !important;
-    background: rgba(255, 255, 255, 0.08) !important;
-}
-
-/* 🌑 LOGIN SCREEN SPECIFIC */
-.login-box {
-    background: rgba(15, 23, 42, 0.8) !important;
-    border: 1px solid var(--primary) !important;
-    box-shadow: 0 0 40px rgba(56, 189, 248, 0.2) !important;
-}
+input:focus { border-color: var(--primary) !important; box-shadow: 0 0 15px rgba(56, 189, 248, 0.2) !important; }
