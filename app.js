@@ -1360,19 +1360,6 @@ function renderFullReceipt() {
         { filter: 'budget', label: 'BUDGET' },
     ];
 
-    // Build SVG zigzag edge — seamless sawtooth, no CSS gradients
-    function makeZigzag(flip) {
-        const w = 360, tooth = 12, h = 10;
-        let d = flip ? `M0,${h}` : 'M0,0';
-        let x = 0;
-        while (x < w) {
-            if (flip) d += ` L${x + tooth/2},0 L${x + tooth},${h}`;
-            else       d += ` L${x + tooth/2},${h} L${x + tooth},0`;
-            x += tooth;
-        }
-        d += flip ? ` L${w},${h} Z` : ` L${w},0 Z`;
-        return `<svg width="100%" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="display:block;"><path d="${d}" fill="#f5f0e8"/></svg>`;
-    }
 
     content.innerHTML = `
         <div class="receipt-filter-bar">
@@ -1391,7 +1378,6 @@ function renderFullReceipt() {
         </div>
 
         <div class="receipt-wrapper">
-            ${makeZigzag(false)}
             <div class="thermal-receipt">
 
                 <div class="receipt-logo">
@@ -1421,7 +1407,6 @@ function renderFullReceipt() {
                 <p class="receipt-footer">*** THANK YOU, ENGINEER ***</p>
 
             </div>
-            ${makeZigzag(true)}
         </div>
     `;
 
