@@ -15,23 +15,31 @@
 
     <div class="app-container">
 
-<div class="app-header" style="position: relative;">
-    <h1 class="logo">FLUX.</h1>
-    <p class="subtitle">Your Life, Synchronized.</p>
+<div class="app-header-v2">
+    <div class="header-action-bar">
+        <div class="action-group-left">
+            <button onclick="forceUpdateApp()" class="header-icon-btn" title="Force Refresh">
+                <i class="ph-bold ph-arrows-clockwise"></i>
+            </button>
+            
+            <button onclick="toggleTheme()" class="header-icon-btn" title="Change Theme">
+                <i class="ph-bold ph-palette"></i>
+            </button>
+        </div>
 
-    <div id="liveClock" style="font-size: 11px; color: var(--primary); margin-top: 8px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;">--:--</div>
+        <div id="liveClock" class="header-clock">--:--</div>
 
-    <button onclick="forceUpdateApp()" style="position: absolute; top: 0; left: 0; background: none; border: none; color: var(--text-muted); font-size: 24px; cursor: pointer; transition: 0.3s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'" title="Force Refresh">
-        <i class="ph-bold ph-arrows-clockwise"></i>
-    </button>
+        <div class="action-group-right">
+            <button id="logoutBtn" class="header-icon-btn logout-btn" style="display: none;">
+                <i class="ph-bold ph-power"></i>
+            </button>
+        </div>
+    </div>
 
-    <button onclick="toggleTheme()" style="position: absolute; top: 0; left: 40px; background: none; border: none; color: var(--text-muted); font-size: 24px; cursor: pointer; transition: 0.3s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'" title="Change Theme">
-        <i class="ph-bold ph-palette"></i>
-    </button>
-
-    <button id="logoutBtn" style="display: none; position: absolute; top: 0; right: 0; background: none; border: none; color: var(--danger); font-size: 24px; cursor: pointer; transition: 0.3s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
-        <i class="ph-bold ph-power"></i>
-    </button>
+    <div class="header-branding">
+        <h1 class="logo">FLUX.</h1>
+        <p class="subtitle">Your Life, Synchronized.</p>
+    </div>
 </div>
 
         <div id="loginScreen" class="screen active-screen">
