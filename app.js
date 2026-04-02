@@ -1523,7 +1523,35 @@ async function setCustomUsername() {
 // ==========================================
 // 🤖 MODULE: AI LIFE COACH & MOOD SYNC
 // ==========================================
-let currentMood = "Neutral";
+
+// Emoji map para sa mood pill display
+const moodEmojiMap = {
+    'Pakyu': '🖕', 'Angry': '😡', 'Crying': '😭', 'Sad': '😢',
+    'Overwhelmed': '😳', 'Sleepy': '😴', 'Neutral': '😑', 'Happy': '🙂', 'Excited': '😁'
+};
+
+let currentMood = localStorage.getItem('flux_mood') || "Neutral";
+
+// I-restore ang mood pill display on load
+function restoreMoodUI() {
+    let emoji = moodEmojiMap[currentMood] || '😑';
+    let emojiEl = document.getElementById('moodCurrentEmoji');
+    let labelEl = document.getElementById('moodLabel');
+    if (emojiEl) emojiEl.innerText = emoji;
+    if (labelEl) labelEl.innerText = currentMood;
+
+    // I-highlight ang active mood button kung visible
+    document.querySelectorAll('.mood-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.innerText === emoji);
+    });
+}
+
+function toggleMoodPicker() {
+    let strip = document.getElementById('moodPickerStrip');
+    if (!strip) return;
+    let isOpen = strip.style.display === 'flex';
+    strip.style.display = isOpen ? 'none' : 'flex';
+}
 
 // I-load kung ano yung huling piniling coach sa phone
 function loadSavedCoach() {
@@ -1534,7 +1562,7 @@ function loadSavedCoach() {
     }
 }
 // Run agad pagka-load
-setTimeout(loadSavedCoach, 500);
+setTimeout(() => { loadSavedCoach(); restoreMoodUI(); }, 500);
 
 function changeCoach() {
     let selector = document.getElementById('coachSelector');
@@ -1544,13 +1572,25 @@ function changeCoach() {
 
 function setMood(mood, btnElement) {
     currentMood = mood;
-    
-    // Tanggalin ang 'active' class sa lahat ng buttons
-    document.querySelectorAll('.mood-btn').forEach(btn => btn.classList.remove('active'));
-    // Ilagay ang 'active' class sa pinindot
-    btnElement.classList.add('active');
+    localStorage.setItem('flux_mood', mood); // I-persist ang mood
 
-    // I-trigger ang AI Briefing kapag nag-set ng mood
+    // Update ang mood pill sa header
+    let emoji = moodEmojiMap[mood] || '😑';
+    let emojiEl = document.getElementById('moodCurrentEmoji');
+    let labelEl = document.getElementById('moodLabel');
+    if (emojiEl) emojiEl.innerText = emoji;
+    if (labelEl) labelEl.innerText = mood;
+
+    // Isara ang picker pagkatapos pumili
+    let strip = document.getElementById('moodPickerStrip');
+    if (strip) strip.style.display = 'none';
+
+    // Highlight ang napiling button
+    document.querySelectorAll('.mood-btn').forEach(btn => btn.classList.remove('active'));
+    if (btnElement) btnElement.classList.add('active');
+
+    // I-clear ang briefing cache para makakuha ng fresh response sa bagong mood
+    localStorage.removeItem('flux_briefing_cache');
     generateAIBriefing();
 }
 
@@ -1561,8 +1601,21 @@ async function generateAIBriefing() {
     const quoteEl = document.getElementById('briefingQuote');
     const pulseEl = document.getElementById('aiLoadingPulse');
     const coachType = document.getElementById('coachSelector').value;
+
+    // ✅ Check localStorage cache muna — valid for 1 hour, same mood + coach
+    try {
+        let cached = JSON.parse(localStorage.getItem('flux_briefing_cache') || 'null');
+        let now = Date.now();
+        if (cached && cached.mood === currentMood && cached.coach === coachType 
+            && (now - cached.timestamp) < 60 * 60 * 1000) {
+            if(textEl) textEl.innerHTML = cached.briefing;
+            if(quoteEl) quoteEl.innerHTML = `"${cached.quote}"`;
+            if(pulseEl) { pulseEl.style.width = "100%"; setTimeout(() => pulseEl.style.opacity = "0", 300); }
+            return; // Cached pa — hindi na mag-aAPI call
+        }
+    } catch(e) { /* ignore parse errors */ }
     
-    if(pulseEl) pulseEl.style.width = "50%";
+    if(pulseEl) { pulseEl.style.opacity = "1"; pulseEl.style.width = "50%"; }
     if(textEl) textEl.innerHTML = `<i class="ph-bold ph-spinner" style="animation: spin 1s linear infinite;"></i> Coach is analyzing your day...`;
 
     // 1. Ipunin ang data (Filtered explicitly for TODAY)
@@ -1622,6 +1675,17 @@ async function generateAIBriefing() {
 
         if(textEl) textEl.innerHTML = briefingText;
         if(quoteEl) quoteEl.innerHTML = `"${quoteText}"`;
+
+        // I-save sa localStorage — valid for 1 hour
+        try {
+            localStorage.setItem('flux_briefing_cache', JSON.stringify({
+                briefing: briefingText,
+                quote: quoteText,
+                mood: currentMood,
+                coach: document.getElementById('coachSelector').value,
+                timestamp: Date.now()
+            }));
+        } catch(e) { /* ignore storage errors */ }
 
     } catch (e) {
         console.error("Briefing Error:", e);
@@ -1755,4 +1819,5 @@ window.toggleTheme = toggleTheme;
 window.setCustomUsername = setCustomUsername;
 window.changeCoach = changeCoach;
 window.setMood = setMood;
+window.toggleMoodPicker = toggleMoodPicker;
 window.generateAIBriefing = generateAIBriefing;
