@@ -1483,6 +1483,40 @@ function loadSavedTheme() {
 loadSavedTheme();
 
 // ==========================================
+// 👤 BAGO: CUSTOM USERNAME PROFILE
+// ==========================================
+async function setCustomUsername() {
+    let defaultName = window.currentUserName || "Engineer";
+    let newName = prompt("Ano ang gusto mong itawag sa'yo ng FLUX OS?", defaultName);
+    
+    if (newName && newName.trim() !== "") {
+        let finalName = newName.trim().toUpperCase();
+        
+        try {
+            // Hahanapin kung may profile na kayo sa database
+            const q = window.dbMethods.query(window.dbMethods.collection(window.db, "userProfiles"), window.dbMethods.where("userId", "==", window.currentUid));
+            const snap = await window.dbMethods.getDocs(q);
+            
+            if (snap.empty) {
+                // Kung wala pa, gagawa ng bago
+                await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "userProfiles"), {
+                    userId: window.currentUid,
+                    username: finalName
+                });
+            } else {
+                // Kung meron na, ia-update lang yung pangalan
+                await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "userProfiles", snap.docs[0].id), {
+                    username: finalName
+                });
+            }
+        } catch (e) {
+            console.error("Error saving username:", e);
+            alert("May error sa pag-save ng username.");
+        }
+    }
+}
+
+// ==========================================
 // 🔐 AUTHENTICATION & INITIALIZE SYSTEM
 // ==========================================
 let isAppInitialized = false;
@@ -1509,16 +1543,25 @@ function startApp() {
 window.authMethods.onAuthStateChanged(window.auth, (user) => {
             if (user) {
                 window.currentUid = user.uid; // ID SAVED
-                
-                // BAGO: Kunin ang First Name mula sa Google Account
-                let firstName = user.displayName ? user.displayName.split(' ')[0] : "User";
-                window.currentUserName = firstName.toUpperCase(); 
-                
-                // (Optional) I-update ang subtitle sa dashboard para bumati!
-                let subtitle = document.querySelector('.header-branding .subtitle');
-                if (subtitle) subtitle.innerText = `Welcome back, ${firstName}!`;
-
                 document.getElementById('logoutBtn').style.display = 'block';
+
+                // BAGO: Kunin ang Custom Username sa Firebase
+                let fallbackName = user.displayName ? user.displayName.split(' ')[0].toUpperCase() : "USER";
+                window.currentUserName = fallbackName; // Default muna
+
+                const qProfile = window.dbMethods.query(window.dbMethods.collection(window.db, "userProfiles"), window.dbMethods.where("userId", "==", window.currentUid));
+                window.dbMethods.onSnapshot(qProfile, (snapshot) => {
+                    if (!snapshot.empty) {
+                        window.currentUserName = snapshot.docs[0].data().username.toUpperCase();
+                    }
+                    
+                    // I-update ang greeting sa dashboard
+                    let subtitle = document.getElementById('greetingSubtitle');
+                    if (subtitle) {
+                        subtitle.innerHTML = `Welcome back, <span style="color: var(--primary); font-weight: bold;">${window.currentUserName}</span> <i class="ph-bold ph-pencil-simple" style="font-size: 11px; opacity: 0.5;"></i>`;
+                    }
+                });
+
                 switchScreen('dashboardScreen');
                 
                 if (!isAppInitialized) {
@@ -1587,3 +1630,4 @@ window.openDailySummary = openDailySummary;
 window.forceUpdateApp = forceUpdateApp; // <--- IDINAGDAG
 window.setUtangView = setUtangView;     // <--- IDINAGDAG
 window.toggleTheme = toggleTheme;
+window.setCustomUsername = setCustomUsername;
