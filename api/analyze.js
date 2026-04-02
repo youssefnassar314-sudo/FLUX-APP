@@ -171,6 +171,70 @@ You MUST return exactly a valid JSON object (no markdown, no backticks) with thi
             return res.status(200).json({ verdict: aiVerdict });
         }
 
+        // ==========================================
+        // 🥗 LOGIC 4: DAILY FOOD SUMMARY (Calories + Grade)
+        // ==========================================
+        else if (action === 'getFoodSummary') {
+            const { foodItems } = req.body;
+
+            if (!foodItems || foodItems.length === 0) {
+                return res.status(200).json({ calories: 0, grade: 'N/A', summary: 'Wala pang kinain today.' });
+            }
+
+            const foodList = foodItems.map(f => `${f.meal}: ${f.item}`).join('\n');
+
+            const prompt = `
+You are a nutrition analyst AI. Based on the food log below, estimate the total calories and give a nutrition grade for the day.
+
+Food log:
+${foodList}
+
+Rules:
+1. Estimate total calories as realistically as possible based on typical Filipino/common food portions.
+2. Grade the overall nutrition of the day using a school-style grade: A+, A, B+, B, C+, C, D, F.
+   - A+/A = very balanced, enough protein, veggies, good carbs
+   - B+/B = decent but missing something (e.g., no veggies, too much carbs)
+   - C+/C = mostly junk or unbalanced
+   - D/F = almost no nutritional value or severely lacking
+3. Write a 1-sentence Taglish summary/tip about their eating today. Be honest but chill, like a barkada.
+4. DO NOT use the word "engineer".
+
+Return ONLY a valid JSON object (no markdown, no backticks):
+{
+  "calories": <number>,
+  "grade": "<letter grade>",
+  "summary": "<1 sentence Taglish tip>"
+}
+`;
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }]
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                console.error("Google API Error:", data);
+                throw new Error(data.error?.message || 'Unknown API Error');
+            }
+
+            let aiText = data.candidates[0].content.parts[0].text.trim();
+            if (aiText.startsWith('```json')) {
+                aiText = aiText.replace(/^```json/, '').replace(/```$/, '').trim();
+            }
+
+            try {
+                const parsed = JSON.parse(aiText);
+                return res.status(200).json(parsed);
+            } catch (e) {
+                return res.status(200).json({ calories: 0, grade: '?', summary: 'Hindi ko ma-analyze ang food log mo ngayon.' });
+            }
+        }
+
     } catch (error) {
         console.error("AI Error:", error.message);
         return res.status(500).json({ error: error.message });
