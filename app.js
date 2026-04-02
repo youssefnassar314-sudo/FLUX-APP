@@ -1517,6 +1517,96 @@ async function setCustomUsername() {
 }
 
 // ==========================================
+// 🤖 MODULE: AI LIFE COACH & MOOD SYNC
+// ==========================================
+let currentMood = "Neutral";
+
+// I-load kung ano yung huling piniling coach sa phone
+function loadSavedCoach() {
+    let savedCoach = localStorage.getItem('flux_coach');
+    let selector = document.getElementById('coachSelector');
+    if (savedCoach && selector) {
+        selector.value = savedCoach;
+    }
+}
+// Run agad pagka-load
+setTimeout(loadSavedCoach, 500);
+
+function changeCoach() {
+    let selector = document.getElementById('coachSelector');
+    localStorage.setItem('flux_coach', selector.value);
+    generateAIBriefing(); // Magre-refresh agad ang AI pag nagpalit ng coach
+}
+
+function setMood(mood, btnElement) {
+    currentMood = mood;
+    
+    // Tanggalin ang 'active' class sa lahat ng buttons
+    document.querySelectorAll('.mood-btn').forEach(btn => btn.classList.remove('active'));
+    // Ilagay ang 'active' class sa pinindot
+    btnElement.classList.add('active');
+
+    // BAGO: Pwede mong i-save din sa Firebase 'yung mood dito para sa tracking sa resibo soon!
+    // window.dbMethods.addDoc(window.dbMethods.collection(window.db, "moodLogs"), { userId: window.currentUid, mood: mood, createdAt: Date.now() });
+
+    // I-trigger ang AI Briefing kapag nag-set ng mood
+    generateAIBriefing();
+}
+
+async function generateAIBriefing() {
+    if (!window.currentUid) return;
+
+    const textEl = document.getElementById('briefingText');
+    const quoteEl = document.getElementById('briefingQuote');
+    const pulseEl = document.getElementById('aiLoadingPulse');
+    const coachType = document.getElementById('coachSelector').value;
+    
+    if(pulseEl) pulseEl.style.width = "50%";
+    if(textEl) textEl.innerHTML = `<i class="ph-bold ph-spinner" style="animation: spin 1s linear infinite;"></i> Coach is analyzing your day...`;
+
+    // Kunin ang latest data
+    let today = new Date().toLocaleDateString('en-CA');
+    let pendingTasks = taskDatabase.filter(t => t.status !== 'done').length;
+    let budgetPercent = monthlyTarget > 0 ? Math.round((monthlySpent / monthlyTarget) * 100) : 0;
+
+    try {
+        const response = await fetch('/api/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'getBriefing',
+                userName: window.currentUserName || "User", // Explicit fallback, walang "Engineer"
+                coachPersona: coachType,
+                currentMood: currentMood,
+                data: {
+                    pendingTasks,
+                    budgetPercent,
+                    currentTime: new Date().toLocaleTimeString() // Para alam ng AI kung umaga, hapon, o gabi ka nagpindot!
+                }
+            })
+        });
+
+        const data = await response.json();
+        
+        // Expected na magbabalik ang Vercel mo ng { briefing: "...", quote: "..." }
+        const briefingText = data.briefing || `Hey ${window.currentUserName || 'there'}! You have ${pendingTasks} tasks left today. Let's get it!`;
+        const quoteText = data.quote || `"Small progress is still progress."`;
+
+        if(textEl) textEl.innerHTML = briefingText;
+        if(quoteEl) quoteEl.innerHTML = `"${quoteText}"`;
+
+    } catch (e) {
+        console.error("Briefing Error:", e);
+        if(textEl) textEl.innerHTML = "System offline. Refresh the OS to reconnect to your coach.";
+    } finally {
+        if(pulseEl) {
+            pulseEl.style.width = "100%";
+            setTimeout(() => pulseEl.style.opacity = "0", 500);
+        }
+    }
+}
+
+// ==========================================
 // 🔐 AUTHENTICATION & INITIALIZE SYSTEM
 // ==========================================
 let isAppInitialized = false;
@@ -1631,3 +1721,6 @@ window.forceUpdateApp = forceUpdateApp; // <--- IDINAGDAG
 window.setUtangView = setUtangView;     // <--- IDINAGDAG
 window.toggleTheme = toggleTheme;
 window.setCustomUsername = setCustomUsername;
+window.changeCoach = changeCoach;
+window.setMood = setMood;
+window.generateAIBriefing = generateAIBriefing;
