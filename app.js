@@ -1382,7 +1382,7 @@ const bars = [3,1,4,2,1,3,2,1,4,2,1,3,1,4,2,3,1,2,4,1,3,2,1,4,2,1,3,2,4,1,2,3,1,
                 <span class="receipt-stamp">MONTHLY REPORT</span>
 
                 <p class="receipt-meta">
-                    ENGINEER #001<br>
+                    ${window.currentUserName || 'USER'} #001<br>
                     ${monthName}<br>
                     PRINTED: ${now.toLocaleDateString('en-CA')} ${now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}
                 </p>
@@ -1398,7 +1398,7 @@ const bars = [3,1,4,2,1,3,2,1,4,2,1,3,1,4,2,3,1,2,4,1,3,2,1,4,2,1,3,2,4,1,2,3,1,
                     <p>FLUX-OS-${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}</p>
                 </div>
 
-                <p class="receipt-footer">*** THANK YOU, ENGINEER ***</p>
+                <p class="receipt-footer">*** THANK YOU, ${window.currentUserName || 'USER'} ***</p>
 
             </div>
         </div>
@@ -1506,9 +1506,18 @@ function handleLogout() {
 function startApp() {
     if (window.auth && window.authMethods && window.db) {
         
-        window.authMethods.onAuthStateChanged(window.auth, (user) => {
+window.authMethods.onAuthStateChanged(window.auth, (user) => {
             if (user) {
                 window.currentUid = user.uid; // ID SAVED
+                
+                // BAGO: Kunin ang First Name mula sa Google Account
+                let firstName = user.displayName ? user.displayName.split(' ')[0] : "User";
+                window.currentUserName = firstName.toUpperCase(); 
+                
+                // (Optional) I-update ang subtitle sa dashboard para bumati!
+                let subtitle = document.querySelector('.header-branding .subtitle');
+                if (subtitle) subtitle.innerText = `Welcome back, ${firstName}!`;
+
                 document.getElementById('logoutBtn').style.display = 'block';
                 switchScreen('dashboardScreen');
                 
