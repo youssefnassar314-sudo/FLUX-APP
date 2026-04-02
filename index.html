@@ -45,9 +45,9 @@
 
     <!-- Compact Mood Strip -->
     <div style="display: flex; justify-content: center; margin-top: 8px;">
-        <div id="moodPillWrapper" style="display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.04); border: 1px solid var(--glass-border); border-radius: 30px; padding: 5px 12px;">
-            <span id="moodCurrentEmoji" style="font-size: 16px; cursor: pointer;" onclick="toggleMoodPicker()" title="Change mood">😑</span>
-            <div id="moodPickerStrip" style="display: none; gap: 2px; align-items: center;">
+        <div id="moodPillWrapper" style="display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.04); border: 1px solid var(--glass-border); border-radius: 30px; padding: 5px 12px; max-width: 100%; overflow: hidden;">
+            <span id="moodCurrentEmoji" style="font-size: 15px; cursor: pointer; flex-shrink: 0;" onclick="toggleMoodPicker()" title="Change mood">😑</span>
+            <div id="moodPickerStrip" style="display: none; gap: 2px; align-items: center; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; flex: 1; min-width: 0;">
                 <button class="mood-btn" onclick="setMood('Pakyu', this)">🖕</button>
                 <button class="mood-btn" onclick="setMood('Angry', this)">😡</button>
                 <button class="mood-btn" onclick="setMood('Crying', this)">😭</button>
@@ -58,7 +58,7 @@
                 <button class="mood-btn" onclick="setMood('Happy', this)">🙂</button>
                 <button class="mood-btn" onclick="setMood('Excited', this)">😁</button>
             </div>
-            <span id="moodLabel" style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Neutral</span>
+            <span id="moodLabel" style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; flex-shrink: 0;">Neutral</span>
         </div>
     </div>
 </div>
@@ -89,11 +89,11 @@
         </select>
     </div>
 
-    <div id="aiBriefingContent" style="padding: 12px; background: rgba(0,0,0,0.2); border-radius: 10px; font-size: 12px; line-height: 1.6; color: var(--text-main); position: relative; overflow: hidden;">
+    <div id="aiBriefingContent" style="padding: 12px; background: rgba(0,0,0,0.2); border-radius: 10px; position: relative; overflow: hidden;">
         <div id="aiLoadingPulse" style="position: absolute; bottom: 0; left: 0; height: 2px; background: var(--primary); width: 0%; transition: 0.3s;"></div>
-        <div id="briefingText" style="margin-bottom: 8px;">Tap your mood above to get your briefing...</div>
-        <hr style="border: 0; height: 1px; background: var(--glass-border); margin: 8px 0;">
-        <i id="briefingQuote" style="color: var(--text-muted); font-size: 10px; display: block; text-align: right;">"Waiting for sync..."</i>
+        <i id="briefingQuote" style="color: var(--primary); font-size: 10px; display: block; text-align: center; opacity: 0.7; margin-bottom: 8px; letter-spacing: 0.3px;">"Waiting for sync..."</i>
+        <hr style="border: 0; height: 1px; background: var(--glass-border); margin: 0 0 8px 0;">
+        <div id="briefingText" style="font-size: 11px; line-height: 1.6; color: var(--text-muted); text-align: center;">Tap your mood above to get your briefing...</div>
     </div>
 </div>
 
