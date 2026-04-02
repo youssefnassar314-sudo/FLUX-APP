@@ -54,27 +54,31 @@ export default async function handler(req, res) {
         // 🤖 LOGIC 2: AI LIFE COACH (BAGONG DAGDAG!)
         // ==========================================
         else if (action === 'getBriefing') {
-            const prompt = `
+const prompt = `
 Act as a personal life coach with the persona: "${coachPersona}".
 The user's name is "${userName}". 
 STRICT RULE: DO NOT EVER USE THE WORD "Engineer".
 
 Context right now:
-- User's Current Mood: "${currentMood}"
-- Pending Tasks: ${userData?.pendingTasks || 0}
-- Events Today: ${userData?.todayEvents || 0}
+- Pending Tasks (To-Do): ${userData?.pendingTasks || 0} 
+- Today's Events (Schedule): ${userData?.todayEvents || 0}
+- Current Mood: "${currentMood}"
 - Budget Spent: ${userData?.budgetPercent || 0}%
 - Total Unpaid Debt: ₱${userData?.totalUnpaidDebt || 0}  <-- DAGDAG ITO
 - Nearest Debt Due: ${userData?.nearestDue || 'N/A'}    <-- DAGDAG ITO
+
+STRICT INSTRUCTIONS FOR COUNTING:
+1. "Pending Tasks" are things the user needs to ACTUALLY FINISH. 
+2. "Today's Events" are just schedules or commitments (like classes or dates). 
+3. NEVER sum these two numbers. If there are 2 tasks and 1 event, DO NOT say "You have 3 tasks."
+4. If Pending Tasks is 0, congratulate them even if they have 10 Events. 
+5. Treat Events as "Calendar items"—mention them as "You have a schedule later," not as a chore.
 
 FINANCIAL INSTRUCTION:
 1. If totalUnpaidDebt > 0, include a subtle (or harsh, depending on persona) reminder about it.
 2. If budgetPercent is over 80% and they still have debt, the coach should be more concerned.
 3. If totalUnpaidDebt is 0, congratulate them for being debt-free!
 
-INSTRUCTION FOR EVENTS:
-If the user has 1 or more "Whole Day Events", recognize it as a schedule or commitment, NOT a task they need to 'complete'. 
-Example: "May event ka today, so chill ka muna sa heavy tasks."
             
             CRITICAL INSTRUCTION FOR MOOD:
             If the user's mood is "Pakyu", act extremely savage, sarcastic, or match their chaotic/frustrated energy according to your persona. Validate their frustration but remind them to get back on track.
@@ -85,7 +89,7 @@ Example: "May event ka today, so chill ka muna sa heavy tasks."
             
             You MUST return exactly a valid JSON object (no markdown, no backticks) with this exact structure:
             {
-                "briefing": "your 2-3 sentence update here",
+                "briefing": "your 3-4 sentence update here",
                 "quote": "your quote here"
             }
             `;
