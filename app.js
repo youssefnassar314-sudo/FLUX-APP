@@ -1570,8 +1570,17 @@ async function generateAIBriefing() {
     let today = new Date().toLocaleDateString('en-CA');
 
     // Tasks & Events
-    let pendingTasks = taskDatabase.filter(t => t.status !== 'done' && t.category !== 'Event').length;
-    let todayEvents = taskDatabase.filter(t => t.category === 'Event').length;
+// 📝 TASKS ONLY: Bibilangin lang ang HINDI 'done' at HINDI 'event' (case-insensitive)
+let pendingTasks = taskDatabase.filter(t => {
+    const cat = (t.category || "").toLowerCase();
+    return t.status !== 'done' && cat !== 'event' && cat !== 'schedule' && cat !== 'whole day';
+}).length;
+
+// 📅 EVENTS ONLY: Dito lang dapat pumapasok yung mga sched niyo
+let todayEvents = taskDatabase.filter(t => {
+    const cat = (t.category || "").toLowerCase();
+    return cat === 'event' || cat === 'schedule' || cat === 'whole day';
+}).length;
 
     // 💸 UTANG DATA: Kunin ang total na hindi pa bayad
     let unpaidDebtList = utangDatabase.filter(u => !u.isPaid);
