@@ -773,19 +773,25 @@ async function analyzeFoodAI() {
     let aiBtn = document.querySelector('button[onclick="analyzeFoodAI()"]');
     let originalText = aiBtn.innerHTML; aiBtn.innerHTML = '<i class="ph-bold ph-hourglass"></i> Thinking...'; aiBtn.disabled = true;
 
+    // Analyze TODAY's food only - para per-day ang AI sa receipt
+    let todayKey = new Date().toLocaleDateString('en-CA');
+    let todayFood = foodDatabase.filter(f => new Date(f.createdAt).toLocaleDateString('en-CA') === todayKey);
+    if (todayFood.length === 0) { alert("Wala kang kinain today!"); aiBtn.innerHTML = originalText; aiBtn.disabled = false; return; }
+
     try {
-        let allFoodText = foodDatabase.map(f => `${f.meal}: ${f.item}`).join(" | ");
+        let allFoodText = todayFood.map(f => `${f.meal}: ${f.item}`).join(" | ");
         const response = await fetch('/api/analyze', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ foodLog: allFoodText, images: foodDatabase.filter(f => f.image64).map(f => ({ mimeType: f.mimeType, data: f.image64 })) })
+            body: JSON.stringify({ foodLog: allFoodText, images: todayFood.filter(f => f.image64).map(f => ({ mimeType: f.mimeType, data: f.image64 })) })
         });
         const data = await response.json();
         const verdict = data.verdict || "Error analyzing.";
 
-        // I-SAVE SA FIREBASE PARA HINDI MAWALA
+        // I-SAVE SA FIREBASE - kasama na ang dateKey para ma-match per day sa receipt
         await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "aiAnalyses"), {
             verdict: verdict,
             type: 'food',
+            dateKey: todayKey,
             createdAt: Date.now()
         });
 
@@ -1215,20 +1221,36 @@ function buildReceiptSections() {
     let foodThisMonth = foodDatabase.filter(f => f.createdAt >= startOfMonth);
     let foodByDay = groupByDay(foodThisMonth, f => f.createdAt);
     let totalFood = foodThisMonth.reduce((s, f) => s + (f.cost || 0), 0);
-    let lastAiVerdict = aiAnalyses.length > 0 ? aiAnalyses[aiAnalyses.length - 1].verdict : "No analysis recorded yet.";
-    let foodRows = foodByDay.map(day => `
+    // Build a map of dateKey -> latest AI verdict for that day
+    let aiByDay = {};
+    aiAnalyses.forEach(a => {
+        let key = a.dateKey || new Date(a.createdAt).toLocaleDateString('en-CA');
+        // Keep latest per day (aiAnalyses is sorted oldest->newest)
+        aiByDay[key] = a.verdict;
+    });
+
+    let foodRows = foodByDay.map(day => {
+        let dayKey = Object.keys(aiByDay).length > 0
+            ? (() => { // figure out the YYYY-MM-DD key from the day label's data
+                // re-derive key from first item's createdAt
+                return new Date(day.items[0].createdAt).toLocaleDateString('en-CA');
+            })()
+            : null;
+        let dayVerdict = dayKey && aiByDay[dayKey] ? aiByDay[dayKey] : null;
+        return `
         <div class="receipt-day-header">${day.label}</div>
         ${day.items.map(f => `
             <div class="receipt-row">
                 <span class="r-label">• ${f.item}</span>
                 <span class="r-val">${f.cost > 0 ? '₱' + f.cost.toFixed(2) : '—'}</span>
             </div>`).join('')}
-    `).join('') || '<p style="text-align:center;font-size:10px;color:#888;letter-spacing:1px;margin:12px 0;">NO FOOD LOGGED</p>';
+        ${dayVerdict ? `<div class="receipt-ai-box">AI: ${dayVerdict}</div>` : ''}
+    `;
+    }).join('') || '<p style="text-align:center;font-size:10px;color:#888;letter-spacing:1px;margin:12px 0;">NO FOOD LOGGED</p>';
 
     let foodSection = `
         <div class="receipt-section-title">FOOD CONSUMPTION</div>
         ${foodRows}
-        <div class="receipt-ai-box">AI: ${lastAiVerdict}</div>
         <div class="receipt-divider-solid"></div>
         <div class="receipt-row r-total">
             <span class="r-label">FOOD TOTAL</span>
@@ -1338,6 +1360,20 @@ function renderFullReceipt() {
         { filter: 'budget', label: 'BUDGET' },
     ];
 
+    // Build SVG zigzag edge — seamless sawtooth, no CSS gradients
+    function makeZigzag(flip) {
+        const w = 360, tooth = 12, h = 10;
+        let d = flip ? `M0,${h}` : 'M0,0';
+        let x = 0;
+        while (x < w) {
+            if (flip) d += ` L${x + tooth/2},0 L${x + tooth},${h}`;
+            else       d += ` L${x + tooth/2},${h} L${x + tooth},0`;
+            x += tooth;
+        }
+        d += flip ? ` L${w},${h} Z` : ` L${w},0 Z`;
+        return `<svg width="100%" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="display:block;"><path d="${d}" fill="#f5f0e8"/></svg>`;
+    }
+
     content.innerHTML = `
         <div class="receipt-filter-bar">
             ${tabs.map(t => `
@@ -1355,6 +1391,7 @@ function renderFullReceipt() {
         </div>
 
         <div class="receipt-wrapper">
+            ${makeZigzag(false)}
             <div class="thermal-receipt">
 
                 <div class="receipt-logo">
@@ -1384,6 +1421,7 @@ function renderFullReceipt() {
                 <p class="receipt-footer">*** THANK YOU, ENGINEER ***</p>
 
             </div>
+            ${makeZigzag(true)}
         </div>
     `;
 
