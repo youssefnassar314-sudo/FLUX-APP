@@ -42,25 +42,6 @@
             Loading profile...
         </p>
     </div>
-
-    <!-- Compact Mood Strip -->
-    <div style="display: flex; justify-content: center; margin-top: 8px;">
-        <div id="moodPillWrapper" style="display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.04); border: 1px solid var(--glass-border); border-radius: 30px; padding: 5px 12px; max-width: 100%; overflow: hidden;">
-            <span id="moodCurrentEmoji" style="font-size: 15px; cursor: pointer; flex-shrink: 0;" onclick="toggleMoodPicker()" title="Change mood">😑</span>
-            <div id="moodPickerStrip" style="display: none; gap: 2px; align-items: center; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; flex: 1; min-width: 0;">
-                <button class="mood-btn" onclick="setMood('Pakyu', this)">🖕</button>
-                <button class="mood-btn" onclick="setMood('Angry', this)">😡</button>
-                <button class="mood-btn" onclick="setMood('Crying', this)">😭</button>
-                <button class="mood-btn" onclick="setMood('Sad', this)">😢</button>
-                <button class="mood-btn" onclick="setMood('Overwhelmed', this)">😳</button>
-                <button class="mood-btn" onclick="setMood('Sleepy', this)">😴</button>
-                <button class="mood-btn" onclick="setMood('Neutral', this)">😑</button>
-                <button class="mood-btn" onclick="setMood('Happy', this)">🙂</button>
-                <button class="mood-btn" onclick="setMood('Excited', this)">😁</button>
-            </div>
-            <span id="moodLabel" style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; flex-shrink: 0;">Neutral</span>
-        </div>
-    </div>
 </div>
 
         <div id="loginScreen" class="screen active-screen">
@@ -87,6 +68,25 @@
             <option value="Tough Love">🔥 Tough Love</option>
             <option value="Savage Advisor">💸 Savage Advisor</option>
         </select>
+    </div>
+
+    <!-- Mood Pill inside dashboard -->
+    <div style="display: flex; justify-content: center; margin-bottom: 10px;">
+        <div id="moodPillWrapper" style="display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.04); border: 1px solid var(--glass-border); border-radius: 30px; padding: 5px 12px; max-width: 100%; overflow: hidden;">
+            <span id="moodCurrentEmoji" style="font-size: 15px; cursor: pointer; flex-shrink: 0;" onclick="toggleMoodPicker()" title="Change mood">😑</span>
+            <div id="moodPickerStrip" style="display: none; gap: 2px; align-items: center; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; flex: 1; min-width: 0;">
+                <button class="mood-btn" onclick="setMood('Pakyu', this)">🖕</button>
+                <button class="mood-btn" onclick="setMood('Angry', this)">😡</button>
+                <button class="mood-btn" onclick="setMood('Crying', this)">😭</button>
+                <button class="mood-btn" onclick="setMood('Sad', this)">😢</button>
+                <button class="mood-btn" onclick="setMood('Overwhelmed', this)">😳</button>
+                <button class="mood-btn" onclick="setMood('Sleepy', this)">😴</button>
+                <button class="mood-btn" onclick="setMood('Neutral', this)">😑</button>
+                <button class="mood-btn" onclick="setMood('Happy', this)">🙂</button>
+                <button class="mood-btn" onclick="setMood('Excited', this)">😁</button>
+            </div>
+            <span id="moodLabel" style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; flex-shrink: 0;">Neutral</span>
+        </div>
     </div>
 
     <div id="aiBriefingContent" style="padding: 12px; background: rgba(0,0,0,0.2); border-radius: 10px; position: relative; overflow: hidden;">
