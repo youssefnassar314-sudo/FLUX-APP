@@ -5,7 +5,7 @@ export default async function handler(req, res) {
 
     try {
         // Kinuha na natin lahat ng possible fields mula sa frontend request
-        const { action, foodLog, images, title, details, category } = req.body;
+        const { action, foodLog, images, title, details, category, userName, coachPersona, currentMood, data: userData } = req.body;
         
         // FIX #1: Tanggalin natin ang invisible spaces sa API key just in case!
         const apiKey = (process.env.GEMINI_API_KEY || '').trim();
@@ -51,7 +51,71 @@ export default async function handler(req, res) {
         } 
         
         // ==========================================
-        // 🍔 LOGIC 2: FOOD LOG ANALYZER (Original Logic)
+        // 🤖 LOGIC 2: AI LIFE COACH (BAGONG DAGDAG!)
+        // ==========================================
+        else if (action === 'getBriefing') {
+            const prompt = `
+            Act as a personal life coach with the persona: "${coachPersona}".
+            The user's name is "${userName}". 
+            STRICT RULE: DO NOT EVER USE THE WORD "Engineer". Only call them by their name: ${userName}.
+            
+            Context right now:
+            - User's Current Mood: "${currentMood}"
+            - Time of day: ${userData?.currentTime || 'Unknown'}
+            - Pending Tasks left: ${userData?.pendingTasks || 0}
+            - Budget Spent this month: ${userData?.budgetPercent || 0}%
+            
+            CRITICAL INSTRUCTION FOR MOOD:
+            If the user's mood is "Pakyu", act extremely savage, sarcastic, or match their chaotic/frustrated energy according to your persona. Validate their frustration but remind them to get back on track.
+
+            Speak in conversational Taglish (Tagalog-English) like a peer or close friend.
+
+            Provide a short 2-3 sentence daily briefing (advice/update) and a separate short motivational quote.
+            
+            You MUST return exactly a valid JSON object (no markdown, no backticks) with this exact structure:
+            {
+                "briefing": "your 2-3 sentence update here",
+                "quote": "your quote here"
+            }
+            `;
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }]
+                })
+            });
+
+            const responseData = await response.json();
+
+            if (!response.ok) {
+                console.error("Google API Error details:", responseData);
+                throw new Error(responseData.error?.message || 'Unknown API Error');
+            }
+
+            let aiText = responseData.candidates[0].content.parts[0].text.trim();
+            
+            // Lilinisin natin just in case magbigay ang AI ng markdown na ```json ... ```
+            if (aiText.startsWith('```json')) {
+                aiText = aiText.replace(/^```json/, '').replace(/```$/, '').trim();
+            }
+
+            try {
+                const parsedResult = JSON.parse(aiText);
+                return res.status(200).json(parsedResult);
+            } catch (parseError) {
+                console.error("JSON Parse Error:", parseError, "Raw AI Text:", aiText);
+                // Fallback kung pumalya ang AI sumunod sa JSON format
+                return res.status(200).json({ 
+                    briefing: `Hey ${userName}, medyo naguluhan ako pero you have ${userData.pendingTasks} tasks left. Kaya mo 'yan!`,
+                    quote: "Stay focused."
+                });
+            }
+        }
+        
+        // ==========================================
+        // 🍔 LOGIC 3: FOOD LOG ANALYZER (Original)
         // ==========================================
         else {
             const systemPrompt = `
@@ -60,7 +124,7 @@ export default async function handler(req, res) {
         If there are images, identify the food visually.
 
         Rules:
-        1. Don't be too formal. Avoid mentioning "engineering" or "board exams" unless the user says so.
+        1. Don't be too formal. STRICT RULE: NEVER mention the word "engineering" or "engineer". Call them by their name if needed.
         2. Use a mix of Tagalog and English (Taglish) that sounds like a helpful peer or barkada.
         3. Keep it short (2 sentences).
         4. Give a "Bro Tip" or a funny observation about their meal. 
@@ -89,7 +153,6 @@ export default async function handler(req, res) {
 
             const data = await response.json();
             
-            // FIX #3: Dagdag debugging
             if (!response.ok) {
                 console.error("Google API Error details:", data);
                 throw new Error(data.error?.message || 'Unknown API Error');
