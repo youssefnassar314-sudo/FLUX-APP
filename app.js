@@ -214,7 +214,7 @@ function renderUtangList() {
     );
     filteredUtang.sort((a, b) => a.isPaid - b.isPaid || a.dueDate - b.dueDate);
 
-    // Compute Monthly Totals
+    // Compute Monthly Totals (Top Summary keeps showing current month stats)
     let monthUtang = 0;
     let monthBayad = 0;
     filteredUtang.forEach(u => {
@@ -225,15 +225,16 @@ function renderUtangList() {
     document.getElementById('displayMonthUtang').innerText = monthUtang.toFixed(2);
     document.getElementById('displayMonthBayad').innerText = monthBayad.toFixed(2);
 
-    if (filteredUtang.length === 0) {
-        container.innerHTML = `<p style="text-align: center; color: var(--text-muted); font-style: italic; margin-top: 30px;">Walang due para sa buwang ito.</p>`;
-        return;
-    }
-
     // ==========================================
-    // VIEW 1: BY DUE DATE (Original)
+    // VIEW 1: BY DUE DATE (Current Month Only)
     // ==========================================
     if (currentUtangView === 'date') {
+        // Ililipat natin yung empty check dito sa loob ng Date View
+        if (filteredUtang.length === 0) {
+            container.innerHTML = `<p style="text-align: center; color: var(--text-muted); font-style: italic; margin-top: 30px;">Walang due para sa buwang ito.</p>`;
+            return;
+        }
+
         let hasRenderedPaidHeader = false;
         filteredUtang.forEach(utang => {
             let day = utang.dueDate.getDate();
@@ -261,15 +262,23 @@ function renderUtangList() {
         });
     } 
     // ==========================================
-    // VIEW 2: BY APP & ID (Bago!)
+    // VIEW 2: BY APP & ID (OVERALL - Lahat ng Buwan)
     // ==========================================
     else {
+        if (utangDatabase.length === 0) {
+            container.innerHTML = `<p style="text-align: center; color: var(--text-muted); font-style: italic; margin-top: 30px;">Wala kang na-log na utang.</p>`;
+            return;
+        }
+
         let apps = {};
 
+        // BAGO: Gamitin ang utangDatabase (LAHAT), hindi ang filteredUtang (Per Month lang)
+        // BAGO: I-sort din natin by Due Date para sunod-sunod ang Due 1, 2, 3 sa listahan
+        let allUtangSorted = [...utangDatabase].sort((a, b) => a.dueDate - b.dueDate);
+
         // 1. Group the data
-        filteredUtang.forEach(u => {
+        allUtangSorted.forEach(u => {
             let appName = u.appName && u.appName !== "N/A" ? u.appName : "Other Utang";
-            // Kunin ang base ID (tatanggalin ang " (Due 1)" string para magkasama sila)
             let baseId = u.utangId.split(' (Due')[0]; 
 
             if(!apps[appName]) apps[appName] = {};
@@ -290,10 +299,15 @@ function renderUtangList() {
                 
                 let cardStyle = allPaid ? 'opacity: 0.5; background-color: rgba(255,255,255,0.02); border-left: 4px solid var(--success);' : 'background: rgba(192, 132, 252, 0.05); border-left: 4px solid var(--secondary);';
 
-                // Buuin ang mga maliliit na row para sa kada due ng ID na 'to
+                // Buuin ang mga maliliit na row para sa kada due
                 let duesHTML = group.items.map(u => {
                     let shortMonth = u.dueDate.toLocaleString('default', { month: 'short' });
                     let day = u.dueDate.getDate();
+                    
+                    // BAGO: Kapag iba na yung year, ipapakita nya yung year (e.g., Jan 15 '27)
+                    let currentYear = new Date().getFullYear();
+                    let dueYear = u.dueDate.getFullYear() !== currentYear ? ` '${u.dueDate.getFullYear().toString().slice(-2)}` : '';
+                    
                     let dueLabel = u.utangId.includes('(Due') ? u.utangId.split('(')[1].replace(')', '') : 'Full';
                     
                     let controls = u.isPaid 
@@ -304,7 +318,7 @@ function renderUtangList() {
                     <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed var(--glass-border); padding-top: 10px; margin-top: 10px;">
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <button onclick="deleteUtang('${u.id}')" style="background:none; border:none; color:var(--danger); font-size:14px; cursor:pointer; padding:0;"><i class="ph-bold ph-x"></i></button>
-                            <span style="font-size: 11px; color: var(--text-muted);"><strong style="color:var(--text-main);">${dueLabel}</strong> • ${shortMonth} ${day}</span>
+                            <span style="font-size: 11px; color: var(--text-muted);"><strong style="color:var(--text-main);">${dueLabel}</strong> • ${shortMonth} ${day}${dueYear}</span>
                         </div>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <span style="font-size: 13px; color: var(--text-main);">₱${u.amount.toFixed(2)}</span>
@@ -313,7 +327,6 @@ function renderUtangList() {
                     </div>`;
                 }).join('');
 
-                // Buuin yung mismong Card ng ID
                 container.innerHTML += `
                     <div class="utang-card" style="${cardStyle} margin-bottom: 12px; padding: 15px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
