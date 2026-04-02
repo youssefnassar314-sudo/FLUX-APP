@@ -1627,8 +1627,12 @@ async function generateAIBriefing() {
             pulseEl.style.width = "100%";
             setTimeout(() => pulseEl.style.opacity = "0", 500);
         }
+        setTimeout(() => {
+            isCoachThinking = false; 
+        }, 3000); 
     }
 }
+
 
 // ==========================================
 // 🔐 AUTHENTICATION & INITIALIZE SYSTEM
