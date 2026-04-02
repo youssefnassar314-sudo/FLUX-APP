@@ -1548,9 +1548,11 @@ function restoreMoodUI() {
 
 function toggleMoodPicker() {
     let strip = document.getElementById('moodPickerStrip');
+    let label = document.getElementById('moodLabel');
     if (!strip) return;
     let isOpen = strip.style.display === 'flex';
     strip.style.display = isOpen ? 'none' : 'flex';
+    if (label) label.style.display = isOpen ? 'inline' : 'none'; // hide label when open to save space
 }
 
 // I-load kung ano yung huling piniling coach sa phone
@@ -1583,7 +1585,9 @@ function setMood(mood, btnElement) {
 
     // Isara ang picker pagkatapos pumili
     let strip = document.getElementById('moodPickerStrip');
+    let label = document.getElementById('moodLabel');
     if (strip) strip.style.display = 'none';
+    if (label) label.style.display = 'inline'; // ipakita ulit ang label
 
     // Highlight ang napiling button
     document.querySelectorAll('.mood-btn').forEach(btn => btn.classList.remove('active'));
