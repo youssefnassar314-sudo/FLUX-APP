@@ -1333,9 +1333,14 @@ function renderFullReceipt() {
     const now = new Date();
     const monthName = now.toLocaleString('default', { month: 'long', year: 'numeric' }).toUpperCase();
 
-    const bars = [3,1,4,2,1,3,2,1,4,2,1,3,1,4,2,3,1,2,4,1,3,2,1,4,2,1,3,2,4,1,2,3,1,4,2,1,3,2,1,4,3,1,2,1,3,4,2,1];
+const bars = [3,1,4,2,1,3,2,1,4,2,1,3,1,4,2,3,1,2,4,1,3,2,1,4,2,1,3,2,4,1,2,3,1,4,2,1,3,2,1,4,3,1,2,1,3,4,2,1];
+    
+    // BAGO: Kunin ang saktong total width ng lahat ng barcode lines
+    let totalWidth = bars.reduce((sum, w) => sum + w + 1, 0); 
     let bx = 0;
-    let barcodeSvg = `<svg width="200" height="44" viewBox="0 0 200 44" style="display:block;margin:0 auto;">`;
+    
+    // BAGO: Ipasok ang saktong width sa SVG para sumakto sa gitna
+    let barcodeSvg = `<svg width="${totalWidth}" height="44" viewBox="0 0 ${totalWidth} 44" style="display:block;margin:0 auto;">`;
     bars.forEach((w, i) => {
         if (i % 2 === 0) barcodeSvg += `<rect x="${bx}" y="0" width="${w}" height="40" fill="#1a1a1a"/>`;
         bx += w + 1;
