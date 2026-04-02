@@ -165,6 +165,7 @@ async function confirmPayUtang() {
             amount: amount,
             note: `Bayad Utang: ${utangLabel.split('(')[0]}`,
             category: "Debt Payment", 
+            paidFromWallet: walletObj.name, // Para visible sa history kung saan galing
             createdAt: Date.now()
         });
 
@@ -859,7 +860,9 @@ function updateBudgetDashboard() {
     
     if (typeof transactionDatabase !== 'undefined') {
         transactionDatabase.forEach(tx => {
-            if (tx.type === 'expense') {
+            // Hindi isasama ang Debt Payment sa budget computation
+            // Utang ay hindi expense ng budget — bayad lang ng utang yan
+            if (tx.type === 'expense' && tx.category !== 'Debt Payment') {
                 let d = new Date(tx.createdAt);
                 if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
                     computedSpent += parseFloat(tx.amount);
@@ -867,17 +870,9 @@ function updateBudgetDashboard() {
             }
         });
     }
-
-    if (typeof foodDatabase !== 'undefined') {
-        foodDatabase.forEach(food => {
-            if (food.cost > 0) {
-                let d = new Date(food.createdAt);
-                if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
-                    computedSpent += parseFloat(food.cost);
-                }
-            }
-        });
-    }
+    // NOTE: Hindi na kailangan ang foodDatabase loop dito — 
+    // kasama na ang food sa transactionDatabase (category: "Food & Drinks")
+    // para hindi mag-double count
     
     monthlySpent = computedSpent; 
 
@@ -965,6 +960,15 @@ function renderTransactions() {
 
         let displayNote = t.note && t.note !== "N/A" ? t.note : t.category;
         
+        // Para sa Debt Payment: ipakita kung saan galing ang bayad
+        // Para sa Food & Drinks: auto-label ang category
+        let categoryTag = '';
+        if (t.category === 'Debt Payment') {
+            categoryTag = `<span style="font-size: 9px; font-weight: 700; background: rgba(244,63,94,0.1); color: var(--danger); padding: 2px 6px; border-radius: 4px; margin-left: 4px;">UTANG • ${walletName}</span>`;
+        } else if (t.category === 'Food & Drinks') {
+            categoryTag = `<span style="font-size: 9px; font-weight: 700; background: rgba(251,191,36,0.1); color: #fbbf24; padding: 2px 6px; border-radius: 4px; margin-left: 4px;">FOOD & DRINKS</span>`;
+        }
+        
         let targetWalletId = t.walletToId || '';
 
         container.innerHTML += `
@@ -974,7 +978,7 @@ function renderTransactions() {
                         <i class="ph-bold ${icon}" style="font-size: 16px;"></i>
                     </div>
                     <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                        <p style="margin: 0; font-size: 13px; font-weight: 600; color: var(--text-main);">${displayNote}</p>
+                        <p style="margin: 0; font-size: 13px; font-weight: 600; color: var(--text-main);">${displayNote}${categoryTag}</p>
                         <p style="margin: 2px 0 0 0; font-size: 11px; color: var(--text-muted);">${walletName} • ${dateStr}</p>
                     </div>
                 </div>
