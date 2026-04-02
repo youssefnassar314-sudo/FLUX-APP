@@ -1565,8 +1565,19 @@ async function generateAIBriefing() {
     if(textEl) textEl.innerHTML = `<i class="ph-bold ph-spinner" style="animation: spin 1s linear infinite;"></i> Coach is analyzing your day...`;
 
     // Kunin ang latest data
+    // 1. Ipunin ang data para sa context (Filtered na!)
+// 1. Ipunin ang data (Filtered & Calculated)
     let today = new Date().toLocaleDateString('en-CA');
-    let pendingTasks = taskDatabase.filter(t => t.status !== 'done').length;
+
+    // Tasks & Events
+    let pendingTasks = taskDatabase.filter(t => t.status !== 'done' && t.category !== 'Event').length;
+    let todayEvents = taskDatabase.filter(t => t.category === 'Event').length;
+
+    // 💸 UTANG DATA: Kunin ang total na hindi pa bayad
+    let unpaidDebtList = utangDatabase.filter(u => !u.isPaid);
+    let totalUnpaidDebt = unpaidDebtList.reduce((sum, u) => sum + (parseFloat(u.amount) || 0), 0);
+    let nearestDue = unpaidDebtList.length > 0 ? unpaidDebtList[0].dueDate : "None";
+
     let budgetPercent = monthlyTarget > 0 ? Math.round((monthlySpent / monthlyTarget) * 100) : 0;
 
     try {
@@ -1575,13 +1586,16 @@ async function generateAIBriefing() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 action: 'getBriefing',
-                userName: window.currentUserName || "User", // Explicit fallback, walang "Engineer"
-                coachPersona: coachType,
+                userName: window.currentUserName || "User",
+                coachPersona: document.getElementById('coachSelector').value,
                 currentMood: currentMood,
                 data: {
                     pendingTasks,
+                    todayEvents,
                     budgetPercent,
-                    currentTime: new Date().toLocaleTimeString() // Para alam ng AI kung umaga, hapon, o gabi ka nagpindot!
+                    totalUnpaidDebt, // <--- IPAPASA SA AI
+                    nearestDue,      // <--- PARA ALAM NIYA KUNG MALAPIT NA DEADLINE
+                    currentTime: new Date().toLocaleTimeString()
                 }
             })
         });
