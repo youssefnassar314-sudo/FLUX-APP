@@ -1143,145 +1143,255 @@ function closeBudgetModals() {
     if (payUtangModal) payUtangModal.style.display = 'none';
 }
 
-let currentSummaryStep = 0;
+let activeReceiptFilter = 'all';
 
-function openDailySummary(step) {
-    currentSummaryStep = step;
-    switchScreen('summaryScreen'); // Siguraduhing may summaryScreen div ka sa HTML
-    renderSummarySection();
+function openDailySummary() {
+    activeReceiptFilter = 'all';
+    switchScreen('summaryScreen');
+    renderFullReceipt();
 }
 
-function renderSummarySection() {
-    const content = document.getElementById('summaryContent');
-    const nextBtn = document.getElementById('summaryNextBtn');
+function setReceiptFilter(filter) {
+    activeReceiptFilter = filter;
+    // Update active tab styles
+    document.querySelectorAll('.rcpt-tab').forEach(btn => {
+        let isActive = btn.dataset.filter === filter;
+        btn.style.background    = isActive ? '#1a1a1a' : 'transparent';
+        btn.style.color         = isActive ? '#f5f0e8' : '#888';
+        btn.style.borderColor   = isActive ? '#1a1a1a' : '#ccc';
+    });
+    renderReceiptBody();
+}
+
+function groupByDay(items, getTimestamp) {
+    let days = {};
+    items.forEach(item => {
+        let d = new Date(getTimestamp(item));
+        let key = d.toLocaleDateString('en-CA');
+        let label = d.toLocaleDateString('default', { month: 'short', day: 'numeric', weekday: 'short' }).toUpperCase();
+        if (!days[key]) days[key] = { label, items: [] };
+        days[key].items.push(item);
+    });
+    return Object.keys(days).sort().map(k => days[k]);
+}
+
+function buildReceiptSections() {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
-    
-    // Header ng Thermal Receipt (Laging andito)
-    let headerHtml = `
-        <div class="thermal-receipt">
-            <div class="receipt-header">
-                <h1 style="margin:0; font-size: 24px;">FLUX OS v3.0</h1>
-                <p style="font-size:10px; margin:5px 0;">ENGINEER TERMINAL: #001</p>
-                <p style="font-size:10px;">DATE: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}</p>
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const daysLeft = daysInMonth - now.getDate() + 1;
+
+    // ── DEBT ──
+    let paidUtang = utangDatabase.filter(u => {
+        if (!u.isPaid) return false;
+        let d = u.dueDate instanceof Date ? u.dueDate : new Date(u.dueDate);
+        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    }).sort((a, b) => {
+        let da = a.dueDate instanceof Date ? a.dueDate : new Date(a.dueDate);
+        let db = b.dueDate instanceof Date ? b.dueDate : new Date(b.dueDate);
+        return da - db;
+    });
+    let utangByDay = groupByDay(paidUtang, u => (u.dueDate instanceof Date ? u.dueDate : new Date(u.dueDate)).getTime());
+    let totalUtangPaid = paidUtang.reduce((s, u) => s + u.amount, 0);
+    let utangRows = utangByDay.map(day => `
+        <div class="receipt-day-header">${day.label}</div>
+        ${day.items.map(u => `
+            <div class="receipt-row">
+                <span class="r-label">ID: ${u.utangId}<span class="receipt-paid-tag">PAID</span></span>
+                <span class="r-val">₱${u.amount.toFixed(2)}</span>
+            </div>`).join('')}
+    `).join('') || '<p style="text-align:center;font-size:10px;color:#888;letter-spacing:1px;margin:12px 0;">NO DEBTS PAID THIS MONTH</p>';
+
+    let debtSection = `
+        <div class="receipt-section-title">DEBT REPAYMENT</div>
+        ${utangRows}
+        <div class="receipt-divider-solid"></div>
+        <div class="receipt-row r-total">
+            <span class="r-label">TOTAL REPAID</span>
+            <span class="r-val">₱${totalUtangPaid.toFixed(2)}</span>
+        </div>`;
+
+    // ── FOOD ──
+    let foodThisMonth = foodDatabase.filter(f => f.createdAt >= startOfMonth);
+    let foodByDay = groupByDay(foodThisMonth, f => f.createdAt);
+    let totalFood = foodThisMonth.reduce((s, f) => s + (f.cost || 0), 0);
+    let lastAiVerdict = aiAnalyses.length > 0 ? aiAnalyses[aiAnalyses.length - 1].verdict : "No analysis recorded yet.";
+    let foodRows = foodByDay.map(day => `
+        <div class="receipt-day-header">${day.label}</div>
+        ${day.items.map(f => `
+            <div class="receipt-row">
+                <span class="r-label">• ${f.item}</span>
+                <span class="r-val">${f.cost > 0 ? '₱' + f.cost.toFixed(2) : '—'}</span>
+            </div>`).join('')}
+    `).join('') || '<p style="text-align:center;font-size:10px;color:#888;letter-spacing:1px;margin:12px 0;">NO FOOD LOGGED</p>';
+
+    let foodSection = `
+        <div class="receipt-section-title">FOOD CONSUMPTION</div>
+        ${foodRows}
+        <div class="receipt-ai-box">AI: ${lastAiVerdict}</div>
+        <div class="receipt-divider-solid"></div>
+        <div class="receipt-row r-total">
+            <span class="r-label">FOOD TOTAL</span>
+            <span class="r-val">₱${totalFood.toFixed(2)}</span>
+        </div>`;
+
+    // ── TASKS ──
+    let doneTasks = taskDatabase.filter(t => t.status === 'done' && t.createdAt >= startOfMonth);
+    let tasksByDay = groupByDay(doneTasks, t => t.createdAt);
+    let totalMins = doneTasks.reduce((s, t) => s + (t.timeSpent || t.estMins || 0), 0);
+    let taskRows = tasksByDay.map(day => `
+        <div class="receipt-day-header">${day.label}</div>
+        ${day.items.map(t => `
+            <div class="receipt-row">
+                <span class="r-label">${t.title}</span>
+                <span class="r-val">${t.timeSpent || t.estMins || 0}m</span>
+            </div>`).join('')}
+    `).join('') || '<p style="text-align:center;font-size:10px;color:#888;letter-spacing:1px;margin:12px 0;">NO TASKS COMPLETED</p>';
+
+    let taskSection = `
+        <div class="receipt-section-title">TASK PROGRESS</div>
+        ${taskRows}
+        <div class="receipt-divider-solid"></div>
+        <div class="receipt-row r-total">
+            <span class="r-label">TIME INVESTED</span>
+            <span class="r-val">${totalMins} MINS</span>
+        </div>`;
+
+    // ── BUDGET ──
+    let remaining = monthlyTarget - monthlySpent;
+    let dailyLeft = remaining > 0 && daysLeft > 0 ? (remaining / daysLeft) : 0;
+    let expensesByDay = groupByDay(
+        transactionDatabase.filter(t => t.type === 'expense' && t.createdAt >= startOfMonth),
+        t => t.createdAt
+    );
+    let expRows = expensesByDay.map(day => `
+        <div class="receipt-day-header">${day.label}</div>
+        ${day.items.map(t => `
+            <div class="receipt-row">
+                <span class="r-label">${t.note || t.category || 'Expense'}</span>
+                <span class="r-val">-₱${parseFloat(t.amount).toFixed(2)}</span>
+            </div>`).join('')}
+    `).join('') || '<p style="text-align:center;font-size:10px;color:#888;letter-spacing:1px;margin:12px 0;">NO EXPENSES LOGGED</p>';
+
+    let budgetSection = `
+        <div class="receipt-section-title">BUDGET BREAKDOWN</div>
+        ${expRows}
+        <div class="receipt-divider-solid"></div>
+        <div class="receipt-row" style="font-size:11px;">
+            <span class="r-label">MONTHLY TARGET</span>
+            <span class="r-val">₱${parseFloat(monthlyTarget).toFixed(2)}</span>
+        </div>
+        <div class="receipt-row" style="font-size:11px;">
+            <span class="r-label">TOTAL SPENT</span>
+            <span class="r-val">-₱${monthlySpent.toFixed(2)}</span>
+        </div>
+        <div class="receipt-divider-solid"></div>
+        <div class="receipt-row r-total">
+            <span class="r-label">REMAINING</span>
+            <span class="r-val">₱${remaining.toFixed(2)}</span>
+        </div>
+        <div class="receipt-daily-budget">
+            <p>DAILY ALLOWANCE LEFT</p>
+            <h2>₱${dailyLeft.toFixed(2)}</h2>
+        </div>`;
+
+    return { debtSection, foodSection, taskSection, budgetSection };
+}
+
+function renderReceiptBody() {
+    const body = document.getElementById('receiptBody');
+    if (!body) return;
+    const { debtSection, foodSection, taskSection, budgetSection } = buildReceiptSections();
+    const f = activeReceiptFilter;
+    let html = '';
+
+    if (f === 'all' || f === 'debt')   { html += debtSection;   if (f === 'all') html += '<div class="receipt-divider"></div>'; }
+    if (f === 'all' || f === 'food')   { html += foodSection;   if (f === 'all') html += '<div class="receipt-divider"></div>'; }
+    if (f === 'all' || f === 'tasks')  { html += taskSection;   if (f === 'all') html += '<div class="receipt-divider"></div>'; }
+    if (f === 'all' || f === 'budget') { html += budgetSection; }
+
+    body.innerHTML = html;
+}
+
+function renderFullReceipt() {
+    const content = document.getElementById('summaryContent');
+    const nextBtn = document.getElementById('summaryNextBtn');
+    if (nextBtn) nextBtn.style.display = 'none';
+
+    const now = new Date();
+    const monthName = now.toLocaleString('default', { month: 'long', year: 'numeric' }).toUpperCase();
+
+    const bars = [3,1,4,2,1,3,2,1,4,2,1,3,1,4,2,3,1,2,4,1,3,2,1,4,2,1,3,2,4,1,2,3,1,4,2,1,3,2,1,4,3,1,2,1,3,4,2,1];
+    let bx = 0;
+    let barcodeSvg = `<svg width="200" height="44" viewBox="0 0 200 44" style="display:block;margin:0 auto;">`;
+    bars.forEach((w, i) => {
+        if (i % 2 === 0) barcodeSvg += `<rect x="${bx}" y="0" width="${w}" height="40" fill="#1a1a1a"/>`;
+        bx += w + 1;
+    });
+    barcodeSvg += `</svg>`;
+
+    const tabs = [
+        { filter: 'all',    label: 'ALL' },
+        { filter: 'debt',   label: 'DEBT' },
+        { filter: 'food',   label: 'FOOD' },
+        { filter: 'tasks',  label: 'TASKS' },
+        { filter: 'budget', label: 'BUDGET' },
+    ];
+
+    content.innerHTML = `
+        <div class="receipt-filter-bar">
+            ${tabs.map(t => `
+                <button class="rcpt-tab"
+                    data-filter="${t.filter}"
+                    onclick="setReceiptFilter('${t.filter}')"
+                    style="
+                        background: ${t.filter === activeReceiptFilter ? '#1a1a1a' : 'transparent'};
+                        color:      ${t.filter === activeReceiptFilter ? '#f5f0e8' : '#888'};
+                        border-color: ${t.filter === activeReceiptFilter ? '#1a1a1a' : '#ccc'};
+                    ">
+                    ${t.label}
+                </button>
+            `).join('')}
+        </div>
+
+        <div class="receipt-wrapper">
+            <div class="thermal-receipt">
+
+                <div class="receipt-logo">
+                    <h1>FLUX</h1>
+                    <p>PERSONAL OS  ·  V3.0</p>
+                </div>
+
+                <span class="receipt-stamp">MONTHLY REPORT</span>
+
+                <p class="receipt-meta">
+                    ENGINEER #001<br>
+                    ${monthName}<br>
+                    PRINTED: ${now.toLocaleDateString('en-CA')} ${now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}
+                </p>
+
                 <div class="receipt-divider"></div>
+
+                <div id="receiptBody"></div>
+
+                <div class="receipt-divider"></div>
+
+                <div class="receipt-barcode">
+                    ${barcodeSvg}
+                    <p>FLUX-OS-${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}</p>
+                </div>
+
+                <p class="receipt-footer">*** THANK YOU, ENGINEER ***</p>
+
             </div>
+        </div>
     `;
 
-    let bodyHtml = "";
-
-    if (currentSummaryStep === 0) {
-        // --- SECTION 1: DEBT REPAYMENT ---
-        // Pull directly from utangDatabase — paid items this month (based on dueDate month)
-        let paidThisMonth = utangDatabase.filter(u => {
-            if (!u.isPaid) return false;
-            let d = u.dueDate instanceof Date ? u.dueDate : new Date(u.dueDate);
-            return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-        });
-
-        let totalPaid = paidThisMonth.reduce((sum, u) => sum + u.amount, 0);
-        
-        bodyHtml = `
-            <div class="receipt-section-title">DEBT REPAYMENT</div>
-            <div style="margin: 15px 0;">
-                ${paidThisMonth.map(u => `
-                    <div class="receipt-row">
-                        <span style="max-width: 65%; overflow: hidden;">${u.utangId}</span>
-                        <span>₱${u.amount.toFixed(2)}</span>
-                    </div>
-                `).join('') || '<p style="text-align:center; font-size:11px;">NO DEBTS PAID THIS MONTH</p>'}
-            </div>
-            <div class="receipt-divider"></div>
-            <div class="receipt-row" style="font-weight:bold; font-size: 16px;">
-                <span>TOTAL REPAID</span><span>₱${totalPaid.toFixed(2)}</span>
-            </div>`;
-        
-        nextBtn.innerHTML = `NEXT: FOOD LOG <i class="ph-bold ph-arrow-right"></i>`;
-        nextBtn.onclick = () => openDailySummary(1);
-
-    } else if (currentSummaryStep === 1) {
-        // --- SECTION 2: FOOD LOG ---
-        let foodThisMonth = foodDatabase.filter(f => f.createdAt >= startOfMonth);
-        let totalFood = foodThisMonth.reduce((sum, f) => sum + (f.cost || 0), 0);
-        
-        // HULING AI VERDICT — pulled from Firebase via initRealtimeAiAnalyses
-        let lastAiVerdict = "NO ANALYSIS RECORDED YET";
-        if (aiAnalyses.length > 0) {
-            lastAiVerdict = aiAnalyses[aiAnalyses.length - 1].verdict;
-        }
-
-        bodyHtml = `
-            <div class="receipt-section-title">FOOD CONSUMPTION</div>
-            <div style="margin: 15px 0;">
-                ${foodThisMonth.map(f => `
-                    <div class="receipt-row">
-                        <span>• ${f.item}</span><span>₱${(f.cost || 0).toFixed(2)}</span>
-                    </div>
-                `).join('')}
-            </div>
-            <div class="receipt-divider"></div>
-            <p style="font-size:9px; line-height: 1.4; margin-bottom: 15px;">AI FEEDBACK: ${lastAiVerdict}</p>
-            <div class="receipt-row" style="font-weight:bold;">
-                <span>FOOD TOTAL</span><span>₱${totalFood.toFixed(2)}</span>
-            </div>`;
-        
-        nextBtn.innerHTML = `NEXT: TASKS <i class="ph-bold ph-arrow-right"></i>`;
-        nextBtn.onclick = () => openDailySummary(2);
-
-    } else if (currentSummaryStep === 2) {
-        // --- SECTION 3: PRODUCTIVITY ---
-        let doneMonth = taskDatabase.filter(t => t.status === 'done' && t.createdAt >= startOfMonth);
-        let totalMins = doneMonth.reduce((sum, t) => sum + (t.timeSpent || 0), 0);
-
-        bodyHtml = `
-            <div class="receipt-section-title">TASK PROGRESS</div>
-            <div style="margin: 15px 0;">
-                ${doneMonth.map(t => `
-                    <div class="receipt-row">
-                        <span style="max-width: 75%;">${t.title}</span>
-                        <span>${t.timeSpent || 0}M</span>
-                    </div>
-                `).join('') || '<p style="text-align:center;">NO TASKS COMPLETED</p>'}
-            </div>
-            <div class="receipt-divider"></div>
-            <div class="receipt-row" style="font-weight:bold;">
-                <span>TIME INVESTED</span><span>${totalMins} MINS</span>
-            </div>`;
-        
-        nextBtn.innerHTML = `NEXT: BUDGET <i class="ph-bold ph-arrow-right"></i>`;
-        nextBtn.onclick = () => openDailySummary(3);
-
-    } else if (currentSummaryStep === 3) {
-        // --- SECTION 4: BUDGET STATUS ---
-        let remaining = monthlyTarget - monthlySpent;
-        let daysLeft = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() - now.getDate() + 1;
-        let daily = remaining > 0 ? (remaining / daysLeft) : 0;
-
-        bodyHtml = `
-            <div class="receipt-section-title">BUDGET SUMMARY</div>
-            <div class="receipt-row"><span>TARGET:</span><span>₱${parseFloat(monthlyTarget).toFixed(2)}</span></div>
-            <div class="receipt-row"><span>SPENT:</span><span>-₱${monthlySpent.toFixed(2)}</span></div>
-            <div class="receipt-divider"></div>
-            <div class="receipt-row" style="font-weight:bold;"><span>REMAINING:</span><span>₱${remaining.toFixed(2)}</span></div>
-            
-            <div style="text-align:center; margin-top:20px; border:2px solid #111; padding:10px;">
-                <p style="font-size:9px; margin:0;">DAILY ALLOWANCE LEFT</p>
-                <h1 style="margin:5px 0; font-size: 32px;">₱${daily.toFixed(2)}</h1>
-            </div>
-            
-            <div class="receipt-divider"></div>
-            <div style="text-align:center; margin-top: 20px;">
-                <i class="ph-bold ph-barcode" style="font-size: 60px;"></i>
-                <p style="font-size:9px; letter-spacing: 3px;">FLUX-OS-MONTHLY-REPORT</p>
-                <p style="margin-top: 10px; font-weight: bold;">*** THANK YOU, ENGINEER ***</p>
-            </div>`;
-        
-        nextBtn.innerHTML = `FINISH REVIEW`;
-        nextBtn.onclick = () => switchScreen('dashboardScreen');
-    }
-
-    content.innerHTML = headerHtml + bodyHtml + `</div>`;
+    renderReceiptBody();
 }
+
+window.setReceiptFilter = setReceiptFilter;
+
 
 
 
