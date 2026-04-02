@@ -51,48 +51,42 @@ export default async function handler(req, res) {
         } 
         
         // ==========================================
-        // 🤖 LOGIC 2: AI LIFE COACH (BAGONG DAGDAG!)
+        // 🤖 LOGIC 2: AI LIFE COACH
         // ==========================================
         else if (action === 'getBriefing') {
-const prompt = `
+            const prompt = `
 Act as a personal life coach with the persona: "${coachPersona}".
 The user's name is "${userName}". 
 STRICT RULE: DO NOT EVER USE THE WORD "Engineer".
 
 Context right now:
 - Pending Tasks (To-Do): ${userData?.pendingTasks || 0} 
+- Pending Daily Habits (Not done yet): ${userData?.pendingHabits || 0}
 - Today's Events (Schedule): ${userData?.todayEvents || 0}
 - Current Mood: "${currentMood}"
 - Budget Spent: ${userData?.budgetPercent || 0}%
-- Total Unpaid Debt: ₱${userData?.totalUnpaidDebt || 0}  <-- DAGDAG ITO
-- Nearest Debt Due: ${userData?.nearestDue || 'N/A'}    <-- DAGDAG ITO
+- Debts Due EXACTLY TODAY: ₱${userData?.duesToday || 0}  
 
-STRICT INSTRUCTIONS FOR COUNTING:
+STRICT INSTRUCTIONS FOR REPORTING:
 1. "Pending Tasks" are things the user needs to ACTUALLY FINISH. 
-2. "Today's Events" are just schedules or commitments (like classes or dates). 
-3. NEVER sum these two numbers. If there are 2 tasks and 1 event, DO NOT say "You have 3 tasks."
-4. If Pending Tasks is 0, congratulate them even if they have 10 Events. 
-5. Treat Events as "Calendar items"—mention them as "You have a schedule later," not as a chore.
+2. "Today's Events" are just schedules or commitments. NEVER add tasks and events together (e.g., DO NOT say "You have 3 tasks" if they have 2 tasks and 1 event).
+3. "Pending Daily Habits": If > 0, remind them to complete their daily routines.
+4. "Debts Due EXACTLY TODAY": If greater than 0, urgently remind them to pay the ₱${userData?.duesToday || 0} today. If 0, do not mention debt unless their budget is over 80%.
+5. If budgetPercent > 80%, give a strict warning to control spending.
 
-FINANCIAL INSTRUCTION:
-1. If totalUnpaidDebt > 0, include a subtle (or harsh, depending on persona) reminder about it.
-2. If budgetPercent is over 80% and they still have debt, the coach should be more concerned.
-3. If totalUnpaidDebt is 0, congratulate them for being debt-free!
+CRITICAL INSTRUCTION FOR MOOD:
+If the user's mood is "Pakyu", act extremely savage, sarcastic, or match their chaotic/frustrated energy according to your persona. Validate their frustration but remind them to get back on track.
 
-            
-            CRITICAL INSTRUCTION FOR MOOD:
-            If the user's mood is "Pakyu", act extremely savage, sarcastic, or match their chaotic/frustrated energy according to your persona. Validate their frustration but remind them to get back on track.
+Speak in conversational Taglish (Tagalog-English) like a peer or close friend.
 
-            Speak in conversational Taglish (Tagalog-English) like a peer or close friend.
+Provide a 3-4 sentence daily briefing (advice/update) connecting their mood, tasks, habits, and finances, plus a separate short motivational quote.
 
-            Provide a short 2-3 sentence daily briefing (advice/update) and a separate short motivational quote.
-            
-            You MUST return exactly a valid JSON object (no markdown, no backticks) with this exact structure:
-            {
-                "briefing": "your 3-4 sentence update here",
-                "quote": "your quote here"
-            }
-            `;
+You MUST return exactly a valid JSON object (no markdown, no backticks) with this exact structure:
+{
+    "briefing": "your 3-4 sentence update here",
+    "quote": "your quote here"
+}
+`;
 
             const response = await fetch(url, {
                 method: 'POST',
@@ -123,7 +117,7 @@ FINANCIAL INSTRUCTION:
                 console.error("JSON Parse Error:", parseError, "Raw AI Text:", aiText);
                 // Fallback kung pumalya ang AI sumunod sa JSON format
                 return res.status(200).json({ 
-                    briefing: `Hey ${userName}, medyo naguluhan ako pero you have ${userData.pendingTasks} tasks left. Kaya mo 'yan!`,
+                    briefing: `Hey ${userName}, medyo naguluhan ako pero you have ${userData.pendingTasks || 0} tasks left. Kaya mo 'yan!`,
                     quote: "Stay focused."
                 });
             }
