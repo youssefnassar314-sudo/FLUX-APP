@@ -1519,39 +1519,6 @@ async function setCustomUsername() {
 // ==========================================
 // 🤖 MODULE: AI LIFE COACH & MOOD SYNC
 // ==========================================
-let currentMood = "Neutral";
-
-// I-load kung ano yung huling piniling coach sa phone
-function loadSavedCoach() {
-    let savedCoach = localStorage.getItem('flux_coach');
-    let selector = document.getElementById('coachSelector');
-    if (savedCoach && selector) {
-        selector.value = savedCoach;
-    }
-}
-// Run agad pagka-load
-setTimeout(loadSavedCoach, 500);
-
-function changeCoach() {
-    let selector = document.getElementById('coachSelector');
-    localStorage.setItem('flux_coach', selector.value);
-    generateAIBriefing(); // Magre-refresh agad ang AI pag nagpalit ng coach
-}
-
-function setMood(mood, btnElement) {
-    currentMood = mood;
-    
-    // Tanggalin ang 'active' class sa lahat ng buttons
-    document.querySelectorAll('.mood-btn').forEach(btn => btn.classList.remove('active'));
-    // Ilagay ang 'active' class sa pinindot
-    btnElement.classList.add('active');
-
-    // BAGO: Pwede mong i-save din sa Firebase 'yung mood dito para sa tracking sa resibo soon!
-    // window.dbMethods.addDoc(window.dbMethods.collection(window.db, "moodLogs"), { userId: window.currentUid, mood: mood, createdAt: Date.now() });
-
-    // I-trigger ang AI Briefing kapag nag-set ng mood
-    generateAIBriefing();
-}
 
 async function generateAIBriefing() {
     if (!window.currentUid) return;
@@ -1564,29 +1531,34 @@ async function generateAIBriefing() {
     if(pulseEl) pulseEl.style.width = "50%";
     if(textEl) textEl.innerHTML = `<i class="ph-bold ph-spinner" style="animation: spin 1s linear infinite;"></i> Coach is analyzing your day...`;
 
-    // Kunin ang latest data
-    // 1. Ipunin ang data para sa context (Filtered na!)
-// 1. Ipunin ang data (Filtered & Calculated)
-    let today = new Date().toLocaleDateString('en-CA');
+    // 1. Ipunin ang data (Filtered explicitly for TODAY)
+    let todayStr = new Date().toLocaleDateString('en-CA');
 
-    // Tasks & Events
-// 📝 TASKS ONLY: Bibilangin lang ang HINDI 'done' at HINDI 'event' (case-insensitive)
-let pendingTasks = taskDatabase.filter(t => {
-    const cat = (t.category || "").toLowerCase();
-    return t.status !== 'done' && cat !== 'event' && cat !== 'schedule' && cat !== 'whole day';
-}).length;
+    // 📝 PENDING TASKS: Lahat ng tasks na hindi pa done at hindi event
+    let pendingTasks = taskDatabase.filter(t => {
+        const cat = (t.category || "").toLowerCase().trim();
+        return t.status !== 'done' && cat !== 'event' && cat !== 'schedule' && cat !== 'whole day' && cat !== 'sched';
+    }).length;
 
-// 📅 EVENTS ONLY: Dito lang dapat pumapasok yung mga sched niyo
-let todayEvents = taskDatabase.filter(t => {
-    const cat = (t.category || "").toLowerCase();
-    return cat === 'event' || cat === 'schedule' || cat === 'whole day';
-}).length;
+    // 🔄 DAILY HABITS: Bibilangin yung mga habit na hindi pa naki-click "Done" ngayong araw
+    let pendingHabits = habitDatabase.filter(h => h.lastDoneDate !== todayStr).length;
 
-    // 💸 UTANG DATA: Kunin ang total na hindi pa bayad
-    let unpaidDebtList = utangDatabase.filter(u => !u.isPaid);
-    let totalUnpaidDebt = unpaidDebtList.reduce((sum, u) => sum + (parseFloat(u.amount) || 0), 0);
-    let nearestDue = unpaidDebtList.length > 0 ? unpaidDebtList[0].dueDate : "None";
+    // 📅 EVENTS TODAY: Bibilangin lang yung event na naka-schedule MISMO NGAYONG ARAW
+    let todayEvents = taskDatabase.filter(t => {
+        const cat = (t.category || "").toLowerCase().trim();
+        let isEvent = (cat === 'event' || cat === 'schedule' || cat === 'whole day' || cat === 'sched');
+        // I-check kung yung dueDate ng event ay ngayon
+        let isToday = new Date(t.dueDate).toLocaleDateString('en-CA') === todayStr; 
+        return isEvent && isToday;
+    }).length;
 
+    // 💸 UTANG DUE TODAY: Bibilangin lang ang utang na kailangan bayaran NGAYONG ARAW
+    let duesToday = utangDatabase.filter(u => {
+        let isToday = new Date(u.dueDate).toLocaleDateString('en-CA') === todayStr;
+        return !u.isPaid && isToday;
+    }).reduce((sum, u) => sum + (parseFloat(u.amount) || 0), 0);
+
+    // 📊 BUDGET: Overall pa rin for the month
     let budgetPercent = monthlyTarget > 0 ? Math.round((monthlySpent / monthlyTarget) * 100) : 0;
 
     try {
@@ -1600,10 +1572,10 @@ let todayEvents = taskDatabase.filter(t => {
                 currentMood: currentMood,
                 data: {
                     pendingTasks,
-                    todayEvents,
+                    pendingHabits, // <--- BAGO: Para sa daily habits
+                    todayEvents,   // <--- BAGO: Filtered to TODAY
                     budgetPercent,
-                    totalUnpaidDebt, // <--- IPAPASA SA AI
-                    nearestDue,      // <--- PARA ALAM NIYA KUNG MALAPIT NA DEADLINE
+                    duesToday,     // <--- BAGO: Utang for TODAY lang
                     currentTime: new Date().toLocaleTimeString()
                 }
             })
@@ -1611,7 +1583,6 @@ let todayEvents = taskDatabase.filter(t => {
 
         const data = await response.json();
         
-        // Expected na magbabalik ang Vercel mo ng { briefing: "...", quote: "..." }
         const briefingText = data.briefing || `Hey ${window.currentUserName || 'there'}! You have ${pendingTasks} tasks left today. Let's get it!`;
         const quoteText = data.quote || `"Small progress is still progress."`;
 
