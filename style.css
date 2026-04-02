@@ -695,3 +695,37 @@ body.theme-pink {
         font-size: 28px; /* Lilititan logo size */
     }
 }
+
+/* ==========================================
+   😊 MOOD TRACKER STYLES
+   ========================================== */
+.mood-tracker {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 5px;
+    scrollbar-width: none; /* Tinatago yung pangit na scrollbar */
+}
+.mood-tracker::-webkit-scrollbar { 
+    display: none; 
+}
+.mood-btn {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--glass-border);
+    border-radius: 30px;
+    font-size: 24px; /* Sakto lang ang laki ng emoji */
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+}
+.mood-btn:hover {
+    background: rgba(255,255,255,0.1);
+    transform: translateY(-2px);
+}
+.mood-btn.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    transform: scale(1.1);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
