@@ -57,9 +57,42 @@
         </div>
 
         <div id="dashboardScreen" class="screen">
-            <div class="motivation-box">
-                "Small progress is still progress. Let's get things done today!"
-            </div>
+            <div class="utang-card" style="margin-bottom: 20px; padding: 20px; background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h3 style="margin: 0; font-size: 14px; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+            <i class="ph-duotone ph-brain"></i> Daily Briefing
+        </h3>
+        <select id="coachSelector" class="glass-select" style="width: auto; padding: 4px 10px; font-size: 11px; margin-bottom: 0;" onchange="changeCoach()">
+            <option value="Hype BFF">✨ Hype BFF</option>
+            <option value="Zen & Mindful">🌸 Zen & Mindful</option>
+            <option value="Tough Love">🔥 Tough Love</option>
+            <option value="Savage Advisor">💸 Savage Advisor</option>
+        </select>
+    </div>
+
+    <p style="font-size: 11px; color: var(--text-muted); margin: 0 0 8px 0; text-transform: uppercase; letter-spacing: 1px;">How are you feeling right now?</p>
+    
+<div class="mood-tracker" id="moodTrackerContainer">
+        <button class="mood-btn" onclick="setMood('Pakyu', this)">🖕</button>
+        <button class="mood-btn" onclick="setMood('Angry', this)">😡</button>
+        <button class="mood-btn" onclick="setMood('Crying', this)">😭</button>
+        <button class="mood-btn" onclick="setMood('Sad', this)">😢</button>
+        <button class="mood-btn" onclick="setMood('Overwhelmed', this)">😳</button>
+        <button class="mood-btn" onclick="setMood('Sleepy', this)">😴</button>
+        <button class="mood-btn" onclick="setMood('Neutral', this)">😑</button>
+        <button class="mood-btn" onclick="setMood('Happy', this)">🙂</button>
+        <button class="mood-btn" onclick="setMood('Excited', this)">😁</button>
+    </div>
+
+    <div id="aiBriefingContent" style="margin-top: 15px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 12px; font-size: 13px; line-height: 1.6; color: var(--text-main); position: relative; overflow: hidden;">
+        <div id="aiLoadingPulse" style="position: absolute; bottom: 0; left: 0; height: 2px; background: var(--primary); width: 0%; transition: 0.3s;"></div>
+        
+        <div id="briefingText" style="margin-bottom: 10px;">Select your mood to get your personalized briefing...</div>
+        
+        <hr style="border: 0; height: 1px; background: var(--glass-border); margin: 10px 0;">
+        <i id="briefingQuote" style="color: var(--text-muted); font-size: 11px; display: block; text-align: right;">"Waiting for sync..."</i>
+    </div>
+</div>
 
             <div class="dashboard-grid">
                 <div class="grid-item active" onclick="switchScreen('utangScreen')">
