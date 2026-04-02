@@ -372,33 +372,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
     position: relative;
     margin: 0 auto;
     max-width: 360px;
-    padding: 20px 0 20px;
-}
-
-/* Jagged top edge */
-.receipt-wrapper::before {
-    content: "";
-    display: block;
-    height: 16px;
-    background:
-        linear-gradient(135deg, #f5f0e8 33.33%, transparent 33.33%) 0 0,
-        linear-gradient(-135deg, #f5f0e8 33.33%, transparent 33.33%) 0 0;
-    background-size: 16px 16px;
-    background-repeat: repeat-x;
-    background-color: transparent;
-}
-
-/* Jagged bottom edge */
-.receipt-wrapper::after {
-    content: "";
-    display: block;
-    height: 16px;
-    background:
-        linear-gradient(-45deg, #f5f0e8 33.33%, transparent 33.33%) 0 0,
-        linear-gradient(45deg, #f5f0e8 33.33%, transparent 33.33%) 0 0;
-    background-size: 16px 16px;
-    background-repeat: repeat-x;
-    background-color: transparent;
+    /* zigzag edges are now inline SVG — no pseudo-elements needed */
 }
 
 .thermal-receipt {
