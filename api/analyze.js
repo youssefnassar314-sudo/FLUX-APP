@@ -55,15 +55,26 @@ export default async function handler(req, res) {
         // ==========================================
         else if (action === 'getBriefing') {
             const prompt = `
-            Act as a personal life coach with the persona: "${coachPersona}".
-            The user's name is "${userName}". 
-            STRICT RULE: DO NOT EVER USE THE WORD "Engineer". Only call them by their name: ${userName}.
-            
-            Context right now:
-            - User's Current Mood: "${currentMood}"
-            - Time of day: ${userData?.currentTime || 'Unknown'}
-            - Pending Tasks left: ${userData?.pendingTasks || 0}
-            - Budget Spent this month: ${userData?.budgetPercent || 0}%
+Act as a personal life coach with the persona: "${coachPersona}".
+The user's name is "${userName}". 
+STRICT RULE: DO NOT EVER USE THE WORD "Engineer".
+
+Context right now:
+- User's Current Mood: "${currentMood}"
+- Pending Tasks: ${userData?.pendingTasks || 0}
+- Events Today: ${userData?.todayEvents || 0}
+- Budget Spent: ${userData?.budgetPercent || 0}%
+- Total Unpaid Debt: ₱${userData?.totalUnpaidDebt || 0}  <-- DAGDAG ITO
+- Nearest Debt Due: ${userData?.nearestDue || 'N/A'}    <-- DAGDAG ITO
+
+FINANCIAL INSTRUCTION:
+1. If totalUnpaidDebt > 0, include a subtle (or harsh, depending on persona) reminder about it.
+2. If budgetPercent is over 80% and they still have debt, the coach should be more concerned.
+3. If totalUnpaidDebt is 0, congratulate them for being debt-free!
+
+INSTRUCTION FOR EVENTS:
+If the user has 1 or more "Whole Day Events", recognize it as a schedule or commitment, NOT a task they need to 'complete'. 
+Example: "May event ka today, so chill ka muna sa heavy tasks."
             
             CRITICAL INSTRUCTION FOR MOOD:
             If the user's mood is "Pakyu", act extremely savage, sarcastic, or match their chaotic/frustrated energy according to your persona. Validate their frustration but remind them to get back on track.
