@@ -1544,6 +1544,17 @@ function restoreMoodUI() {
     document.querySelectorAll('.mood-btn').forEach(btn => {
         btn.classList.toggle('active', btn.innerText === emoji);
     });
+
+    // I-restore ang cached briefing sa UI agad — walang API call
+    try {
+        let cached = JSON.parse(localStorage.getItem('flux_briefing_cache') || 'null');
+        let textEl = document.getElementById('briefingText');
+        let quoteEl = document.getElementById('briefingQuote');
+        if (cached && cached.briefing && textEl) {
+            textEl.innerHTML = cached.briefing;
+            if (quoteEl && cached.quote) quoteEl.innerHTML = `"${cached.quote}"`;
+        }
+    } catch(e) { /* ignore */ }
 }
 
 function toggleMoodPicker() {
@@ -1610,8 +1621,7 @@ async function generateAIBriefing() {
     try {
         let cached = JSON.parse(localStorage.getItem('flux_briefing_cache') || 'null');
         let now = Date.now();
-        if (cached && cached.mood === currentMood && cached.coach === coachType 
-            && (now - cached.timestamp) < 60 * 60 * 1000) {
+        if (cached && cached.mood === currentMood && cached.coach === coachType) {
             if(textEl) textEl.innerHTML = cached.briefing;
             if(quoteEl) quoteEl.innerHTML = `"${cached.quote}"`;
             if(pulseEl) { pulseEl.style.width = "100%"; setTimeout(() => pulseEl.style.opacity = "0", 300); }
