@@ -31,6 +31,7 @@ function switchScreen(screenId) {
     if (screenId === 'foodScreen') renderFoodList();
     if (screenId === 'budgetScreen') updateBudgetDashboard();
     if (screenId === 'kanbanScreen') renderKanban();
+    if (screenId === 'dashboardScreen') fetchFoodSummary();
 }
 
 // ==========================================
@@ -756,8 +757,96 @@ function initRealtimeFood() {
         snapshot.forEach(doc => foodDatabase.push({ id: doc.id, ...doc.data() }));
         foodDatabase.sort((a, b) => b.createdAt - a.createdAt);
         renderFoodList();
-        updateBudgetDashboard(); 
+        updateBudgetDashboard();
+        // I-invalidate ang food summary cache kapag may bagong food log
+        localStorage.removeItem('flux_food_summary_cache');
     });
+}
+
+// Grade color helper
+function getFoodGradeColor(grade) {
+    if (!grade || grade === '--' || grade === 'N/A') return { bg: 'rgba(255,255,255,0.05)', border: 'rgba(255,255,255,0.1)', text: 'var(--text-muted)' };
+    const g = grade.toUpperCase();
+    if (g.startsWith('A')) return { bg: 'rgba(16,185,129,0.12)', border: 'rgba(16,185,129,0.4)', text: '#10b981' };
+    if (g.startsWith('B')) return { bg: 'rgba(56,189,248,0.12)', border: 'rgba(56,189,248,0.4)', text: '#38bdf8' };
+    if (g.startsWith('C')) return { bg: 'rgba(251,191,36,0.12)', border: 'rgba(251,191,36,0.4)', text: '#fbbf24' };
+    return { bg: 'rgba(244,63,94,0.12)', border: 'rgba(244,63,94,0.4)', text: '#f43f5e' };
+}
+
+function applyFoodSummaryUI(result) {
+    let gradeEl = document.getElementById('foodGradeDisplay');
+    let gradeText = document.getElementById('foodGradeText');
+    let calEl = document.getElementById('foodCalorieText');
+    let tipEl = document.getElementById('foodSummaryTip');
+
+    if (!gradeEl) return;
+
+    let grade = result.grade || '--';
+    let colors = getFoodGradeColor(grade);
+
+    gradeEl.style.background = colors.bg;
+    gradeEl.style.borderColor = colors.border;
+    gradeText.style.color = colors.text;
+    gradeText.innerText = grade;
+
+    calEl.innerHTML = result.calories > 0
+        ? `${result.calories.toLocaleString()} <span style="font-size: 11px; font-weight: 400; color: var(--text-muted);">kcal</span>`
+        : `-- <span style="font-size: 11px; font-weight: 400; color: var(--text-muted);">kcal</span>`;
+
+    tipEl.innerText = result.summary || '';
+}
+
+async function fetchFoodSummary(forceRefresh = false) {
+    // Check cache muna
+    if (!forceRefresh) {
+        try {
+            let cached = JSON.parse(localStorage.getItem('flux_food_summary_cache') || 'null');
+            let todayKey = new Date().toLocaleDateString('en-CA');
+            if (cached && cached.dateKey === todayKey) {
+                applyFoodSummaryUI(cached);
+                return;
+            }
+        } catch(e) {}
+    }
+
+    let todayKey = new Date().toLocaleDateString('en-CA');
+    let todayFood = foodDatabase.filter(f => new Date(f.createdAt).toLocaleDateString('en-CA') === todayKey);
+
+    // Walang kinain today — show default state
+    if (todayFood.length === 0) {
+        applyFoodSummaryUI({ calories: 0, grade: '--', summary: 'Mag-log ng pagkain mo para makita ang summary.' });
+        return;
+    }
+
+    // Show loading state
+    let tipEl = document.getElementById('foodSummaryTip');
+    let gradeText = document.getElementById('foodGradeText');
+    if (tipEl) tipEl.innerText = 'Analyzing...';
+    if (gradeText) gradeText.innerText = '...';
+
+    try {
+        let foodItems = todayFood.map(f => ({ meal: f.meal, item: f.item }));
+        const response = await fetch('/api/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'getFoodSummary', foodItems })
+        });
+        const result = await response.json();
+
+        applyFoodSummaryUI(result);
+
+        // I-cache, valid for today lang
+        localStorage.setItem('flux_food_summary_cache', JSON.stringify({ ...result, dateKey: todayKey }));
+
+    } catch(e) {
+        console.error('Food summary error:', e);
+        if (tipEl) tipEl.innerText = 'Hindi ma-analyze ngayon. Try mo ulit.';
+    }
+}
+
+function refreshFoodSummary() {
+    localStorage.removeItem('flux_food_summary_cache');
+    fetchFoodSummary(true);
 }
 
 function renderFoodList() {
@@ -1835,3 +1924,4 @@ window.changeCoach = changeCoach;
 window.setMood = setMood;
 window.toggleMoodPicker = toggleMoodPicker;
 window.generateAIBriefing = generateAIBriefing;
+window.refreshFoodSummary = refreshFoodSummary;
