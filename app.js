@@ -1519,6 +1519,36 @@ async function setCustomUsername() {
 // ==========================================
 // 🤖 MODULE: AI LIFE COACH & MOOD SYNC
 // ==========================================
+let currentMood = "Neutral";
+
+// I-load kung ano yung huling piniling coach sa phone
+function loadSavedCoach() {
+    let savedCoach = localStorage.getItem('flux_coach');
+    let selector = document.getElementById('coachSelector');
+    if (savedCoach && selector) {
+        selector.value = savedCoach;
+    }
+}
+// Run agad pagka-load
+setTimeout(loadSavedCoach, 500);
+
+function changeCoach() {
+    let selector = document.getElementById('coachSelector');
+    localStorage.setItem('flux_coach', selector.value);
+    generateAIBriefing(); // Magre-refresh agad ang AI pag nagpalit ng coach
+}
+
+function setMood(mood, btnElement) {
+    currentMood = mood;
+    
+    // Tanggalin ang 'active' class sa lahat ng buttons
+    document.querySelectorAll('.mood-btn').forEach(btn => btn.classList.remove('active'));
+    // Ilagay ang 'active' class sa pinindot
+    btnElement.classList.add('active');
+
+    // I-trigger ang AI Briefing kapag nag-set ng mood
+    generateAIBriefing();
+}
 
 async function generateAIBriefing() {
     if (!window.currentUid) return;
