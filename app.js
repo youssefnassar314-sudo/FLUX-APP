@@ -19,6 +19,28 @@ let dueCounter = 1;
 let currentDateView = new Date(); 
 let transactionDatabase = [];
 
+let currentUtangView = 'date'; // Default view natin
+
+function setUtangView(mode) {
+    currentUtangView = mode;
+    
+    // Update Button Styles para alam kung ano ang active
+    let btnDate = document.getElementById('btnViewDate');
+    let btnApp = document.getElementById('btnViewApp');
+    
+    if(btnDate && btnApp) {
+        btnDate.style.opacity = mode === 'date' ? '1' : '0.5';
+        btnDate.style.borderColor = mode === 'date' ? 'var(--primary)' : 'var(--glass-border)';
+        btnDate.style.color = mode === 'date' ? 'var(--primary)' : 'var(--text-main)';
+
+        btnApp.style.opacity = mode === 'app' ? '1' : '0.5';
+        btnApp.style.borderColor = mode === 'app' ? 'var(--secondary)' : 'var(--glass-border)';
+        btnApp.style.color = mode === 'app' ? 'var(--secondary)' : 'var(--text-main)';
+    }
+
+    renderUtangList(); // I-refresh ang listahan
+}
+
 // 1. Pampa-switch ng screens
 function switchScreen(screenId) {
     let screens = document.querySelectorAll('.screen');
@@ -192,7 +214,7 @@ function renderUtangList() {
     );
     filteredUtang.sort((a, b) => a.isPaid - b.isPaid || a.dueDate - b.dueDate);
 
-    // BAGO: Compute Monthly Totals based sa kung anong buwan ang naka-view
+    // Compute Monthly Totals
     let monthUtang = 0;
     let monthBayad = 0;
     filteredUtang.forEach(u => {
@@ -200,7 +222,6 @@ function renderUtangList() {
         else monthUtang += u.amount;
     });
     
-    // Update HTML for Monthly
     document.getElementById('displayMonthUtang').innerText = monthUtang.toFixed(2);
     document.getElementById('displayMonthBayad').innerText = monthBayad.toFixed(2);
 
@@ -209,32 +230,103 @@ function renderUtangList() {
         return;
     }
 
-    let hasRenderedPaidHeader = false;
-    filteredUtang.forEach(utang => {
-        let day = utang.dueDate.getDate();
-        let shortMonth = utang.dueDate.toLocaleString('default', { month: 'short' });
-        
-        if (utang.isPaid && !hasRenderedPaidHeader) {
-            container.innerHTML += `<div class="date-section"><h3 style="color: var(--success); border-bottom: 2px solid rgba(16, 185, 129, 0.2); padding-bottom: 5px; font-size: 14px; margin-top: 25px;"><i class="ph-bold ph-check-circle"></i> Paid This Month</h3></div>`;
-            hasRenderedPaidHeader = true;
-        } 
+    // ==========================================
+    // VIEW 1: BY DUE DATE (Original)
+    // ==========================================
+    if (currentUtangView === 'date') {
+        let hasRenderedPaidHeader = false;
+        filteredUtang.forEach(utang => {
+            let day = utang.dueDate.getDate();
+            let shortMonth = utang.dueDate.toLocaleString('default', { month: 'short' });
+            
+            if (utang.isPaid && !hasRenderedPaidHeader) {
+                container.innerHTML += `<div class="date-section"><h3 style="color: var(--success); border-bottom: 2px solid rgba(16, 185, 129, 0.2); padding-bottom: 5px; font-size: 14px; margin-top: 25px;"><i class="ph-bold ph-check-circle"></i> Paid This Month</h3></div>`;
+                hasRenderedPaidHeader = true;
+            } 
 
-        let cardStyle = utang.isPaid ? 'opacity: 0.5; background-color: rgba(255,255,255,0.02);' : 'background: rgba(255,255,255,0.02);';
-        let badgeHTML = utang.category === 'My App' 
-            ? `<span class="badge badge-primary"><i class="ph-bold ph-device-mobile"></i> My App: ${utang.appName}</span>`
-            : `<span class="badge badge-secondary"><i class="ph-bold ph-user"></i> Under their: ${utang.appName}</span>`;
+            let cardStyle = utang.isPaid ? 'opacity: 0.5; background-color: rgba(255,255,255,0.02);' : 'background: rgba(255,255,255,0.02);';
+            let badgeHTML = utang.category === 'My App' 
+                ? `<span class="badge badge-primary"><i class="ph-bold ph-device-mobile"></i> My App: ${utang.appName}</span>`
+                : `<span class="badge badge-secondary"><i class="ph-bold ph-user"></i> Under their: ${utang.appName}</span>`;
 
-        // BAGO: Dinagdag yung Delete Button (X) sa upper right ng card
-        container.innerHTML += `
-            <div class="utang-card" style="${cardStyle}">
-                <button onclick="deleteUtang('${utang.id}')" style="position: absolute; top: 12px; right: 12px; background: none; border: none; color: var(--danger); cursor: pointer; font-size: 16px; padding: 0;"><i class="ph-bold ph-x"></i></button>
-                <div style="margin-bottom: 10px; padding-right: 20px;">${badgeHTML}</div>
-                <h4><span style="font-family: monospace; letter-spacing: 1px; color: var(--primary);">ID: ${utang.utangId}</span> <span>₱${utang.amount.toFixed(2)}</span></h4>
-                <p style="color: var(--danger); font-weight: bold;"><i class="ph-bold ph-calendar-x"></i> Due On: ${shortMonth} ${day}</p>
-                <button class="paid-btn" onclick="openPayUtangModal('${utang.id}', ${utang.amount}, '${utang.utangId}')" ${utang.isPaid ? 'disabled' : ''}>${utang.isPaid ? '<i class="ph-bold ph-check"></i> Paid' : 'Pay via Wallet'}</button>
-            </div>
-        `;
-    });
+            container.innerHTML += `
+                <div class="utang-card" style="${cardStyle}">
+                    <button onclick="deleteUtang('${utang.id}')" style="position: absolute; top: 12px; right: 12px; background: none; border: none; color: var(--danger); cursor: pointer; font-size: 16px; padding: 0;"><i class="ph-bold ph-x"></i></button>
+                    <div style="margin-bottom: 10px; padding-right: 20px;">${badgeHTML}</div>
+                    <h4><span style="font-family: monospace; letter-spacing: 1px; color: var(--primary);">ID: ${utang.utangId}</span> <span>₱${utang.amount.toFixed(2)}</span></h4>
+                    <p style="color: var(--danger); font-weight: bold;"><i class="ph-bold ph-calendar-x"></i> Due On: ${shortMonth} ${day}</p>
+                    <button class="paid-btn" onclick="openPayUtangModal('${utang.id}', ${utang.amount}, '${utang.utangId}')" ${utang.isPaid ? 'disabled' : ''}>${utang.isPaid ? '<i class="ph-bold ph-check"></i> Paid' : 'Pay via Wallet'}</button>
+                </div>
+            `;
+        });
+    } 
+    // ==========================================
+    // VIEW 2: BY APP & ID (Bago!)
+    // ==========================================
+    else {
+        let apps = {};
+
+        // 1. Group the data
+        filteredUtang.forEach(u => {
+            let appName = u.appName && u.appName !== "N/A" ? u.appName : "Other Utang";
+            // Kunin ang base ID (tatanggalin ang " (Due 1)" string para magkasama sila)
+            let baseId = u.utangId.split(' (Due')[0]; 
+
+            if(!apps[appName]) apps[appName] = {};
+            if(!apps[appName][baseId]) apps[appName][baseId] = { totalAmount: 0, totalPaid: 0, items: [] };
+
+            apps[appName][baseId].items.push(u);
+            apps[appName][baseId].totalAmount += u.amount;
+            if(u.isPaid) apps[appName][baseId].totalPaid += u.amount;
+        });
+
+        // 2. Render HTML per App -> per ID
+        for (let app in apps) {
+            container.innerHTML += `<div class="date-section"><h3 style="color: var(--secondary); border-bottom: 2px solid rgba(192, 132, 252, 0.2); padding-bottom: 5px; font-size: 14px; margin-top: 25px; text-transform: uppercase; letter-spacing: 1px;"><i class="ph-bold ph-device-mobile"></i> ${app}</h3></div>`;
+
+            for (let id in apps[app]) {
+                let group = apps[app][id];
+                let allPaid = group.items.every(u => u.isPaid);
+                
+                let cardStyle = allPaid ? 'opacity: 0.5; background-color: rgba(255,255,255,0.02); border-left: 4px solid var(--success);' : 'background: rgba(192, 132, 252, 0.05); border-left: 4px solid var(--secondary);';
+
+                // Buuin ang mga maliliit na row para sa kada due ng ID na 'to
+                let duesHTML = group.items.map(u => {
+                    let shortMonth = u.dueDate.toLocaleString('default', { month: 'short' });
+                    let day = u.dueDate.getDate();
+                    let dueLabel = u.utangId.includes('(Due') ? u.utangId.split('(')[1].replace(')', '') : 'Full';
+                    
+                    let controls = u.isPaid 
+                        ? `<span style="color: var(--success); font-size: 11px; font-weight: bold;"><i class="ph-bold ph-check"></i> Paid</span>` 
+                        : `<button onclick="openPayUtangModal('${u.id}', ${u.amount}, '${u.utangId}')" style="background:none; border:1px solid var(--primary); color:var(--primary); padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer;">Pay</button>`;
+                    
+                    return `
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed var(--glass-border); padding-top: 10px; margin-top: 10px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <button onclick="deleteUtang('${u.id}')" style="background:none; border:none; color:var(--danger); font-size:14px; cursor:pointer; padding:0;"><i class="ph-bold ph-x"></i></button>
+                            <span style="font-size: 11px; color: var(--text-muted);"><strong style="color:var(--text-main);">${dueLabel}</strong> • ${shortMonth} ${day}</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 13px; color: var(--text-main);">₱${u.amount.toFixed(2)}</span>
+                            ${controls}
+                        </div>
+                    </div>`;
+                }).join('');
+
+                // Buuin yung mismong Card ng ID
+                container.innerHTML += `
+                    <div class="utang-card" style="${cardStyle} margin-bottom: 12px; padding: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <span style="font-size: 10px; font-weight: 700; background: rgba(255,255,255,0.05); padding: 3px 8px; border-radius: 5px; text-transform: uppercase;">ID: ${id}</span>
+                            <span style="font-size: 11px; color: ${allPaid ? 'var(--success)' : 'var(--danger)'};">Balance: ₱${(group.totalAmount - group.totalPaid).toFixed(2)}</span>
+                        </div>
+                        <h4 style="margin: 5px 0 0 0; font-size: 16px; color: var(--text-main);">Total: ₱${group.totalAmount.toFixed(2)}</h4>
+                        ${duesHTML}
+                    </div>
+                `;
+            }
+        }
+    }
 }
 
 // BAGO: Delete Utang Record
@@ -1548,3 +1640,4 @@ window.deleteHabit = deleteHabit;
 window.deleteTransaction = deleteTransaction;
 window.openDailySummary = openDailySummary;
 window.forceUpdateApp = forceUpdateApp;
+window.setUtangView = setUtangView;
