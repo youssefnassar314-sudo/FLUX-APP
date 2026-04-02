@@ -1570,7 +1570,6 @@ window.deleteTask = deleteTask;
 window.deleteHabit = deleteHabit;
 window.deleteTransaction = deleteTransaction;
 window.openDailySummary = openDailySummary;
-window.migrateOldData = migrateOldData; 
 window.forceUpdateApp = forceUpdateApp; // <--- IDINAGDAG
 window.setUtangView = setUtangView;     // <--- IDINAGDAG
 window.toggleTheme = toggleTheme;
