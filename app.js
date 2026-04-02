@@ -21,6 +21,25 @@ let transactionDatabase = [];
 
 let currentUtangView = 'date'; // Default view natin
 
+
+
+// 1. Pampa-switch ng screens
+function switchScreen(screenId) {
+    let screens = document.querySelectorAll('.screen');
+    screens.forEach(screen => screen.classList.remove('active-screen'));
+    document.getElementById(screenId).classList.add('active-screen');
+    
+    if (screenId === 'utangScreen') renderUtangList();
+    if (screenId === 'taskScreen') { renderTasks(); renderKanban(); }
+    if (screenId === 'foodScreen') renderFoodList();
+    if (screenId === 'budgetScreen') updateBudgetDashboard();
+    if (screenId === 'kanbanScreen') renderKanban();
+}
+
+// ==========================================
+// 💸 MODULE 1: UTANG TRACKER (FIREBASE)
+// ==========================================
+
 function setUtangView(mode) {
     currentUtangView = mode;
     
@@ -40,23 +59,6 @@ function setUtangView(mode) {
 
     renderUtangList(); // I-refresh ang listahan
 }
-
-// 1. Pampa-switch ng screens
-function switchScreen(screenId) {
-    let screens = document.querySelectorAll('.screen');
-    screens.forEach(screen => screen.classList.remove('active-screen'));
-    document.getElementById(screenId).classList.add('active-screen');
-    
-    if (screenId === 'utangScreen') renderUtangList();
-    if (screenId === 'taskScreen') { renderTasks(); renderKanban(); }
-    if (screenId === 'foodScreen') renderFoodList();
-    if (screenId === 'budgetScreen') updateBudgetDashboard();
-    if (screenId === 'kanbanScreen') renderKanban();
-}
-
-// ==========================================
-// 💸 MODULE 1: UTANG TRACKER (FIREBASE)
-// ==========================================
 
 function showAddForm() {
     let form = document.getElementById('addUtangForm');
