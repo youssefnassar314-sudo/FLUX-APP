@@ -1439,23 +1439,42 @@ function forceUpdateApp() {
 // ==========================================
 // 🎨 THEME SWITCHER
 // ==========================================
+// ==========================================
+// 🎨 BAGO: THEME SWITCHER (Blue -> Green -> Pink Cycle)
+// ==========================================
 function toggleTheme() {
     let body = document.body;
-    body.classList.toggle('theme-green');
     
     if (body.classList.contains('theme-green')) {
-        localStorage.setItem('flux_theme', 'green');
-    } else {
+        // Kapag Green na ngayon, gawing Pink
+        body.classList.remove('theme-green');
+        body.classList.add('theme-pink');
+        localStorage.setItem('flux_theme', 'pink');
+    } else if (body.classList.contains('theme-pink')) {
+        // Kapag Pink na ngayon, gawing Default (Blue)
+        body.classList.remove('theme-pink');
         localStorage.setItem('flux_theme', 'default');
+    } else {
+        // Kapag Default (Blue) ngayon, gawing Green
+        body.classList.add('theme-green');
+        localStorage.setItem('flux_theme', 'green');
     }
 }
 
 function loadSavedTheme() {
     let savedTheme = localStorage.getItem('flux_theme');
+    let body = document.body;
+    
+    // Siguraduhing linisin muna ang mga lumang classes bago mag-load
+    body.classList.remove('theme-green', 'theme-pink');
+    
     if (savedTheme === 'green') {
-        document.body.classList.add('theme-green');
+        body.classList.add('theme-green');
+    } else if (savedTheme === 'pink') {
+        body.classList.add('theme-pink');
     }
 }
+// Patakbuhin agad para magpalit ng kulay bago pa makita ang screen
 loadSavedTheme();
 
 // ==========================================
