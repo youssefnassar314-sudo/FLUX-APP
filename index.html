@@ -131,8 +131,12 @@
                 <button onclick="changeMonth(1)"><i class="ph-bold ph-caret-right"></i></button>
             </div>
 
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <button id="btnViewDate" onclick="setUtangView('date')" class="secondary-btn" style="margin-bottom: 0; border-color: var(--primary) !important; color: var(--primary) !important;"><i class="ph-bold ph-calendar"></i> By Due Date</button>
+                <button id="btnViewApp" onclick="setUtangView('app')" class="secondary-btn" style="margin-bottom: 0; opacity: 0.5;"><i class="ph-bold ph-device-mobile"></i> By App / ID</button>
+            </div>
+
             <div id="utangListContainer"></div>
-        </div>
 
         <div id="taskScreen" class="screen">
             <button class="back-btn" onclick="switchScreen('dashboardScreen')">
