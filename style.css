@@ -572,3 +572,11 @@ input[type="time"]::-webkit-calendar-picker-indicator {
     transition: background 0.15s, color 0.15s, border-color 0.15s;
     text-transform: uppercase;
 }
+/* ==========================================
+   🎨 THEMES 
+   ========================================== */
+body.theme-green {
+    --primary: #10b981;    /* Emerald Green */
+    --secondary: #34d399;  /* Mint Green */
+    --bg-glow: #064e3b;    /* Dark Green Glow sa background */
+}
