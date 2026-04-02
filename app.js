@@ -1439,6 +1439,44 @@ function handleLogout() {
     });
 }
 
+// ==========================================
+// 🕒 BAGO: LIVE CLOCK & DATE
+// ==========================================
+function updateClock() {
+    let clockEl = document.getElementById('liveClock');
+    if (!clockEl) return;
+    
+    let now = new Date();
+    // Ex format: "Thu, Apr 2, 2026 | 11:19 AM"
+    let options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+    clockEl.innerText = now.toLocaleString('en-US', options).replace(',', ' |');
+}
+// I-run agad tapos i-set na mag-update kada isang segundo (1000ms)
+updateClock();
+setInterval(updateClock, 1000);
+
+// ==========================================
+// 🔄 BAGO: FORCE UPDATE / CLEAR CACHE
+// ==========================================
+function forceUpdateApp() {
+    if (confirm("I-force update ang FLUX OS? (Magki-clear ito ng cache at mag-rerefresh para makuha ang latest code)")) {
+        
+        // 1. Unregister lahat ng naka-cache na Service Workers
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) {
+                    registration.unregister();
+                }
+                // 2. Force hard reload from server (bypass cache)
+                window.location.reload(true);
+            });
+        } else {
+            // Kung walang service worker, normal reload lang
+            window.location.reload(true);
+        }
+    }
+}
+
 function startApp() {
     if (window.auth && window.authMethods && window.db) {
         
@@ -1509,3 +1547,4 @@ window.deleteTask = deleteTask;
 window.deleteHabit = deleteHabit;
 window.deleteTransaction = deleteTransaction;
 window.openDailySummary = openDailySummary;
+window.forceUpdateApp = forceUpdateApp;
