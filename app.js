@@ -1459,47 +1459,7 @@ function startApp() {
 }
 startApp();
 
-// ==========================================
-// 🛠️ BAGO: MIGRATE OLD DATA
-// ==========================================
-async function migrateOldData() {
-    if (!window.currentUid) {
-        return alert("Kailangan naka-login ka sa account mo para makuha natin yung UID mo!");
-    }
 
-    if (!confirm("Start Migration? Lalagyan natin ng UID mo lahat ng lumang data sa database.")) {
-        return;
-    }
-
-    const collectionsToUpdate = [
-        "utang", "tasks", "habits", "foodLogs", 
-        "wallets", "transactions", "budgetConfig", "aiAnalyses"
-    ];
-
-    let updateCount = 0;
-
-    try {
-        for (let colName of collectionsToUpdate) {
-            const querySnapshot = await window.dbMethods.getDocs(window.dbMethods.collection(window.db, colName));
-            
-            for (let doc of querySnapshot.docs) {
-                let data = doc.data();
-                if (!data.userId) {
-                    await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, colName, doc.id), {
-                        userId: window.currentUid
-                    });
-                    updateCount++;
-                }
-            }
-        }
-        alert(`Migration Complete! 🎉 A total of ${updateCount} old records have been claimed by your UID.`);
-        window.location.reload(true);
-
-    } catch (error) {
-        console.error("Migration Error:", error);
-        alert("May error sa pag-migrate. Check console.");
-    }
-}
 
 // ==========================================
 // 🌍 GLOBAL EXPORTS 
@@ -1533,4 +1493,10 @@ window.deleteTask = deleteTask;
 window.deleteHabit = deleteHabit;
 window.deleteTransaction = deleteTransaction;
 window.openDailySummary = openDailySummary;
-window.migrateOldData = migrateOldData; // BAGO: Naka-export na ang migration script
+window.deleteTask = deleteTask;
+window.deleteHabit = deleteHabit;
+window.deleteTransaction = deleteTransaction;
+window.openDailySummary = openDailySummary;
+window.migrateOldData = migrateOldData; 
+window.forceUpdateApp = forceUpdateApp; // <--- IDINAGDAG
+window.setUtangView = setUtangView;     // <--- IDINAGDAG
