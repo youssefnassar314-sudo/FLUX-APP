@@ -1405,6 +1405,60 @@ function renderFullReceipt() {
 window.setReceiptFilter = setReceiptFilter;
 
 // ==========================================
+// 🕒 LIVE CLOCK & DATE
+// ==========================================
+function updateClock() {
+    let clockEl = document.getElementById('liveClock');
+    if (!clockEl) return;
+    
+    let now = new Date();
+    let options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+    clockEl.innerText = now.toLocaleString('en-US', options).replace(',', ' |');
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+// ==========================================
+// 🔄 FORCE UPDATE / CLEAR CACHE
+// ==========================================
+function forceUpdateApp() {
+    if (confirm("I-force update ang FLUX OS? (Magki-clear ito ng cache at mag-rerefresh para makuha ang latest code)")) {
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) {
+                    registration.unregister();
+                }
+                window.location.reload(true);
+            });
+        } else {
+            window.location.reload(true);
+        }
+    }
+}
+
+// ==========================================
+// 🎨 THEME SWITCHER
+// ==========================================
+function toggleTheme() {
+    let body = document.body;
+    body.classList.toggle('theme-green');
+    
+    if (body.classList.contains('theme-green')) {
+        localStorage.setItem('flux_theme', 'green');
+    } else {
+        localStorage.setItem('flux_theme', 'default');
+    }
+}
+
+function loadSavedTheme() {
+    let savedTheme = localStorage.getItem('flux_theme');
+    if (savedTheme === 'green') {
+        document.body.classList.add('theme-green');
+    }
+}
+loadSavedTheme();
+
+// ==========================================
 // 🔐 AUTHENTICATION & INITIALIZE SYSTEM
 // ==========================================
 let isAppInitialized = false;
@@ -1500,3 +1554,4 @@ window.openDailySummary = openDailySummary;
 window.migrateOldData = migrateOldData; 
 window.forceUpdateApp = forceUpdateApp; // <--- IDINAGDAG
 window.setUtangView = setUtangView;     // <--- IDINAGDAG
+window.toggleTheme = toggleTheme;
