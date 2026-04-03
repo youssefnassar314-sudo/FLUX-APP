@@ -1,20 +1,21 @@
 export default async function handler(req, res) {
+    // 1. Siguraduhing POST request lang ang tatanggapin
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
 
     try {
-        // Kinuha na natin lahat ng possible fields mula sa frontend request
-        const { action, foodLog, images, title, details, category, userName, coachPersona, currentMood, data: userData } = req.body;
+        // 2. Kunin ang mga pinasang data mula sa frontend (app.js)
+        // Note: Tinanggal na natin ang 'images', 'currentMood', at 'userData' para mas malinis
+        const { action, foodLog, title, details, category, userName } = req.body;
         
-        // FIX #1: Tanggalin natin ang invisible spaces sa API key just in case!
+        // 3. Setup ng Gemini API Key
         const apiKey = (process.env.GEMINI_API_KEY || '').trim();
 
         if (!apiKey) {
             return res.status(500).json({ error: 'API Key is missing in Vercel.' });
         }
 
-        // TAMA NA ANG MODEL PANGALAN DITO!
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
         // ==========================================
@@ -39,13 +40,12 @@ export default async function handler(req, res) {
             const data = await response.json();
 
             if (!response.ok) {
-                console.error("Google API Error details:", data);
+                console.error("Google API Error:", data);
                 throw new Error(data.error?.message || 'Unknown API Error');
             }
 
-            // Kukunin yung text at tatanggalin ang spaces. Gagawin nating integer.
             const aiResponseText = data.candidates[0].content.parts[0].text.trim();
-            const estMins = parseInt(aiResponseText) || 30; // 30 mins default fallback kung sakaling mag-inarte at magbigay ng text
+            const estMins = parseInt(aiResponseText) || 30;
 
             return res.status(200).json({ estMins: estMins });
         } 
@@ -99,41 +99,26 @@ You MUST return exactly a valid JSON object (no markdown, no backticks) with thi
                 });
             }
         }
-            
+
         // ==========================================
-        // 🥗 LOGIC 4: DAILY FOOD SUMMARY (Calories + Grade)
+        // 🥗 LOGIC 3: ALL-IN-ONE DAILY FOOD ANALYZER
         // ==========================================
-        // MOVED THIS UP BEFORE THE FINAL ELSE
-        else if (action === 'getFoodSummary') {
-            const { foodItems } = req.body;
-
-            if (!foodItems || foodItems.length === 0) {
-                return res.status(200).json({ calories: 0, grade: 'N/A', summary: 'Wala pang kinain today.' });
-            }
-
-            const foodList = foodItems.map(f => `${f.meal}: ${f.item}`).join('\n');
-
+        else if (action === 'analyzeDailyFood') {
             const prompt = `
-You are a nutrition analyst AI. Based on the food log below, estimate the total calories and give a nutrition grade for the day.
-
-Food log:
-${foodList}
+You are FLUX, a chill and witty AI nutrition assistant.
+The user (${userName}) logged their food for today: "${foodLog}".
 
 Rules:
-1. Estimate total calories as realistically as possible based on typical Filipino/common food portions.
-2. Grade the overall nutrition of the day using a school-style grade: A+, A, B+, B, C+, C, D, F.
-   - A+/A = very balanced, enough protein, veggies, good carbs
-   - B+/B = decent but missing something (e.g., no veggies, too much carbs)
-   - C+/C = mostly junk or unbalanced
-   - D/F = almost no nutritional value or severely lacking
-3. Write a 1-sentence Taglish summary/tip about their eating today. Be honest but chill, like a barkada.
-4. DO NOT use the word "engineer".
+1. "verdict": Give a funny, short (2 sentences) Taglish observation or Bro Tip about their meal today. Be encouraging but real.
+2. "calories": Estimate the total calories realistically based on typical Filipino/common food portions. Provide a NUMBER only.
+3. "grade": Grade the overall nutrition for the day using: A+, A, B+, B, C+, C, D, F.
+4. STRICT RULE: NEVER mention the word "engineer" or "engineering". 
 
 Return ONLY a valid JSON object (no markdown, no backticks):
 {
+  "verdict": "<funny taglish tip>",
   "calories": <number>,
-  "grade": "<letter grade>",
-  "summary": "<1 sentence Taglish tip>"
+  "grade": "<letter grade>"
 }
 `;
 
@@ -141,77 +126,41 @@ Return ONLY a valid JSON object (no markdown, no backticks):
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }]
+                    contents: [{ parts: [{ text: prompt }] }],
+                    // STRICT MODE: Pinipigilan natin si AI na mag-iba-iba ng Kcal estimate
+                    generationConfig: { temperature: 0.1 }
                 })
             });
 
-            const data = await response.json();
+            const responseData = await response.json();
 
             if (!response.ok) {
-                console.error("Google API Error:", data);
-                throw new Error(data.error?.message || 'Unknown API Error');
+                console.error("Google API Error:", responseData);
+                throw new Error(responseData.error?.message || 'Unknown API Error');
             }
 
-            let aiText = data.candidates[0].content.parts[0].text.trim();
+            let aiText = responseData.candidates[0].content.parts[0].text.trim();
             if (aiText.startsWith('```json')) {
                 aiText = aiText.replace(/^```json/, '').replace(/```$/, '').trim();
             }
 
             try {
-                const parsed = JSON.parse(aiText);
-                return res.status(200).json(parsed);
-            } catch (e) {
-                return res.status(200).json({ calories: 0, grade: '?', summary: 'Hindi ko ma-analyze ang food log mo ngayon.' });
+                const parsedResult = JSON.parse(aiText);
+                return res.status(200).json(parsedResult);
+            } catch (parseError) {
+                return res.status(200).json({ 
+                    verdict: `Solid eats today, ${userName}! Stay hydrated.`,
+                    calories: 0,
+                    grade: "?"
+                });
             }
         }
 
         // ==========================================
-        // 🍔 LOGIC 3: FOOD LOG ANALYZER (Original)
+        // 🚫 FALLBACK: KUNG WALANG TUMAMANG ACTION
         // ==========================================
-        // THIS IS NOW THE FINAL FALLBACK
         else {
-            const systemPrompt = `
-        You are FLUX, a chill and witty AI assistant. 
-        The user just logged their food: "${foodLog}". 
-        If there are images, identify the food visually.
-
-        Rules:
-        1. Don't be too formal. STRICT RULE: NEVER mention the word "engineering" or "engineer". Call them by their name if needed.
-        2. Use a mix of Tagalog and English (Taglish) that sounds like a helpful peer or barkada.
-        3. Keep it short (2 sentences).
-        4. Give a "Bro Tip" or a funny observation about their meal. 
-        5. Be encouraging but real (e.g., if it's all junk food, joke about needing a vegetable once in a while).
-        `;
-            let partsArray = [{ text: systemPrompt }];
-
-            if (images && images.length > 0) {
-                images.forEach(img => {
-                    partsArray.push({
-                        inlineData: {
-                            mimeType: img.mimeType,
-                            data: img.data
-                        }
-                    });
-                });
-            }
-
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: partsArray }]
-                })
-            });
-
-            const data = await response.json();
-            
-            if (!response.ok) {
-                console.error("Google API Error details:", data);
-                throw new Error(data.error?.message || 'Unknown API Error');
-            }
-            
-            const aiVerdict = data.candidates[0].content.parts[0].text;
-            return res.status(200).json({ verdict: aiVerdict });
+            return res.status(400).json({ error: 'Invalid action provided.' });
         }
 
     } catch (error) {
