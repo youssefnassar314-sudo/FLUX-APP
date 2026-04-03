@@ -18,7 +18,7 @@ export default async function handler(req, res) {
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
         // ==========================================
-        // 🧠 LOGIC 1: TASK ESTIMATOR
+        // 🚀 LOGIC 1: TASK ESTIMATOR
         // ==========================================
         if (action === 'estimateTask') {
             const prompt = `Isa kang AI productivity assistant. I-estimate mo kung ilang minuto aabutin ang task na ito.
@@ -122,58 +122,11 @@ You MUST return exactly a valid JSON object (no markdown, no backticks) with thi
                 });
             }
         }
-        
-        // ==========================================
-        // 🍔 LOGIC 3: FOOD LOG ANALYZER (Original)
-        // ==========================================
-        else {
-            const systemPrompt = `
-        You are FLUX, a chill and witty AI assistant. 
-        The user just logged their food: "${foodLog}". 
-        If there are images, identify the food visually.
-
-        Rules:
-        1. Don't be too formal. STRICT RULE: NEVER mention the word "engineering" or "engineer". Call them by their name if needed.
-        2. Use a mix of Tagalog and English (Taglish) that sounds like a helpful peer or barkada.
-        3. Keep it short (2 sentences).
-        4. Give a "Bro Tip" or a funny observation about their meal. 
-        5. Be encouraging but real (e.g., if it's all junk food, joke about needing a vegetable once in a while).
-        `;
-            let partsArray = [{ text: systemPrompt }];
-
-            if (images && images.length > 0) {
-                images.forEach(img => {
-                    partsArray.push({
-                        inlineData: {
-                            mimeType: img.mimeType,
-                            data: img.data
-                        }
-                    });
-                });
-            }
-
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: partsArray }]
-                })
-            });
-
-            const data = await response.json();
-            
-            if (!response.ok) {
-                console.error("Google API Error details:", data);
-                throw new Error(data.error?.message || 'Unknown API Error');
-            }
-            
-            const aiVerdict = data.candidates[0].content.parts[0].text;
-            return res.status(200).json({ verdict: aiVerdict });
-        }
 
         // ==========================================
         // 🥗 LOGIC 4: DAILY FOOD SUMMARY (Calories + Grade)
         // ==========================================
+        // MOVED THIS UP BEFORE THE FINAL ELSE
         else if (action === 'getFoodSummary') {
             const { foodItems } = req.body;
 
@@ -233,6 +186,55 @@ Return ONLY a valid JSON object (no markdown, no backticks):
             } catch (e) {
                 return res.status(200).json({ calories: 0, grade: '?', summary: 'Hindi ko ma-analyze ang food log mo ngayon.' });
             }
+        }
+
+        // ==========================================
+        // 🍔 LOGIC 3: FOOD LOG ANALYZER (Original)
+        // ==========================================
+        // THIS IS NOW THE FINAL FALLBACK
+        else {
+            const systemPrompt = `
+        You are FLUX, a chill and witty AI assistant. 
+        The user just logged their food: "${foodLog}". 
+        If there are images, identify the food visually.
+
+        Rules:
+        1. Don't be too formal. STRICT RULE: NEVER mention the word "engineering" or "engineer". Call them by their name if needed.
+        2. Use a mix of Tagalog and English (Taglish) that sounds like a helpful peer or barkada.
+        3. Keep it short (2 sentences).
+        4. Give a "Bro Tip" or a funny observation about their meal. 
+        5. Be encouraging but real (e.g., if it's all junk food, joke about needing a vegetable once in a while).
+        `;
+            let partsArray = [{ text: systemPrompt }];
+
+            if (images && images.length > 0) {
+                images.forEach(img => {
+                    partsArray.push({
+                        inlineData: {
+                            mimeType: img.mimeType,
+                            data: img.data
+                        }
+                    });
+                });
+            }
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: partsArray }]
+                })
+            });
+
+            const data = await response.json();
+            
+            if (!response.ok) {
+                console.error("Google API Error details:", data);
+                throw new Error(data.error?.message || 'Unknown API Error');
+            }
+            
+            const aiVerdict = data.candidates[0].content.parts[0].text;
+            return res.status(200).json({ verdict: aiVerdict });
         }
 
     } catch (error) {
