@@ -754,7 +754,6 @@ async function deleteFood(id) {
 }
 
 function initRealtimeFood() {
-    // BAGO: Filter by User ID
     const q = window.dbMethods.query(window.dbMethods.collection(window.db, "foodLogs"), window.dbMethods.where("userId", "==", window.currentUid));
     window.dbMethods.onSnapshot(q, (snapshot) => {
         foodDatabase = [];
@@ -762,8 +761,7 @@ function initRealtimeFood() {
         foodDatabase.sort((a, b) => b.createdAt - a.createdAt);
         renderFoodList();
         updateBudgetDashboard();
-        // I-invalidate ang food summary cache kapag may bagong food log
-        localStorage.removeItem('flux_food_summary_cache');
+        // BINURA NA NATIN YUNG AUTO FETCH DITO!
     });
 }
 
@@ -805,31 +803,40 @@ function applyFoodSummaryUI(result) {
 }
 
 async function fetchFoodSummary(forceRefresh = false) {
-    // Check cache muna
-    if (!forceRefresh) {
-        try {
-            let cached = JSON.parse(localStorage.getItem('flux_food_summary_cache') || 'null');
-            let todayKey = new Date().toLocaleDateString('en-CA');
-            if (cached && cached.dateKey === todayKey) {
-                applyFoodSummaryUI(cached);
-                return;
-            }
-        } catch(e) {}
-    }
+    if (!window.currentUid) return;
 
     let todayKey = new Date().toLocaleDateString('en-CA');
     let todayFood = foodDatabase.filter(f => new Date(f.createdAt).toLocaleDateString('en-CA') === todayKey);
 
-    // Walang kinain today — show default state
     if (todayFood.length === 0) {
         applyFoodSummaryUI({ calories: 0, grade: '--', summary: 'Mag-log ng pagkain mo para makita ang summary.' });
         return;
     }
 
-    // Show loading state
+    // 1. CHECK FIREBASE CACHE MUNA (Cross-device sync!)
+    if (!forceRefresh) {
+        try {
+            const q = window.dbMethods.query(
+                window.dbMethods.collection(window.db, "foodSummaries"),
+                window.dbMethods.where("userId", "==", window.currentUid),
+                window.dbMethods.where("dateKey", "==", todayKey)
+            );
+            const snap = await window.dbMethods.getDocs(q);
+            if (!snap.empty) {
+                let savedData = snap.docs[0].data();
+                // Kung parehas ang dami ng kinain, ibig sabihin updated na ang database.
+                if (savedData.foodCount === todayFood.length) {
+                    applyFoodSummaryUI(savedData);
+                    return; // 🛑 STOP DITO: Nakatipid tayo ng API quota! Walang bagong API Call.
+                }
+            }
+        } catch(e) { console.error("Firebase Cache Error:", e); }
+    }
+
+    // 2. KUNG MAY BAGONG KINAIN, TATAWAG SA AI
     let tipEl = document.getElementById('foodSummaryTip');
     let gradeText = document.getElementById('foodGradeText');
-    if (tipEl) tipEl.innerText = 'Analyzing...';
+    if (tipEl) tipEl.innerText = 'Analyzing your meal...';
     if (gradeText) gradeText.innerText = '...';
 
     try {
@@ -843,18 +850,38 @@ async function fetchFoodSummary(forceRefresh = false) {
 
         applyFoodSummaryUI(result);
 
-        // I-cache, valid for today lang
-        localStorage.setItem('flux_food_summary_cache', JSON.stringify({ ...result, dateKey: todayKey }));
-
+        // 3. I-SAVE ANG BAGONG RESULT SA FIREBASE PARA MAG-SYNC SA IBANG DEVICES
+        const q = window.dbMethods.query(
+            window.dbMethods.collection(window.db, "foodSummaries"),
+            window.dbMethods.where("userId", "==", window.currentUid),
+            window.dbMethods.where("dateKey", "==", todayKey)
+        );
+        const snap = await window.dbMethods.getDocs(q);
+        
+        if (!snap.empty) {
+            // I-update yung record for today
+            await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "foodSummaries", snap.docs[0].id), {
+                ...result,
+                foodCount: todayFood.length
+            });
+        } else {
+            // Gawa ng bagong record for today
+            await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "foodSummaries"), {
+                userId: window.currentUid,
+                dateKey: todayKey,
+                ...result,
+                foodCount: todayFood.length,
+                createdAt: Date.now()
+            });
+        }
     } catch(e) {
-        console.error('Food summary error:', e);
-        if (tipEl) tipEl.innerText = 'Hindi ma-analyze ngayon. Try mo ulit.';
+        console.error('Food summary API error:', e);
+        if (tipEl) tipEl.innerText = 'Hindi ma-analyze ngayon. Pindutin ang refresh button.';
     }
 }
 
 function refreshFoodSummary() {
-    localStorage.removeItem('flux_food_summary_cache');
-    fetchFoodSummary(true);
+    fetchFoodSummary(true); // I-force niya na tumawag sa AI API
 }
 
 function renderFoodList() {
@@ -892,32 +919,76 @@ function renderFoodList() {
 async function analyzeFoodAI() {
     if (foodDatabase.length === 0) { alert("Kumain ka muna!"); return; }
     let aiBtn = document.querySelector('button[onclick="analyzeFoodAI()"]');
-    let originalText = aiBtn.innerHTML; aiBtn.innerHTML = '<i class="ph-bold ph-hourglass"></i> Thinking...'; aiBtn.disabled = true;
+    let originalText = aiBtn.innerHTML; 
+    aiBtn.innerHTML = '<i class="ph-bold ph-hourglass"></i> Analyzing Daily Food...'; 
+    aiBtn.disabled = true;
 
     let todayKey = new Date().toLocaleDateString('en-CA');
     let todayFood = foodDatabase.filter(f => new Date(f.createdAt).toLocaleDateString('en-CA') === todayKey);
-    if (todayFood.length === 0) { alert("Wala kang kinain today!"); aiBtn.innerHTML = originalText; aiBtn.disabled = false; return; }
+    
+    if (todayFood.length === 0) { 
+        alert("Wala kang kinain today!"); 
+        aiBtn.innerHTML = originalText; 
+        aiBtn.disabled = false; 
+        return; 
+    }
+
+    // Ilalagay natin sa loading state yung Widget
+    let tipEl = document.getElementById('foodSummaryTip');
+    let gradeText = document.getElementById('foodGradeText');
+    if (tipEl) tipEl.innerText = 'Calculating calories...';
+    if (gradeText) gradeText.innerText = '...';
 
     try {
         let allFoodText = todayFood.map(f => `${f.meal}: ${f.item}`).join(" | ");
+        
         const response = await fetch('/api/analyze', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ foodLog: allFoodText, images: todayFood.filter(f => f.image64).map(f => ({ mimeType: f.mimeType, data: f.image64 })) })
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                action: 'analyzeDailyFood', // BAGONG ACTION NAME
+                foodLog: allFoodText, 
+                images: todayFood.filter(f => f.image64).map(f => ({ mimeType: f.mimeType, data: f.image64 })),
+                userName: window.currentUserName || "Pat"
+            })
         });
-        const data = await response.json();
-        const verdict = data.verdict || "Error analyzing.";
 
+        const data = await response.json();
+        const verdict = data.verdict || "Kumain ka pa ng masustansya!";
+        const grade = data.grade || "N/A";
+        const calories = data.calories || 0;
+
+        // 1. I-UPDATE ANG WIDGET
+        applyFoodSummaryUI({ grade: grade, calories: calories, summary: "Updated for today!" });
+        
+        // Kung gusto mong ma-save sa cache yung widget data para hindi mawala pag-refresh:
+        localStorage.setItem('flux_food_summary_cache', JSON.stringify({ 
+            dateKey: todayKey, grade: grade, calories: calories, summary: "Updated for today!" 
+        }));
+
+        // 2. I-UPDATE ANG FUNNY VERDICT BOX
+        document.getElementById('aiFoodResult').style.display = 'block';
+        document.getElementById('aiVerdictText').innerHTML = verdict;
+
+        // 3. I-SAVE SA FIREBASE ANG ANALYSIS
         await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "aiAnalyses"), {
-            userId: window.currentUid, // <-- BAGO
+            userId: window.currentUid,
             verdict: verdict,
+            grade: grade,
+            calories: calories,
             type: 'food',
             dateKey: todayKey,
             createdAt: Date.now()
         });
 
-        document.getElementById('aiFoodResult').style.display = 'block';
-        document.getElementById('aiVerdictText').innerHTML = verdict;
-    } catch (e) { alert("API Error."); } finally { aiBtn.innerHTML = originalText; aiBtn.disabled = false; }
+    } catch (e) { 
+        console.error(e);
+        alert("API Error. Hindi ko ma-analyze ngayon."); 
+        if (tipEl) tipEl.innerText = 'Error. Try again later.';
+    } finally { 
+        aiBtn.innerHTML = originalText; 
+        aiBtn.disabled = false; 
+    }
 }
 
 function initRealtimeAiAnalyses() {
