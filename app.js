@@ -32,6 +32,8 @@ function switchScreen(screenId) {
     if (screenId === 'budgetScreen') updateBudgetDashboard();
     if (screenId === 'kanbanScreen') renderKanban();
     if (screenId === 'dashboardScreen') fetchFoodSummary();
+    if (screenId === 'snakeScreen') {
+}
 }
 
 // ==========================================
@@ -1878,7 +1880,133 @@ window.authMethods.onAuthStateChanged(window.auth, (user) => {
 }
 startApp();
 
+// ==========================================
+// 🐍 MODULE 6: SNAKE GAME
+// ==========================================
+let snakeCanvas, ctx;
+let snake = [];
+let snakeFood = {};
+let dx = 1, dy = 0; // Direction
+let snakeScore = 0;
+let gameLoop;
+let isGameRunning = false;
+const gridSize = 15; // Laki ng block ng ahas
 
+function initSnakeCanvas() {
+    if (!snakeCanvas) {
+        snakeCanvas = document.getElementById('snakeCanvas');
+        ctx = snakeCanvas.getContext('2d');
+    }
+}
+
+function startSnakeGame() {
+    initSnakeCanvas();
+    clearInterval(gameLoop);
+    
+    // Initial State
+    snake = [
+        { x: 150, y: 150 },
+        { x: 135, y: 150 },
+        { x: 120, y: 150 }
+    ];
+    dx = 1; dy = 0;
+    snakeScore = 0;
+    document.getElementById('snakeScore').innerText = snakeScore;
+    isGameRunning = true;
+    
+    spawnFood();
+    gameLoop = setInterval(updateSnake, 100); // 100ms speed
+}
+
+function stopSnakeGame() {
+    clearInterval(gameLoop);
+    isGameRunning = false;
+}
+
+function spawnFood() {
+    snakeFood.x = Math.floor(Math.random() * (snakeCanvas.width / gridSize)) * gridSize;
+    snakeFood.y = Math.floor(Math.random() * (snakeCanvas.height / gridSize)) * gridSize;
+}
+
+function updateSnake() {
+    if (!isGameRunning) return;
+
+    // Move snake head
+    const head = { x: snake[0].x + (dx * gridSize), y: snake[0].y + (dy * gridSize) };
+
+    // Wall Collision (Game Over)
+    if (head.x < 0 || head.x >= snakeCanvas.width || head.y < 0 || head.y >= snakeCanvas.height) {
+        return gameOver();
+    }
+
+    // Self Collision (Game Over)
+    for (let i = 0; i < snake.length; i++) {
+        if (head.x === snake[i].x && head.y === snake[i].y) return gameOver();
+    }
+
+    snake.unshift(head); // Add new head
+
+    // Check if food eaten
+    if (head.x === snakeFood.x && head.y === snakeFood.y) {
+        snakeScore += 10;
+        document.getElementById('snakeScore').innerText = snakeScore;
+        spawnFood();
+    } else {
+        snake.pop(); // Remove tail if no food eaten
+    }
+
+    drawSnakeGame();
+}
+
+function drawSnakeGame() {
+    // Clear canvas
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--bg-dark').trim() || '#0f172a';
+    ctx.fillRect(0, 0, snakeCanvas.width, snakeCanvas.height);
+
+    // Draw Food
+    ctx.fillStyle = '#f43f5e'; // Danger/Red color for food
+    ctx.fillRect(snakeFood.x, snakeFood.y, gridSize, gridSize);
+
+    // Draw Snake
+    ctx.fillStyle = '#38bdf8'; // Primary color for snake
+    snake.forEach((part, index) => {
+        ctx.fillRect(part.x, part.y, gridSize, gridSize);
+        ctx.strokeStyle = '#0f172a';
+        ctx.strokeRect(part.x, part.y, gridSize, gridSize);
+    });
+}
+
+function gameOver() {
+    stopSnakeGame();
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(0, 0, snakeCanvas.width, snakeCanvas.height);
+    ctx.fillStyle = '#f43f5e';
+    ctx.font = '20px "Plus Jakarta Sans"';
+    ctx.textAlign = 'center';
+    ctx.fillText('GAME OVER!', snakeCanvas.width / 2, snakeCanvas.height / 2);
+}
+
+function changeSnakeDir(newDx, newDy) {
+    // Prevent reversing directly
+    if (dx === 1 && newDx === -1) return;
+    if (dx === -1 && newDx === 1) return;
+    if (dy === 1 && newDy === -1) return;
+    if (dy === -1 && newDy === 1) return;
+    
+    dx = newDx;
+    dy = newDy;
+}
+
+// Keyboard controls (for desktop)
+window.addEventListener('keydown', e => {
+    if (!isGameRunning) return;
+    switch (e.key) {
+        case 'ArrowUp': changeSnakeDir(0, -1); break;
+        case 'ArrowDown': changeSnakeDir(0, 1); break;
+        case 'ArrowLeft': changeSnakeDir(-1, 0); break;
+        case 'ArrowRight': changeSnakeDir(1, 0); break;
+    }
+});
 
 // ==========================================
 // 🌍 GLOBAL EXPORTS 
@@ -1925,3 +2053,7 @@ window.setMood = setMood;
 window.toggleMoodPicker = toggleMoodPicker;
 window.generateAIBriefing = generateAIBriefing;
 window.refreshFoodSummary = refreshFoodSummary;
+// Idagdag ito sa pinakadulo ng app.js kasama ng ibang window exports
+window.startSnakeGame = startSnakeGame;
+window.stopSnakeGame = stopSnakeGame;
+window.changeSnakeDir = changeSnakeDir;
