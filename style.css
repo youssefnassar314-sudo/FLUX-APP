@@ -805,3 +805,55 @@ body.theme-pink {
     color: var(--text-main);
     transform: scale(1.1);
 }
+/* ==========================================
+   🎮 ML RETRO GAME STYLES
+   ========================================== */
+.ml-lane {
+    flex: 1;
+    border-bottom: 1px dashed rgba(255,255,255,0.1);
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.ml-lane:last-child {
+    border-bottom: none;
+}
+.ml-btn {
+    flex: 1;
+    background: rgba(0,0,0,0.5);
+    border: 2px solid;
+    padding: 15px 0;
+    border-radius: 8px;
+    font-family: monospace;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.1s;
+    font-size: 14px;
+}
+.ml-btn:active {
+    transform: scale(0.9);
+    background: rgba(255,255,255,0.1);
+}
+
+/* Ang mga kalaban */
+.minion {
+    position: absolute;
+    right: -30px;
+    font-size: 24px;
+    transition: transform 0.1s linear; /* Smooth movement */
+}
+
+/* Yung atake mo */
+.slash-wave {
+    position: absolute;
+    left: 35px;
+    width: 20px;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+    animation: slashShoot 0.2s linear forwards;
+}
+
+@keyframes slashShoot {
+    0% { transform: translateX(0); opacity: 1; }
+    100% { transform: translateX(300px); opacity: 0; }
+}
