@@ -1,4 +1,4 @@
-const CACHE_NAME = 'flux-os-v13';
+const CACHE_NAME = 'flux-os-v14'; // BUMPED VERSION: Para ma-force load ang cleaned files
 const assetsToCache = [
     './',
     './index.html',
@@ -16,6 +16,8 @@ self.addEventListener('install', event => {
             return cache.addAll(assetsToCache);
         })
     );
+    // Force active agad ang bagong service worker
+    self.skipWaiting(); 
 });
 
 // Pag may ni-load ang app, i-check muna kung nasa cache para mabilis
@@ -23,6 +25,22 @@ self.addEventListener('fetch', event => {
     event.respondWith(
         caches.match(event.request).then(response => {
             return response || fetch(event.request);
+        })
+    );
+});
+
+// Clean up lumang caches pagka-activate
+self.addEventListener('activate', event => {
+    event.waitUntil(
+        caches.keys().then(cacheNames => {
+            return Promise.all(
+                cacheNames.map(cacheName => {
+                    if (cacheName !== CACHE_NAME) {
+                        console.log('Deleting old cache:', cacheName);
+                        return caches.delete(cacheName);
+                    }
+                })
+            );
         })
     );
 });
