@@ -51,18 +51,17 @@ export default async function handler(req, res) {
         } 
         
         // ==========================================
-        // 🤖 LOGIC 2: DAILY AI MOTIVATION
+        // 🤖 LOGIC 2: PURE DAILY MOTIVATION
         // ==========================================
         else if (action === 'getBriefing') {
             const prompt = `
-The user's name is "${userName}". They currently feel "${currentMood}".
-They have ${userData?.pendingTasks || 0} pending tasks to finish today.
+The user's name is "${userName}". 
 
-Provide a short, 2-sentence motivational advice in conversational Taglish (Tagalog-English). 
-Acknowledge their current mood and remind them to tackle their pending tasks.
-Then, provide a separate, highly motivational quote.
+Provide a short, 2-sentence highly motivational advice for the day in conversational Taglish (Tagalog-English). 
+Be positive, uplifting, and chill like a supportive friend. Do not mention tasks or moods. Just pure motivation.
+Then, provide a separate, impactful motivational quote.
 
-STRICT RULE: DO NOT use the word "Engineer". Be a supportive and chill AI assistant.
+STRICT RULE: DO NOT use the word "Engineer". 
 
 You MUST return exactly a valid JSON object (no markdown, no backticks) with this exact structure:
 {
@@ -95,8 +94,8 @@ You MUST return exactly a valid JSON object (no markdown, no backticks) with thi
                 return res.status(200).json(parsedResult);
             } catch (parseError) {
                 return res.status(200).json({ 
-                    briefing: `Hey ${userName}, may ${userData.pendingTasks || 0} tasks ka pa today. Kayang-kaya mo yan!`,
-                    quote: "Stay focused."
+                    briefing: `Good morning, ${userName}! Have an amazing day ahead.`,
+                    quote: "One step at a time."
                 });
             }
         }
