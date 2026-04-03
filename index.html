@@ -7,7 +7,7 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f172a">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -57,62 +57,74 @@
         </div>
 
         <div id="dashboardScreen" class="screen">
-            <div style="margin-bottom: 20px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 0 5px;">
-                    <h3 style="margin: 0; font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px; font-weight: 700;">
-                        <i class="ph-bold ph-squares-four"></i> Quick Glance
+            <div style="margin-bottom: 25px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 0 5px;">
+                    <h3 style="margin: 0; font-size: 13px; color: var(--text-main); text-transform: uppercase; letter-spacing: 3px; font-weight: 700;">
+                        <i class="ph-duotone ph-scan"></i> QUICK GLANCE
                     </h3>
                 </div>
 
                 <div class="glance-grid">
-                    <div class="glance-card" style="border-left-color: var(--success);">
+                    <div class="glance-card cosmic-card" style="border-top: 2px solid var(--primary); border-left: 2px solid var(--success);">
                         <div class="glance-header">
-                            <span><i class="ph-bold ph-wallet"></i> Net Worth</span>
+                            <span><i class="ph-duotone ph-wallet"></i> NET WORTH</span>
                             <button onclick="toggleVisibility('wallet')" class="eye-btn"><i id="eye-wallet" class="ph-bold ph-eye"></i></button>
                         </div>
                         <h3 id="glance-wallet" class="glance-value" data-value="0.00">₱0.00</h3>
+                        <p class="glance-subtext"><span style="color: var(--success);"><i class="ph-bold ph-caret-up"></i> Active</span> Today</p>
                     </div>
 
-                    <div class="glance-card" style="border-left-color: var(--danger);">
+                    <div class="glance-card cosmic-card" style="border-top: 2px solid var(--danger); border-right: 2px solid #fbbf24;">
                         <div class="glance-header">
-                            <span><i class="ph-bold ph-hand-coins"></i> Due Today</span>
+                            <span><i class="ph-duotone ph-hand-coins"></i> DUE TODAY</span>
                             <button onclick="toggleVisibility('utang')" class="eye-btn"><i id="eye-utang" class="ph-bold ph-eye"></i></button>
                         </div>
                         <h3 id="glance-utang" class="glance-value" data-value="0.00">₱0.00</h3>
+                        <p class="glance-subtext" style="color: var(--text-muted);">Pending obligations</p>
                     </div>
 
-                    <div class="glance-card" style="border-left-color: #fbbf24; align-items: center; text-align: center;">
-                        <p style="margin: 0 0 5px 0; font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;"><i class="ph-bold ph-fork-knife"></i> Diet Grade</p>
-                        <h1 id="glance-food-grade" style="margin: 0; font-size: 28px; color: #fbbf24; font-weight: 800; line-height: 1;">--</h1>
+                    <div class="glance-card cosmic-card" style="border-bottom: 2px solid #fbbf24; border-left: 2px solid var(--danger);">
+                        <div class="glance-header">
+                            <span><i class="ph-duotone ph-fork-knife"></i> DIET GRADE</span>
+                        </div>
+                        <h1 id="glance-food-grade" style="margin: 5px 0; font-size: 26px; color: #fbbf24; font-weight: 800; line-height: 1;">--</h1>
+                        <p class="glance-subtext" style="color: var(--text-muted);">No data yet</p>
                     </div>
 
-                    <div class="glance-card" style="border-left-color: var(--primary); align-items: center; text-align: center;">
-                        <p id="glance-streak-label" style="margin: 0 0 5px 0; font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;"><i class="ph-bold ph-push-pin"></i> Tasks Left</p>
-                        <h1 id="glance-streak" style="margin: 0; font-size: 24px; color: var(--primary); font-weight: 800; line-height: 1;">0</h1>
+                    <div class="glance-card cosmic-card" style="border-bottom: 2px solid var(--primary); border-right: 2px solid var(--secondary);">
+                        <div class="glance-header">
+                            <span><i class="ph-duotone ph-push-pin"></i> TASKS LEFT</span>
+                        </div>
+                        <h1 id="glance-streak" style="margin: 5px 0; font-size: 24px; color: var(--primary); font-weight: 800; line-height: 1;">0 <span style="font-size: 14px; font-weight: normal; color: var(--text-main);">Left</span></h1>
+                        <p class="glance-subtext" style="color: var(--text-muted);">Keep pushing <span style="color: var(--primary);"><i class="ph-bold ph-arrow-up"></i></span></p>
                     </div>
                 </div>
             </div>
             
             <div class="dashboard-grid">
-                <div class="grid-item active" onclick="switchScreen('utangScreen')">
+                <div class="grid-item active cosmic-grid" onclick="switchScreen('utangScreen')">
                     <i class="ph-duotone ph-hand-coins icon-svg"></i>
                     <p>Utang Summary</p>
+                    <span class="grid-sub">View Debts</span>
                 </div>
-                <div class="grid-item active" onclick="switchScreen('foodScreen')">
+                <div class="grid-item active cosmic-grid" onclick="switchScreen('foodScreen')">
                     <i class="ph-duotone ph-hamburger icon-svg"></i>
                     <p>Food Log</p>
+                    <span class="grid-sub">Track Your Meals</span>
                 </div>
-                <div class="grid-item active" onclick="switchScreen('taskScreen')">
+                <div class="grid-item active cosmic-grid" onclick="switchScreen('taskScreen')">
                     <i class="ph-duotone ph-calendar-check icon-svg"></i>
                     <p>Tasks & Events</p>
+                    <span class="grid-sub">Manage To-Do List</span>
                 </div>
-                <div class="grid-item active" onclick="switchScreen('budgetScreen')">
+                <div class="grid-item active cosmic-grid" onclick="switchScreen('budgetScreen')">
                     <i class="ph-duotone ph-chart-pie-slice icon-svg"></i>
-                    <p>Budget</p>
+                    <p>Track Budget</p>
+                    <span class="grid-sub">Manage Finances</span>
                 </div>
             </div>
 
-            <button class="receipt-btn" onclick="openDailySummary()" style="background: var(--text-main); color: var(--bg-dark); border: none;">
+            <button class="receipt-btn cosmic-btn" onclick="openDailySummary()">
                 <i class="ph-bold ph-scroll"></i> View Monthly Receipt
             </button>
         </div>
@@ -144,7 +156,6 @@
             <button class="add-btn" onclick="showAddForm()"><i class="ph-bold ph-plus"></i> Add New Utang</button>
 
             <div id="addUtangForm" class="hidden-form">
-                
                 <label>Category</label>
                 <select id="utangCategory" class="glass-select">
                     <option value="My App">My Account / App</option>
@@ -192,10 +203,8 @@
             
             <div class="hidden-form" style="display: block; margin-bottom: 20px; background: rgba(56, 189, 248, 0.05); border-color: rgba(56, 189, 248, 0.2);">
                 <h3 style="color: var(--primary); margin-top: 0; margin-bottom: 15px; font-size: 16px; display: flex; align-items: center; gap: 8px;"><i class="ph-duotone ph-cpu"></i> AI Task Estimator</h3>
-                
                 <input type="text" id="aiTaskTitle" placeholder="Task Title (Ex: Review Integral Calculus)">
                 <textarea id="aiTaskDetails" placeholder="Give details to get a better estimate (Ex: I need to solve 50 practice problems...)"></textarea>
-                
                 <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                     <select id="aiTaskCategory" class="glass-select" style="margin-bottom: 0; flex: 1;">
                         <option value="Work">Work</option>
@@ -205,7 +214,6 @@
                     </select>
                     <input type="date" id="aiTaskDate" style="margin-bottom: 0; flex: 1;">
                 </div>
-                
                 <button class="save-btn" onclick="estimateAITask()" style="margin-bottom: 0; box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);">
                     <i class="ph-bold ph-sparkle"></i> Estimate with FLUX AI
                 </button>
@@ -218,7 +226,6 @@
                         <i class="ph-bold ph-columns"></i> Kanban View
                     </button>
                 </div>
-                
                 <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                     <input type="text" id="manualTaskTitle" placeholder="Ex: Finish HTML layout" style="margin-bottom: 0; flex: 2;">
                     <select id="manualTaskCategory" class="glass-select" style="margin-bottom: 0; flex: 1;">
@@ -228,12 +235,10 @@
                         <option value="Sched">Sched (Whole Day)</option>
                     </select>
                 </div>
-                
                 <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                     <input type="date" id="manualTaskDate" style="margin-bottom: 0; flex: 1;">
                     <input type="number" id="manualTaskMins" placeholder="Est. Mins" style="margin-bottom: 0; flex: 1;">
                 </div>
-                
                 <button class="save-btn" onclick="saveManualTask()" style="margin-bottom: 0; background: linear-gradient(135deg, var(--secondary), #7e22ce); box-shadow: 0 0 15px rgba(192, 132, 252, 0.4);">
                     Add Manual Task
                 </button>
@@ -241,12 +246,10 @@
 
             <div class="hidden-form" style="display: block; background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.2);">
                 <h3 style="color: var(--success); margin-top: 0; margin-bottom: 15px; font-size: 16px; display: flex; align-items: center; gap: 8px;"><i class="ph-duotone ph-arrows-clockwise"></i> Daily Habits</h3>
-                
                 <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                     <input type="text" id="habitName" placeholder="Ex: Inom Vitamins" style="margin-bottom: 0; flex: 2;">
                     <input type="time" id="habitTime" style="margin-bottom: 0; flex: 1;">
                 </div>
-                
                 <button class="save-btn" onclick="saveHabit()" style="margin-bottom: 0; background: linear-gradient(135deg, var(--success), #059669); box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);">
                     <i class="ph-bold ph-plus"></i> Add Daily Habit
                 </button>
@@ -261,7 +264,6 @@
             <button class="back-btn" onclick="switchScreen('taskScreen')">
                 <i class="ph-bold ph-caret-left"></i> Back to Tasks
             </button>
-            
             <h2 style="color: var(--primary); margin-top: 0; margin-bottom: 20px; font-weight: 800; letter-spacing: 1px;"><i class="ph-duotone ph-columns"></i> Kanban Board</h2>
 
             <div class="kanban-board">
@@ -269,12 +271,10 @@
                     <h4 style="color: var(--danger);"><i class="ph-bold ph-push-pin"></i> TO DO</h4>
                     <div id="kb-todo" class="kanban-list"></div>
                 </div>
-
                 <div class="kanban-col">
                     <h4 style="color: var(--primary);"><i class="ph-bold ph-rocket"></i> DOING</h4>
                     <div id="kb-doing" class="kanban-list"></div>
                 </div>
-
                 <div class="kanban-col">
                     <h4 style="color: var(--success);"><i class="ph-bold ph-check-circle"></i> DONE</h4>
                     <div id="kb-done" class="kanban-list"></div>
@@ -286,7 +286,6 @@
             <button class="back-btn" onclick="switchScreen('dashboardScreen')">
                 <i class="ph-bold ph-caret-left"></i> Dashboard
             </button>
-            
             <div class="utang-card" id="foodSummaryCard" style="margin-bottom: 20px; padding: 15px; background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                     <h3 style="margin: 0; font-size: 13px; color: #fbbf24; display: flex; align-items: center; gap: 6px;">
@@ -310,7 +309,6 @@
                 <h3 style="color: var(--danger); margin-top: 0; margin-bottom: 15px; font-size: 16px; display: flex; align-items: center; gap: 8px;">
                     <i class="ph-duotone ph-sparkle"></i> Quick Food Log
                 </h3>
-                
                 <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                     <select id="mealType" class="glass-select" style="margin-bottom: 0; flex: 1;">
                         <option value="Breakfast">Breakfast</option>
@@ -318,7 +316,6 @@
                         <option value="Dinner">Dinner</option>
                         <option value="Snack">Snack</option>
                     </select>
-                    
                     <select id="foodSource" class="glass-select" style="margin-bottom: 0; flex: 1;">
                         <option value="Homecooked">Luto sa Bahay</option>
                         <option value="Carinderia">Carinderia / Turo-turo</option>
@@ -332,18 +329,15 @@
                         <option value="Libre">Libre / Bigay</option>
                     </select>
                 </div>
-                
                 <div style="display: flex; gap: 10px; margin-bottom: 15px; align-items: center;">
-                    <input type="text" id="foodItem" placeholder="Ano kinain mo? (Optional kung may pic)" style="flex: 2; margin-bottom: 0;">
+                    <input type="text" id="foodItem" placeholder="Ano kinain mo?" style="flex: 2; margin-bottom: 0;">
                 </div>
-
                 <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                     <input type="number" id="foodPrice" placeholder="Magkano? (₱)" style="margin-bottom: 0; flex: 1;">
                     <select id="foodWallet" class="glass-select" style="margin-bottom: 0; flex: 1;">
                         <option value="">Saan ibabawas?</option>
                     </select>
                 </div>
-                
                 <button class="save-btn" onclick="saveFood()" style="margin-bottom: 0; background: linear-gradient(135deg, #f43f5e, #fb923c); box-shadow: 0 0 15px rgba(244, 63, 94, 0.4);">
                     <i class="ph-bold ph-plus"></i> Log Food
                 </button>
@@ -404,7 +398,7 @@
         </div>
 
         <div id="walletModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; padding: 20px; align-items: center; justify-content: center;">
-            <div class="utang-card" style="width: 100%; max-width: 400px; background: var(--bg-color); padding: 20px; position: relative;">
+            <div class="utang-card" style="width: 100%; max-width: 400px; background: var(--bg-dark); padding: 20px; position: relative;">
                 <h3 style="margin-top: 0; color: var(--primary);"><i class="ph-duotone ph-bank"></i> Add New Wallet</h3>
                 <input type="text" id="walletName" placeholder="Pangalan (e.g. GCash, BPI, Cash)" style="margin-bottom: 10px;">
                 <input type="number" id="walletBalance" placeholder="Initial Balance (₱)" style="margin-bottom: 15px;">
@@ -414,15 +408,12 @@
         </div>
 
         <div id="transactionModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; padding: 20px; align-items: center; justify-content: center;">
-            <div class="utang-card" style="width: 100%; max-width: 400px; background: var(--bg-color); padding: 20px; position: relative;">
+            <div class="utang-card" style="width: 100%; max-width: 400px; background: var(--bg-dark); padding: 20px; position: relative;">
                 <h3 id="transactionTitle" style="margin-top: 0; color: var(--primary);">Add Transaction</h3>
                 <input type="hidden" id="transactionType">
-                
                 <select id="transactionWallet" class="glass-select" style="margin-bottom: 10px;"></select>
                 <select id="transactionWalletTo" class="glass-select" style="margin-bottom: 10px; display: none;"></select>
-                
                 <input type="number" id="transactionAmount" placeholder="Amount (₱)" style="margin-bottom: 10px;">
-                
                 <select id="transactionCategory" class="glass-select" style="margin-bottom: 10px; display: none;">
                     <option value="">Select Category...</option>
                     <option value="Needs (Essentials)">Needs (Essentials)</option>
@@ -432,23 +423,19 @@
                     <option value="Personal & Health">Personal & Health</option>
                     <option value="Transportation">Transportation</option>
                 </select>
-
                 <input type="text" id="transactionNote" placeholder="Saan galing / Saan ginastos?" style="margin-bottom: 15px;">
-                
                 <button onclick="saveTransaction()" class="save-btn" id="saveTransactionBtn" style="margin-bottom: 10px;">Save</button>
                 <button onclick="closeBudgetModals()" style="width: 100%; background: transparent; color: var(--text-muted); border: none;">Cancel</button>
             </div>
         </div>
-        
+
         <div id="payUtangModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; padding: 80px 20px 20px 20px; align-items: flex-start; justify-content: center;">
-            <div class="utang-card" style="width: 100%; max-width: 400px; background: var(--bg-color); padding: 20px; position: relative;">
+            <div class="utang-card" style="width: 100%; max-width: 400px; background: var(--bg-dark); padding: 20px; position: relative;">
                 <h3 style="margin-top: 0; color: var(--primary);"><i class="ph-duotone ph-hand-coins"></i> Bayaran ang Utang</h3>
                 <p id="payUtangDetails" style="font-size: 13px; color: var(--text-main); margin-bottom: 15px; font-weight: 600;"></p>
                 <input type="hidden" id="payUtangId">
                 <input type="hidden" id="payUtangAmount">
-                
                 <select id="payUtangWallet" class="glass-select" style="margin-bottom: 15px;"></select>
-                
                 <button onclick="confirmPayUtang()" class="save-btn" style="margin-bottom: 10px; background: var(--success);"><i class="ph-bold ph-check"></i> Confirm Payment</button>
                 <button onclick="closeBudgetModals()" style="width: 100%; background: transparent; color: var(--text-muted); border: none;">Cancel</button>
             </div>
@@ -458,14 +445,11 @@
             <button class="back-btn" onclick="switchScreen('dashboardScreen')">
                 <i class="ph-bold ph-caret-left"></i> Close Receipt
             </button>
-            
             <div id="summaryContent"></div>
-
             <button id="summaryNextBtn" class="save-btn" style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: 85%;">
                 Next Section <i class="ph-bold ph-caret-right"></i>
             </button>
         </div>
-        
     </div>
 
     <script type="module">
@@ -494,19 +478,6 @@
         window.authMethods = { signInWithPopup, onAuthStateChanged, signOut };
     </script>
 
-    <script src="app.js?v=4"></script> 
-    
-    <script>
-        // PAMPATAY NG SERVICE WORKER (Goodbye Cache Hell!)
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for(let registration of registrations) {
-                    registration.unregister().then(function(boolean) {
-                        console.log('Service worker unregistered!');
-                    });
-                }
-            });
-        }
-    </script>
+    <script src="app.js?v=5"></script>
 </body>
 </html>
