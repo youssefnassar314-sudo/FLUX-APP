@@ -1,4 +1,21 @@
 // ==========================================
+// 🔊 SOUND ENGINE (COSMIC UI)
+// ==========================================
+const soundFX = {
+    click: new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3'),
+    success: new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3'),
+    transition: new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3')
+};
+
+function playSound(type) {
+    if (soundFX[type]) {
+        soundFX[type].volume = 0.2; 
+        soundFX[type].currentTime = 0; 
+        soundFX[type].play().catch(e => console.log("Sound blocked by browser until first interaction."));
+    }
+}
+
+// ==========================================
 // 🌐 MGA GLOBAL VARIABLES
 // ==========================================
 let utangDatabase = []; 
@@ -21,7 +38,7 @@ let transactionDatabase = [];
 let currentUtangView = 'date'; 
 
 function switchScreen(screenId) {
-    playSound('transition');
+    playSound('transition'); // 🔊 Sci-fi slide sound pag nag-switch ng screen
     let screens = document.querySelectorAll('.screen');
     screens.forEach(screen => screen.classList.remove('active-screen'));
     document.getElementById(screenId).classList.add('active-screen');
@@ -32,24 +49,6 @@ function switchScreen(screenId) {
     if (screenId === 'budgetScreen') updateBudgetDashboard();
     if (screenId === 'kanbanScreen') renderKanban();
     if (screenId === 'dashboardScreen') fetchFoodSummary();
-}
-
-// ==========================================
-// 🔊 SOUND ENGINE (COSMIC UI)
-// ==========================================
-const soundFX = {
-    click: new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3'), // Subtle blip
-    success: new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3'), // Crystal chime
-    transition: new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3') // Sci-fi slide
-};
-
-// Pampa-play ng sound (low volume para di nakakagulat)
-function playSound(type) {
-    if (soundFX[type]) {
-        soundFX[type].volume = 0.2; 
-        soundFX[type].currentTime = 0; // Reset para pwede pindutin nang mabilis
-        soundFX[type].play().catch(e => console.log("Sound blocked by browser until first interaction."));
-    }
 }
 
 // ==========================================
@@ -85,7 +84,7 @@ function addDueRow() {
         <div style="display: flex; gap: 5px; margin-bottom: 10px;">
             <input type="number" class="dynamic-amt" placeholder="Amount" style="flex: 1;">
             <input type="date" class="dynamic-date" style="flex: 1;">
-            <button type="button" onclick="this.closest('.due-row').remove()" style="background: rgba(244, 63, 94, 0.1); color: var(--danger); border: 1px solid rgba(244, 63, 94, 0.2); padding: 0 10px; border-radius: 5px; cursor: pointer; font-size: 16px;"><i class="ph-bold ph-trash"></i></button>
+            <button type="button" onclick="playSound('click'); this.closest('.due-row').remove()" style="background: rgba(244, 63, 94, 0.1); color: var(--danger); border: 1px solid rgba(244, 63, 94, 0.2); padding: 0 10px; border-radius: 5px; cursor: pointer; font-size: 16px;"><i class="ph-bold ph-trash"></i></button>
         </div>
     `;
     container.appendChild(newRow);
@@ -120,6 +119,7 @@ async function saveUtang() {
                 });
             }
         }
+        playSound('success'); // 🔊 Crystal chime
         document.getElementById('utangId').value = ''; document.getElementById('appName').value = '';
         document.getElementById('duesContainer').innerHTML = `
             <div class="due-row">
@@ -135,6 +135,7 @@ async function saveUtang() {
 
 function openPayUtangModal(id, amount, utangIdLabel) {
     if (myWallets.length === 0) return alert("Gumawa ka muna ng wallet sa Budget tab!");
+    playSound('click');
     document.getElementById('payUtangId').value = id;
     document.getElementById('payUtangAmount').value = amount;
     document.getElementById('payUtangDetails').innerText = `Babayaran: ID ${utangIdLabel} (₱${amount.toLocaleString()})`;
@@ -162,6 +163,7 @@ async function confirmPayUtang() {
             userId: window.currentUid, type: 'expense', walletId: walletId, amount: amount,
             note: `Bayad Utang: ${utangLabel.split('(')[0]}`, category: "Debt Payment", paidFromWallet: walletObj.name, createdAt: Date.now()
         });
+        playSound('success'); // 🔊 Crystal chime
         closeBudgetModals();
     } catch (e) { console.error(e); }
 }
@@ -205,7 +207,7 @@ function renderUtangList() {
             let cardStyle = utang.isPaid ? 'opacity: 0.5; background-color: rgba(255,255,255,0.02);' : 'background: rgba(255,255,255,0.02);';
             let badgeHTML = utang.category === 'My App' ? `<span class="badge badge-primary"><i class="ph-bold ph-device-mobile"></i> My App: ${utang.appName}</span>` : `<span class="badge badge-secondary"><i class="ph-bold ph-user"></i> Under their: ${utang.appName}</span>`;
             container.innerHTML += `<div class="utang-card" style="${cardStyle}">
-                <button onclick="deleteUtang('${utang.id}')" style="position: absolute; top: 12px; right: 12px; background: none; border: none; color: var(--danger); cursor: pointer; font-size: 16px; padding: 0;"><i class="ph-bold ph-x"></i></button>
+                <button onclick="playSound('click'); deleteUtang('${utang.id}')" style="position: absolute; top: 12px; right: 12px; background: none; border: none; color: var(--danger); cursor: pointer; font-size: 16px; padding: 0;"><i class="ph-bold ph-x"></i></button>
                 <div style="margin-bottom: 10px; padding-right: 20px;">${badgeHTML}</div>
                 <h4><span style="font-family: monospace; letter-spacing: 1px; color: var(--primary);">ID: ${utang.utangId}</span> <span>₱${utang.amount.toFixed(2)}</span></h4>
                 <p style="color: var(--danger); font-weight: bold;"><i class="ph-bold ph-calendar-x"></i> Due On: ${shortMonth} ${day}</p>
@@ -235,7 +237,7 @@ function renderUtangList() {
                     let controls = u.isPaid ? `<span style="color: var(--success); font-size: 11px; font-weight: bold;"><i class="ph-bold ph-check"></i> Paid</span>` : `<button onclick="openPayUtangModal('${u.id}', ${u.amount}, '${u.utangId}')" style="background:none; border:1px solid var(--primary); color:var(--primary); padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer;">Pay</button>`;
                     return `<div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed var(--glass-border); padding-top: 10px; margin-top: 10px;">
                         <div style="display: flex; align-items: center; gap: 8px;">
-                            <button onclick="deleteUtang('${u.id}')" style="background:none; border:none; color:var(--danger); font-size:14px; cursor:pointer; padding:0;"><i class="ph-bold ph-x"></i></button>
+                            <button onclick="playSound('click'); deleteUtang('${u.id}')" style="background:none; border:none; color:var(--danger); font-size:14px; cursor:pointer; padding:0;"><i class="ph-bold ph-x"></i></button>
                             <span style="font-size: 11px; color: var(--text-muted);"><strong style="color:var(--text-main);">${dueLabel}</strong> • ${shortMonth} ${day}${dueYear}</span>
                         </div>
                         <div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 13px; color: var(--text-main);">₱${u.amount.toFixed(2)}</span>${controls}</div>
@@ -256,7 +258,7 @@ function renderUtangList() {
 
 async function deleteUtang(id) {
     if (confirm("Sigurado ka bang gusto mong burahin ang utang na ito? Hindi na ito maibabalik.")) {
-        try { await window.dbMethods.deleteDoc(window.dbMethods.doc(window.db, "utang", id)); } catch (e) { console.error(e); }
+        try { await window.dbMethods.deleteDoc(window.dbMethods.doc(window.db, "utang", id)); playSound('click'); } catch (e) { console.error(e); }
     }
 }
 
@@ -267,15 +269,17 @@ async function estimateAITask() {
     let title = document.getElementById('aiTaskTitle').value; let details = document.getElementById('aiTaskDetails').value;
     let category = document.getElementById('aiTaskCategory').value; let dateVal = document.getElementById('aiTaskDate').value;
     if (!title || !dateVal) { alert("Pakilagay ang Task Title at Date!"); return; }
-    let aiBtn = document.querySelector('button[onclick="estimateAITask()"]'); let originalText = aiBtn.innerHTML; 
-    aiBtn.innerHTML = '<i class="ph-bold ph-hourglass"></i> FLUX AI is thinking...'; aiBtn.disabled = true;
+    let aiBtn = document.querySelector('button[onclick="playSound(\'click\'); estimateAITask()"]'); 
+    let originalText = aiBtn ? aiBtn.innerHTML : "Estimate with AI";
+    if (aiBtn) { aiBtn.innerHTML = '<i class="ph-bold ph-hourglass"></i> FLUX AI is thinking...'; aiBtn.disabled = true; }
     try {
         const response = await fetch('/api/analyze', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'estimateTask', title: title, details: details, category: category }) });
         const data = await response.json(); let estMins = data.estMins || 30;
         alert(`FLUX AI says: Naisip ko na! Yung "${title}" aabutin yan ng mga ${estMins} minutes.`);
         await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "tasks"), { userId: window.currentUid, title: title, category: category, dueDate: dateVal, estMins: estMins, status: 'todo', createdAt: Date.now() });
+        playSound('success');
         document.getElementById('aiTaskTitle').value = ''; document.getElementById('aiTaskDetails').value = ''; document.getElementById('aiTaskDate').value = '';
-    } catch (e) { console.error(e); alert("API Error. Hindi maka-connect sa FLUX AI."); } finally { aiBtn.innerHTML = originalText; aiBtn.disabled = false; }
+    } catch (e) { console.error(e); alert("API Error. Hindi maka-connect sa FLUX AI."); } finally { if(aiBtn) { aiBtn.innerHTML = originalText; aiBtn.disabled = false; } }
 }
 
 async function saveManualTask() {
@@ -283,6 +287,7 @@ async function saveManualTask() {
     let dateVal = document.getElementById('manualTaskDate').value; let mins = document.getElementById('manualTaskMins').value;
     if (!title || !dateVal) { alert("Pakikumpleto ang Manual Task details!"); return; }
     await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "tasks"), { userId: window.currentUid, title: title, category: category, dueDate: dateVal, estMins: parseInt(mins) || 0, status: 'todo', createdAt: Date.now() });
+    playSound('success');
     document.getElementById('manualTaskTitle').value = ''; document.getElementById('manualTaskDate').value = ''; document.getElementById('manualTaskMins').value = '';
 }
 
@@ -290,10 +295,12 @@ async function saveHabit() {
     let name = document.getElementById('habitName').value; let timeVal = document.getElementById('habitTime').value;
     if (!name || !timeVal) { alert("Pakilagay yung Habit at Oras!"); return; }
     await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "habits"), { userId: window.currentUid, name: name, time: timeVal, lastDoneDate: "", createdAt: Date.now() });
+    playSound('success');
     document.getElementById('habitName').value = ''; document.getElementById('habitTime').value = '';
 }
 
 async function markHabitDone(id) {
+    playSound('click');
     let todayStr = new Date().toLocaleDateString('en-CA');
     await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "habits", id), { lastDoneDate: todayStr });
 }
@@ -311,10 +318,11 @@ function initRealtimeTasks() {
     });
 }
 
-async function deleteTask(id) { if (confirm("Sigurado ka bang gusto mong burahin ang task na ito?")) { try { await window.dbMethods.deleteDoc(window.dbMethods.doc(window.db, "tasks", id)); } catch(e) { console.error(e); } } }
-async function deleteHabit(id) { if (confirm("Sigurado ka bang gusto mong burahin ang habit na ito?")) { try { await window.dbMethods.deleteDoc(window.dbMethods.doc(window.db, "habits", id)); } catch(e) { console.error(e); } } }
+async function deleteTask(id) { if (confirm("Sigurado ka bang gusto mong burahin ang task na ito?")) { try { await window.dbMethods.deleteDoc(window.dbMethods.doc(window.db, "tasks", id)); playSound('click'); } catch(e) { console.error(e); } } }
+async function deleteHabit(id) { if (confirm("Sigurado ka bang gusto mong burahin ang habit na ito?")) { try { await window.dbMethods.deleteDoc(window.dbMethods.doc(window.db, "habits", id)); playSound('click'); } catch(e) { console.error(e); } } }
 
 async function moveTaskStatus(id, newState) {
+    playSound('click');
     let task = taskDatabase.find(t => t.id === id); if(!task) return;
     let now = Date.now(); let updates = { status: newState }; let elapsedMins = 0;
     if (task.lastStarted && (newState === 'paused' || newState === 'done' || newState === 'todo')) { elapsedMins = Math.floor((now - task.lastStarted) / 60000); }
@@ -434,12 +442,17 @@ async function saveFood() {
         await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "foodLogs"), {
             userId: window.currentUid, meal: mealType, source: foodSource, item: foodItem, cost: price, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), createdAt: Date.now()
         });
+        playSound('success');
         document.getElementById('foodItem').value = ''; if (priceInput) priceInput.value = '';
-        let resultDiv = document.getElementById('aiFoodResult'); if (resultDiv) resultDiv.style.display = 'none';
     } catch (e) { console.error(e); alert("May error sa pag-save!"); }
 }
 
-async function deleteFood(id) { await window.dbMethods.deleteDoc(window.dbMethods.doc(window.db, "foodLogs", id)); }
+async function deleteFood(id) { 
+    if (confirm("Gusto mo bang burahin ang food log na ito?")) {
+        await window.dbMethods.deleteDoc(window.dbMethods.doc(window.db, "foodLogs", id)); 
+        playSound('click');
+    }
+}
 
 function initRealtimeFood() {
     const q = window.dbMethods.query(window.dbMethods.collection(window.db, "foodLogs"), window.dbMethods.where("userId", "==", window.currentUid));
@@ -516,18 +529,19 @@ function renderFoodList() {
     });
 }
 
-// MULTI-TAP FOOD AI LOGIC
+// ==========================================
+// 🤖 FOOD AI (MULTI-TAP + CROSS-DEVICE SYNC)
+// ==========================================
 async function analyzeFoodAI() {
     if (foodDatabase.length === 0) { alert("Kumain ka muna!"); return; }
     let todayKey = new Date().toLocaleDateString('en-CA');
     
-    let aiBtn = document.querySelector('button[onclick="analyzeFoodAI()"]');
-    if (!aiBtn) return;
-    let originalText = aiBtn.innerHTML; 
-    aiBtn.innerHTML = '<i class="ph-bold ph-hourglass"></i> Analyzing Daily Food...'; aiBtn.disabled = true;
+    let aiBtn = document.querySelector('button[onclick="playSound(\'click\'); analyzeFoodAI()"]') || document.querySelector('button[onclick="analyzeFoodAI()"]');
+    let originalText = aiBtn ? aiBtn.innerHTML : "Analyze My Day (AI)";
+    if (aiBtn) { aiBtn.innerHTML = '<i class="ph-bold ph-hourglass"></i> Analyzing Daily Food...'; aiBtn.disabled = true; }
 
     let todayFood = foodDatabase.filter(f => new Date(f.createdAt).toLocaleDateString('en-CA') === todayKey);
-    if (todayFood.length === 0) { alert("Wala kang kinain today!"); aiBtn.innerHTML = originalText; aiBtn.disabled = false; return; }
+    if (todayFood.length === 0) { alert("Wala kang kinain today!"); if(aiBtn) { aiBtn.innerHTML = originalText; aiBtn.disabled = false; } return; }
 
     let tipEl = document.getElementById('foodSummaryTip'); let gradeText = document.getElementById('foodGradeText');
     if (tipEl) tipEl.innerText = 'Calculating calories...'; if (gradeText) gradeText.innerText = '...';
@@ -540,17 +554,18 @@ async function analyzeFoodAI() {
 
         if(typeof applyFoodSummaryUI === "function") { applyFoodSummaryUI({ grade: grade, calories: calories, summary: "Updated for today!" }); }
         
-        let resultDiv = document.getElementById('aiFoodResult'); let textDiv = document.getElementById('aiVerdictText');
-        if (resultDiv && textDiv) { resultDiv.style.display = 'block'; textDiv.innerHTML = verdict; }
-
-        let glanceGrade = document.getElementById('glance-food-grade');
-        if (glanceGrade) { glanceGrade.innerText = grade; let gColor = '#f43f5e'; if (grade.startsWith('A')) gColor = '#10b981'; else if (grade.startsWith('B')) gColor = '#38bdf8'; else if (grade.startsWith('C')) gColor = '#fbbf24'; glanceGrade.style.color = gColor; }
-
+        // SAVE SA FIREBASE (Ito ang mag-ti-trigger ng auto-update sa lahat ng devices)
         await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "aiAnalyses"), { userId: window.currentUid, verdict: verdict, grade: grade, calories: calories, type: 'food', dateKey: todayKey, createdAt: Date.now() });
 
-        // Restore the button so you can tap it again later today
-        aiBtn.innerHTML = originalText; aiBtn.disabled = false;
-    } catch (e) { console.error(e); alert("API Error. Hindi ko ma-analyze ngayon."); if (tipEl) tipEl.innerText = 'Error. Try again later.'; aiBtn.innerHTML = originalText; aiBtn.disabled = false; }
+        playSound('success'); // 🔊 Crystal chime for AI Success
+
+        // Restore the button so you can tap it again later
+        if (aiBtn) { aiBtn.innerHTML = '<i class="ph-bold ph-sparkle"></i> Analyze My Day (AI)'; aiBtn.disabled = false; aiBtn.style.opacity = "1"; }
+    } catch (e) { 
+        console.error(e); alert("API Error. Hindi ko ma-analyze ngayon."); 
+        if (tipEl) tipEl.innerText = 'Error. Try again later.'; 
+        if (aiBtn) { aiBtn.innerHTML = originalText; aiBtn.disabled = false; } 
+    }
 }
 
 function initRealtimeAiAnalyses() {
@@ -559,35 +574,35 @@ function initRealtimeAiAnalyses() {
         aiAnalyses = []; 
         let todayKey = new Date().toLocaleDateString('en-CA');
         
-        snapshot.forEach(doc => {
-            aiAnalyses.push({ id: doc.id, ...doc.data() });
-        });
+        snapshot.forEach(doc => { aiAnalyses.push({ id: doc.id, ...doc.data() }); });
         aiAnalyses.sort((a, b) => a.createdAt - b.createdAt); 
 
-        // Hanapin ang pinaka-latest na na-analyze ngayon
+        // CROSS-DEVICE SYNC LOGIC
         let todaysAnalyses = aiAnalyses.filter(a => a.type === 'food' && a.dateKey === todayKey);
         
         if (todaysAnalyses.length > 0) {
-            let latest = todaysAnalyses[todaysAnalyses.length - 1]; // Pinakahuli
+            let latest = todaysAnalyses[todaysAnalyses.length - 1]; // Kukunin ang pinakahuling record
             
-            // I-show sa UI ang AI Verdict Box
+            // I-show yung result box sa lahat ng device
             let resultDiv = document.getElementById('aiFoodResult'); 
             let textDiv = document.getElementById('aiVerdictText');
-            if (resultDiv && textDiv) { 
-                resultDiv.style.display = 'block'; 
-                textDiv.innerHTML = latest.verdict; 
-            }
+            if (resultDiv && textDiv) { resultDiv.style.display = 'block'; textDiv.innerHTML = latest.verdict; }
 
-            // I-update din ang Food Grade sa Dashboard Glance
+            // I-update yung grade sa Dashboard
             let glanceGrade = document.getElementById('glance-food-grade');
             if (glanceGrade && latest.grade) { 
                 glanceGrade.innerText = latest.grade; 
                 let gColor = '#f43f5e'; 
-                if (latest.grade.startsWith('A')) gColor = '#10b981'; 
-                else if (latest.grade.startsWith('B')) gColor = '#38bdf8'; 
-                else if (latest.grade.startsWith('C')) gColor = '#fbbf24'; 
+                if (latest.grade.startsWith('A')) gColor = '#10b981'; else if (latest.grade.startsWith('B')) gColor = '#38bdf8'; else if (latest.grade.startsWith('C')) gColor = '#fbbf24'; 
                 glanceGrade.style.color = gColor; 
             }
+        }
+        
+        // Tiyaking palaging naka-enable ang button para sa multi-tap
+        let aiBtn = document.querySelector('button[onclick="playSound(\'click\'); analyzeFoodAI()"]') || document.querySelector('button[onclick="analyzeFoodAI()"]');
+        if (aiBtn && !aiBtn.disabled) { 
+            aiBtn.innerHTML = '<i class="ph-bold ph-sparkle"></i> Analyze My Day (AI)'; 
+            aiBtn.style.opacity = "1"; 
         }
     });
 }
@@ -606,7 +621,7 @@ function updateBudgetDashboard() {
     else {
         myWallets.forEach(wallet => {
             container.innerHTML += `<div style="position: relative; min-width: 120px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; flex-shrink: 0;">
-                <button onclick="deleteWallet('${wallet.id}')" style="position: absolute; top: 8px; right: 8px; background: none; border: none; color: var(--danger); cursor: pointer; padding: 0;"><i class="ph-bold ph-x"></i></button>
+                <button onclick="playSound('click'); deleteWallet('${wallet.id}')" style="position: absolute; top: 8px; right: 8px; background: none; border: none; color: var(--danger); cursor: pointer; padding: 0;"><i class="ph-bold ph-x"></i></button>
                 <p style="margin: 0; font-size: 11px; color: var(--text-muted); text-transform: uppercase; padding-right: 15px;">${wallet.name}</p>
                 <h4 style="margin: 5px 0 0 0; color: var(--text-main); font-size: 16px;">₱${parseFloat(wallet.balance).toLocaleString()}</h4>
             </div>`;
@@ -636,7 +651,7 @@ function updateBudgetDashboard() {
     }
 }
 
-function showAddWalletModal() { document.getElementById('walletModal').style.display = 'flex'; }
+function showAddWalletModal() { playSound('click'); document.getElementById('walletModal').style.display = 'flex'; }
 function initRealtimeBudget() {
     const q = window.dbMethods.query(window.dbMethods.collection(window.db, "wallets"), window.dbMethods.where("userId", "==", window.currentUid));
     window.dbMethods.onSnapshot(q, (snapshot) => { myWallets = []; snapshot.forEach(doc => myWallets.push({ id: doc.id, ...doc.data() })); updateBudgetDashboard(); updateQuickGlance(); });
@@ -645,10 +660,10 @@ function initRealtimeBudget() {
 async function saveWallet() {
     let name = document.getElementById('walletName').value; let bal = document.getElementById('walletBalance').value;
     if (!name || !bal) return alert("Kulang details!");
-    try { await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "wallets"), { userId: window.currentUid, name: name, balance: parseFloat(bal), createdAt: Date.now() }); document.getElementById('walletName').value = ''; document.getElementById('walletBalance').value = ''; closeBudgetModals(); } catch (e) { console.error(e); alert("May error sa pag-save!"); }
+    try { await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "wallets"), { userId: window.currentUid, name: name, balance: parseFloat(bal), createdAt: Date.now() }); playSound('success'); document.getElementById('walletName').value = ''; document.getElementById('walletBalance').value = ''; closeBudgetModals(); } catch (e) { console.error(e); alert("May error sa pag-save!"); }
 }
 
-async function deleteWallet(id) { if (confirm("Sigurado ka bang gusto mong burahin ang wallet na ito? Hindi na ito maibabalik.")) { try { await window.dbMethods.deleteDoc(window.dbMethods.doc(window.db, "wallets", id)); } catch (e) { console.error(e); alert("May error sa pagbura ng wallet."); } } }
+async function deleteWallet(id) { if (confirm("Sigurado ka bang gusto mong burahin ang wallet na ito? Hindi na ito maibabalik.")) { try { await window.dbMethods.deleteDoc(window.dbMethods.doc(window.db, "wallets", id)); playSound('click'); } catch (e) { console.error(e); alert("May error sa pagbura ng wallet."); } } }
 
 function initRealtimeTransactions() {
     const q = window.dbMethods.query(window.dbMethods.collection(window.db, "transactions"), window.dbMethods.where("userId", "==", window.currentUid));
@@ -674,7 +689,7 @@ function renderTransactions() {
             <div style="display: flex; gap: 12px; align-items: center; overflow: hidden;"><div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px; color: ${color};"><i class="ph-bold ${icon}" style="font-size: 16px;"></i></div>
                 <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><p style="margin: 0; font-size: 13px; font-weight: 600; color: var(--text-main);">${displayNote}${categoryTag}</p><p style="margin: 2px 0 0 0; font-size: 11px; color: var(--text-muted);">${walletName} • ${dateStr}</p></div>
             </div>
-            <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0; margin-left: 10px;"><h4 style="margin: 0; font-size: 14px; color: ${color};">${sign}₱${parseFloat(t.amount).toLocaleString()}</h4><button onclick="deleteTransaction('${t.id}', '${t.type}', ${t.amount}, '${t.walletId}', '${targetWalletId}')" style="background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 5px; transition: 0.2s;" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--text-muted)'"><i class="ph-bold ph-x"></i></button></div>
+            <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0; margin-left: 10px;"><h4 style="margin: 0; font-size: 14px; color: ${color};">${sign}₱${parseFloat(t.amount).toLocaleString()}</h4><button onclick="playSound('click'); deleteTransaction('${t.id}', '${t.type}', ${t.amount}, '${t.walletId}', '${targetWalletId}')" style="background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 5px; transition: 0.2s;" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--text-muted)'"><i class="ph-bold ph-x"></i></button></div>
         </div>`;
     });
 }
@@ -700,7 +715,7 @@ async function saveTransaction() {
         await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletId), { balance: newBal }); await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletToId), { balance: newTargetBal });
         await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "transactions"), { userId: window.currentUid, type: 'transfer', walletId: walletId, walletToId: walletToId, amount: amount, note: note || "Wallet Transfer", category: "Transfer", createdAt: Date.now() });
     }
-    try { document.getElementById('transactionAmount').value = ''; document.getElementById('transactionNote').value = ''; document.getElementById('transactionCategory').value = ''; closeBudgetModals(); updateBudgetDashboard(); } catch (e) { console.error(e); }
+    try { playSound('success'); document.getElementById('transactionAmount').value = ''; document.getElementById('transactionNote').value = ''; document.getElementById('transactionCategory').value = ''; closeBudgetModals(); updateBudgetDashboard(); } catch (e) { console.error(e); }
 }
 
 async function deleteTransaction(id, type, amount, walletId, walletToId) {
@@ -717,6 +732,7 @@ async function deleteTransaction(id, type, amount, walletId, walletToId) {
                 }
             }
             await window.dbMethods.deleteDoc(window.dbMethods.doc(window.db, "transactions", id));
+            playSound('click');
         } catch (e) { console.error(e); alert("May error sa pagbura ng transaction."); }
     }
 }
@@ -728,6 +744,7 @@ async function setMonthlyBudget() {
         try {
             if (budgetDocId) { await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "budgetConfig", budgetDocId), { target: parsedTarget }); } 
             else { let docRef = await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "budgetConfig"), { userId: window.currentUid, target: parsedTarget }); budgetDocId = docRef.id; }
+            playSound('success');
         } catch (e) { console.error("Error saving budget:", e); alert("May error sa pag-save ng budget sa database."); }
     }
 }
@@ -743,6 +760,7 @@ function initRealtimeBudgetConfig() {
 function openTransactionModal(type) {
     if (myWallets.length === 0) return alert("Gumawa ka muna ng wallet!");
     if (type === 'transfer' && myWallets.length < 2) return alert("Kailangan mo ng at least 2 wallets para makapag-transfer!");
+    playSound('click');
     document.getElementById('transactionModal').style.display = 'flex'; document.getElementById('transactionType').value = type;
     let title = document.getElementById('transactionTitle'); let btn = document.getElementById('saveTransactionBtn'); let selectTo = document.getElementById('transactionWalletTo'); let selectCat = document.getElementById('transactionCategory'); 
     
@@ -759,6 +777,7 @@ function closeBudgetModals() { document.getElementById('walletModal').style.disp
 let activeReceiptFilter = 'all';
 function openDailySummary() { activeReceiptFilter = 'all'; switchScreen('summaryScreen'); renderFullReceipt(); }
 function setReceiptFilter(filter) {
+    playSound('click');
     activeReceiptFilter = filter;
     document.querySelectorAll('.rcpt-tab').forEach(btn => { let isActive = btn.dataset.filter === filter; btn.style.background = isActive ? '#1a1a1a' : 'transparent'; btn.style.color = isActive ? '#f5f0e8' : '#888'; btn.style.borderColor = isActive ? '#1a1a1a' : '#ccc'; });
     renderReceiptBody();
@@ -890,6 +909,7 @@ async function setCustomUsername() {
 let isAppInitialized = false;
 
 function handleLogin() {
+    playSound('click');
     window.authMethods.signInWithPopup(window.auth, window.provider).then((result) => { console.log("Welcome back, Engineer:", result.user.displayName); }).catch((error) => { console.error("Login failed:", error); alert("May error sa pag-login. Try again."); });
 }
 
@@ -985,5 +1005,4 @@ window.closeBudgetModals = closeBudgetModals; window.deleteUtang = deleteUtang; 
 window.deleteTransaction = deleteTransaction; window.openDailySummary = openDailySummary; window.forceUpdateApp = forceUpdateApp;
 window.setUtangView = setUtangView; window.toggleTheme = toggleTheme; window.setCustomUsername = setCustomUsername;
 window.refreshFoodSummary = refreshFoodSummary; window.toggleVisibility = toggleVisibility; window.updateQuickGlance = updateQuickGlance;
-window.setReceiptFilter = setReceiptFilter; // Sa window exports sa pinakababa, dagdag mo 'to:
-window.playSound = playSound;
+window.setReceiptFilter = setReceiptFilter; window.playSound = playSound;
