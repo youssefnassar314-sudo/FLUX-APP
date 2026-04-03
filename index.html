@@ -15,34 +15,34 @@
 
     <div class="app-container">
 
-<div class="app-header-v2">
-    <div class="header-action-bar">
-        <div class="action-group-left">
-            <button onclick="forceUpdateApp()" class="header-icon-btn" title="Force Refresh">
-                <i class="ph-bold ph-arrows-clockwise"></i>
-            </button>
-            
-            <button onclick="toggleTheme()" class="header-icon-btn" title="Change Theme">
-                <i class="ph-bold ph-palette"></i>
-            </button>
+        <div class="app-header-v2">
+            <div class="header-action-bar">
+                <div class="action-group-left">
+                    <button onclick="forceUpdateApp()" class="header-icon-btn" title="Force Refresh">
+                        <i class="ph-bold ph-arrows-clockwise"></i>
+                    </button>
+                    
+                    <button onclick="toggleTheme()" class="header-icon-btn" title="Change Theme">
+                        <i class="ph-bold ph-palette"></i>
+                    </button>
+                </div>
+
+                <div id="liveClock" class="header-clock">--:--</div>
+
+                <div class="action-group-right">
+                    <button id="logoutBtn" class="header-icon-btn logout-btn" style="display: none;">
+                        <i class="ph-bold ph-power"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="header-branding">
+                <h1 class="logo">FLUX.</h1>
+                <p id="greetingSubtitle" class="subtitle" onclick="setCustomUsername()" style="cursor: pointer; transition: 0.3s;" title="Click to change username">
+                    Loading profile...
+                </p>
+            </div>
         </div>
-
-        <div id="liveClock" class="header-clock">--:--</div>
-
-        <div class="action-group-right">
-            <button id="logoutBtn" class="header-icon-btn logout-btn" style="display: none;">
-                <i class="ph-bold ph-power"></i>
-            </button>
-        </div>
-    </div>
-
-    <div class="header-branding">
-        <h1 class="logo">FLUX.</h1>
-        <p id="greetingSubtitle" class="subtitle" onclick="setCustomUsername()" style="cursor: pointer; transition: 0.3s;" title="Click to change username">
-            Loading profile...
-        </p>
-    </div>
-</div>
 
         <div id="loginScreen" class="screen active-screen">
             <div class="login-box" style="text-align: center; padding: 30px 20px; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
@@ -57,43 +57,42 @@
         </div>
 
         <div id="dashboardScreen" class="screen">
-<div style="margin-bottom: 20px;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 0 5px;">
-        <h3 style="margin: 0; font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px; font-weight: 700;">
-            <i class="ph-bold ph-squares-four"></i> Quick Glance
-        </h3>
-    </div>
+            <div style="margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 0 5px;">
+                    <h3 style="margin: 0; font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px; font-weight: 700;">
+                        <i class="ph-bold ph-squares-four"></i> Quick Glance
+                    </h3>
+                </div>
 
-    <div class="glance-grid">
-        <div class="glance-card" style="border-left-color: var(--success);">
-            <div class="glance-header">
-                <span><i class="ph-bold ph-wallet"></i> Net Worth</span>
-                <button onclick="toggleVisibility('wallet')" class="eye-btn"><i id="eye-wallet" class="ph-bold ph-eye"></i></button>
+                <div class="glance-grid">
+                    <div class="glance-card" style="border-left-color: var(--success);">
+                        <div class="glance-header">
+                            <span><i class="ph-bold ph-wallet"></i> Net Worth</span>
+                            <button onclick="toggleVisibility('wallet')" class="eye-btn"><i id="eye-wallet" class="ph-bold ph-eye"></i></button>
+                        </div>
+                        <h3 id="glance-wallet" class="glance-value" data-value="0.00">₱0.00</h3>
+                    </div>
+
+                    <div class="glance-card" style="border-left-color: var(--danger);">
+                        <div class="glance-header">
+                            <span><i class="ph-bold ph-hand-coins"></i> Due Today</span>
+                            <button onclick="toggleVisibility('utang')" class="eye-btn"><i id="eye-utang" class="ph-bold ph-eye"></i></button>
+                        </div>
+                        <h3 id="glance-utang" class="glance-value" data-value="0.00">₱0.00</h3>
+                    </div>
+
+                    <div class="glance-card" style="border-left-color: #fbbf24; align-items: center; text-align: center;">
+                        <p style="margin: 0 0 5px 0; font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;"><i class="ph-bold ph-fork-knife"></i> Diet Grade</p>
+                        <h1 id="glance-food-grade" style="margin: 0; font-size: 28px; color: #fbbf24; font-weight: 800; line-height: 1;">--</h1>
+                    </div>
+
+                    <div class="glance-card" style="border-left-color: var(--primary); align-items: center; text-align: center;">
+                        <p id="glance-streak-label" style="margin: 0 0 5px 0; font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;"><i class="ph-bold ph-push-pin"></i> Tasks Left</p>
+                        <h1 id="glance-streak" style="margin: 0; font-size: 24px; color: var(--primary); font-weight: 800; line-height: 1;">0</h1>
+                    </div>
+                </div>
             </div>
-            <h3 id="glance-wallet" class="glance-value" data-value="0.00">₱0.00</h3>
-        </div>
-
-        <div class="glance-card" style="border-left-color: var(--danger);">
-            <div class="glance-header">
-                <span><i class="ph-bold ph-hand-coins"></i> Due Today</span>
-                <button onclick="toggleVisibility('utang')" class="eye-btn"><i id="eye-utang" class="ph-bold ph-eye"></i></button>
-            </div>
-            <h3 id="glance-utang" class="glance-value" data-value="0.00">₱0.00</h3>
-        </div>
-
-        <div class="glance-card" style="border-left-color: #fbbf24; align-items: center; text-align: center;">
-            <p style="margin: 0 0 5px 0; font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;"><i class="ph-bold ph-fork-knife"></i> Diet Grade</p>
-            <h1 id="glance-food-grade" style="margin: 0; font-size: 28px; color: #fbbf24; font-weight: 800; line-height: 1;">--</h1>
-        </div>
-
-        <div class="glance-card" style="border-left-color: var(--primary); align-items: center; text-align: center;">
-            <p id="glance-streak-label" style="margin: 0 0 5px 0; font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;"><i class="ph-bold ph-push-pin"></i> Tasks Left</p>
-            <h1 id="glance-streak" style="margin: 0; font-size: 24px; color: var(--primary); font-weight: 800; line-height: 1;">0</h1>
-        </div>
-    </div>
-</div>
             
-
             <div class="dashboard-grid">
                 <div class="grid-item active" onclick="switchScreen('utangScreen')">
                     <i class="ph-duotone ph-hand-coins icon-svg"></i>
@@ -111,20 +110,11 @@
                     <i class="ph-duotone ph-chart-pie-slice icon-svg"></i>
                     <p>Budget</p>
                 </div>
-                <div class="grid-item active" onclick="switchScreen('snakeScreen')">
-    <i class="ph-duotone ph-game-controller icon-svg" style="color: #34d399;"></i>
-    <p>Snake Game</p>
-</div>
-                <div class="grid-item active" onclick="switchScreen('mlGameScreen');">
-    <i class="ph-duotone ph-sword icon-svg" style="color: var(--secondary);"></i>
-    <p>Mobile Legends</p>
-</div>
             </div>
 
-          <button class="receipt-btn" onclick="openDailySummary()" style="background: var(--text-main); color: var(--bg-dark); border: none;">
-    <i class="ph-bold ph-scroll"></i> View Monthly Receipt
-</button>
-
+            <button class="receipt-btn" onclick="openDailySummary()" style="background: var(--text-main); color: var(--bg-dark); border: none;">
+                <i class="ph-bold ph-scroll"></i> View Monthly Receipt
+            </button>
         </div>
 
         <div id="utangScreen" class="screen">
@@ -194,6 +184,7 @@
 
             <div id="utangListContainer"></div>
         </div>
+
         <div id="taskScreen" class="screen">
             <button class="back-btn" onclick="switchScreen('dashboardScreen')">
                 <i class="ph-bold ph-caret-left"></i> Dashboard
@@ -207,11 +198,11 @@
                 
                 <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                     <select id="aiTaskCategory" class="glass-select" style="margin-bottom: 0; flex: 1;">
-    <option value="Work">Work</option>
-    <option value="School">School</option>
-    <option value="Personal">Personal</option>
-    <option value="Sched">Sched (Whole Day)</option> 
-</select>
+                        <option value="Work">Work</option>
+                        <option value="School">School</option>
+                        <option value="Personal">Personal</option>
+                        <option value="Sched">Sched (Whole Day)</option> 
+                    </select>
                     <input type="date" id="aiTaskDate" style="margin-bottom: 0; flex: 1;">
                 </div>
                 
@@ -230,12 +221,12 @@
                 
                 <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                     <input type="text" id="manualTaskTitle" placeholder="Ex: Finish HTML layout" style="margin-bottom: 0; flex: 2;">
-<select id="manualTaskCategory" class="glass-select" style="margin-bottom: 0; flex: 1;">
-    <option value="Work">Work</option>
-    <option value="School">School</option>
-    <option value="Personal">Personal</option>
-    <option value="Sched">Sched (Whole Day)</option>
-</select>
+                    <select id="manualTaskCategory" class="glass-select" style="margin-bottom: 0; flex: 1;">
+                        <option value="Work">Work</option>
+                        <option value="School">School</option>
+                        <option value="Personal">Personal</option>
+                        <option value="Sched">Sched (Whole Day)</option>
+                    </select>
                 </div>
                 
                 <div style="display: flex; gap: 10px; margin-bottom: 15px;">
@@ -262,8 +253,8 @@
             </div>
 
             <div id="taskListContainer"></div>
-<div id="habitListContainer"></div>
-<div id="schedListContainer" style="margin-bottom: 20px;"></div>
+            <div id="habitListContainer"></div>
+            <div id="schedListContainer" style="margin-bottom: 20px;"></div>
         </div>
 
         <div id="kanbanScreen" class="screen">
@@ -295,7 +286,7 @@
             <button class="back-btn" onclick="switchScreen('dashboardScreen')">
                 <i class="ph-bold ph-caret-left"></i> Dashboard
             </button>
-            <!-- Food Summary Widget -->
+            
             <div class="utang-card" id="foodSummaryCard" style="margin-bottom: 20px; padding: 15px; background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                     <h3 style="margin: 0; font-size: 13px; color: #fbbf24; display: flex; align-items: center; gap: 6px;">
@@ -314,6 +305,7 @@
                     </div>
                 </div>
             </div>
+            
             <div class="hidden-form" style="display: block; margin-bottom: 20px; background: rgba(244, 63, 94, 0.05); border-color: rgba(244, 63, 94, 0.2);">
                 <h3 style="color: var(--danger); margin-top: 0; margin-bottom: 15px; font-size: 16px; display: flex; align-items: center; gap: 8px;">
                     <i class="ph-duotone ph-sparkle"></i> Quick Food Log
@@ -342,16 +334,15 @@
                 </div>
                 
                 <div style="display: flex; gap: 10px; margin-bottom: 15px; align-items: center;">
-    <input type="text" id="foodItem" placeholder="Ano kinain mo? (Optional kung may pic)" style="flex: 2; margin-bottom: 0;">
-    
-</div>
+                    <input type="text" id="foodItem" placeholder="Ano kinain mo? (Optional kung may pic)" style="flex: 2; margin-bottom: 0;">
+                </div>
 
-<div style="display: flex; gap: 10px; margin-bottom: 15px;">
-    <input type="number" id="foodPrice" placeholder="Magkano? (₱)" style="margin-bottom: 0; flex: 1;">
-    <select id="foodWallet" class="glass-select" style="margin-bottom: 0; flex: 1;">
-        <option value="">Saan ibabawas?</option>
-    </select>
-</div>
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <input type="number" id="foodPrice" placeholder="Magkano? (₱)" style="margin-bottom: 0; flex: 1;">
+                    <select id="foodWallet" class="glass-select" style="margin-bottom: 0; flex: 1;">
+                        <option value="">Saan ibabawas?</option>
+                    </select>
+                </div>
                 
                 <button class="save-btn" onclick="saveFood()" style="margin-bottom: 0; background: linear-gradient(135deg, #f43f5e, #fb923c); box-shadow: 0 0 15px rgba(244, 63, 94, 0.4);">
                     <i class="ph-bold ph-plus"></i> Log Food
@@ -401,10 +392,11 @@
             </div>
 
             <div style="display: flex; gap: 10px; margin-top: 20px;">
-    <button onclick="addIncome()" class="save-btn" style="flex: 1; margin: 0; padding: 10px 5px; background: rgba(56, 189, 248, 0.2); color: #38bdf8;"><i class="ph-bold ph-trend-up"></i></button>
-    <button onclick="addExpense()" class="save-btn" style="flex: 1; margin: 0; padding: 10px 5px; background: rgba(244, 63, 94, 0.2); color: #f43f5e;"><i class="ph-bold ph-trend-down"></i></button>
-    <button onclick="addTransfer()" class="save-btn" style="flex: 1; margin: 0; padding: 10px 5px; background: rgba(192, 132, 252, 0.2); color: #c084fc;"><i class="ph-bold ph-arrows-left-right"></i></button>
-</div>
+                <button onclick="addIncome()" class="save-btn" style="flex: 1; margin: 0; padding: 10px 5px; background: rgba(56, 189, 248, 0.2); color: #38bdf8;"><i class="ph-bold ph-trend-up"></i></button>
+                <button onclick="addExpense()" class="save-btn" style="flex: 1; margin: 0; padding: 10px 5px; background: rgba(244, 63, 94, 0.2); color: #f43f5e;"><i class="ph-bold ph-trend-down"></i></button>
+                <button onclick="addTransfer()" class="save-btn" style="flex: 1; margin: 0; padding: 10px 5px; background: rgba(192, 132, 252, 0.2); color: #c084fc;"><i class="ph-bold ph-arrows-left-right"></i></button>
+            </div>
+            
             <h3 style="color: var(--text-main); font-size: 14px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px; margin-top: 30px;">
                 <i class="ph-duotone ph-list-dashes"></i> RECENT TRANSACTIONS
             </h3>
@@ -447,133 +439,74 @@
                 <button onclick="closeBudgetModals()" style="width: 100%; background: transparent; color: var(--text-muted); border: none;">Cancel</button>
             </div>
         </div>
-            <div id="payUtangModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; padding: 80px 20px 20px 20px; align-items: flex-start; justify-content: center;">
-        <div class="utang-card" style="width: 100%; max-width: 400px; background: var(--bg-color); padding: 20px; position: relative;">
-            <h3 style="margin-top: 0; color: var(--primary);"><i class="ph-duotone ph-hand-coins"></i> Bayaran ang Utang</h3>
-            <p id="payUtangDetails" style="font-size: 13px; color: var(--text-main); margin-bottom: 15px; font-weight: 600;"></p>
-            <input type="hidden" id="payUtangId">
-            <input type="hidden" id="payUtangAmount">
-            
-            <select id="payUtangWallet" class="glass-select" style="margin-bottom: 15px;"></select>
-            
-            <button onclick="confirmPayUtang()" class="save-btn" style="margin-bottom: 10px; background: var(--success);"><i class="ph-bold ph-check"></i> Confirm Payment</button>
-            <button onclick="closeBudgetModals()" style="width: 100%; background: transparent; color: var(--text-muted); border: none;">Cancel</button>
+        
+        <div id="payUtangModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; padding: 80px 20px 20px 20px; align-items: flex-start; justify-content: center;">
+            <div class="utang-card" style="width: 100%; max-width: 400px; background: var(--bg-color); padding: 20px; position: relative;">
+                <h3 style="margin-top: 0; color: var(--primary);"><i class="ph-duotone ph-hand-coins"></i> Bayaran ang Utang</h3>
+                <p id="payUtangDetails" style="font-size: 13px; color: var(--text-main); margin-bottom: 15px; font-weight: 600;"></p>
+                <input type="hidden" id="payUtangId">
+                <input type="hidden" id="payUtangAmount">
+                
+                <select id="payUtangWallet" class="glass-select" style="margin-bottom: 15px;"></select>
+                
+                <button onclick="confirmPayUtang()" class="save-btn" style="margin-bottom: 10px; background: var(--success);"><i class="ph-bold ph-check"></i> Confirm Payment</button>
+                <button onclick="closeBudgetModals()" style="width: 100%; background: transparent; color: var(--text-muted); border: none;">Cancel</button>
+            </div>
         </div>
-    </div>
+
         <div id="summaryScreen" class="screen" style="padding-bottom: 80px;">
-    <button class="back-btn" onclick="switchScreen('dashboardScreen')">
-        <i class="ph-bold ph-caret-left"></i> Close Receipt
-    </button>
-    
-    <div id="summaryContent">
-        </div>
-
-    <button id="summaryNextBtn" class="save-btn" style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: 85%;">
-        Next Section <i class="ph-bold ph-caret-right"></i>
-    </button>
-</div>
-        
-<div id="snakeScreen" class="screen">
-    <button class="back-btn" onclick="switchScreen('dashboardScreen'); stopSnakeGame();">
-        <i class="ph-bold ph-caret-left"></i> Dashboard
-    </button>
-    
-    <div class="utang-card" style="text-align: center; padding: 15px; background: rgba(0,0,0,0.3);">
-        <h3 style="color: var(--primary); margin-top: 0;"><i class="ph-duotone ph-game-controller"></i> FLUX Snake</h3>
-        <p style="font-size: 14px; font-weight: bold; color: var(--text-main); margin-bottom: 10px;">Score: <span id="snakeScore" style="color: var(--success);">0</span></p>
-        
-        <canvas id="snakeCanvas" width="300" height="300" style="width: 100%; max-width: 270px; height: auto; aspect-ratio: 1 / 1; background: var(--bg-dark); border: 2px solid var(--glass-border); border-radius: 10px; display: block; margin: 0 auto; box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); touch-action: none;"></canvas>
-        
-        <button class="save-btn" onclick="startSnakeGame()" style="margin-top: 15px; width: 100%;">
-            <i class="ph-bold ph-play"></i> Start / Restart
-        </button>
-
-        <div class="d-pad" style="margin-top: 15px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; max-width: 200px; margin-left: auto; margin-right: auto;">
-            <div></div>
-            <button class="d-btn" onclick="changeSnakeDir(0, -1)"><i class="ph-bold ph-caret-up"></i></button>
-            <div></div>
-            <button class="d-btn" onclick="changeSnakeDir(-1, 0)"><i class="ph-bold ph-caret-left"></i></button>
-            <button class="d-btn" onclick="changeSnakeDir(0, 1)"><i class="ph-bold ph-caret-down"></i></button>
-            <button class="d-btn" onclick="changeSnakeDir(1, 0)"><i class="ph-bold ph-caret-right"></i></button>
-        </div>
-    </div>
-</div>    
-<div id="mlGameScreen" class="screen">
-    <button class="back-btn" onclick="switchScreen('dashboardScreen'); stopMLGame();">
-        <i class="ph-bold ph-caret-left"></i> Retreat
-    </button>
-    
-    <div class="utang-card" style="text-align: center; padding: 15px; background: rgba(0,0,0,0.4); border: 2px solid var(--secondary); border-radius: 12px; position: relative; overflow: hidden;">
-        
-        <h3 style="color: var(--secondary); margin: 0 0 10px 0; font-family: monospace; font-size: 16px; letter-spacing: 2px; text-shadow: 0 0 5px var(--secondary);">
-            <i class="ph-fill ph-sword"></i> DEFEND THE BASE <i class="ph-fill ph-shield"></i>
-        </h3>
-        
-        <div style="display: flex; justify-content: space-between; font-family: monospace; font-size: 12px; margin-bottom: 10px;">
-            <span style="color: var(--text-muted);">SCORE: <span id="mlScore" style="color: var(--primary); font-weight: bold;">0</span></span>
-            <span style="color: var(--danger);">BASE HP: <span id="mlBaseHp" style="font-weight: bold;">100</span></span>
-        </div>
-
-        <div id="mlArena" style="position: relative; height: 250px; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--glass-border); border-radius: 8px; margin-bottom: 15px; display: flex; flex-direction: column; overflow: hidden;">
+            <button class="back-btn" onclick="switchScreen('dashboardScreen')">
+                <i class="ph-bold ph-caret-left"></i> Close Receipt
+            </button>
             
-            <div style="position: absolute; left: 30px; top: 0; bottom: 0; width: 4px; background: var(--primary); box-shadow: 0 0 10px var(--primary); z-index: 5;"></div>
-            
-            <div class="ml-lane" id="lane-0"></div>
-            <div class="ml-lane" id="lane-1"></div>
-            <div class="ml-lane" id="lane-2"></div>
-        </div>
+            <div id="summaryContent"></div>
 
-        <div style="display: flex; gap: 10px;">
-            <button class="ml-btn" onclick="attackLane(0)" style="border-color: #fbbf24; color: #fbbf24;">TOP <i class="ph-bold ph-arrow-up-right"></i></button>
-            <button class="ml-btn" onclick="attackLane(1)" style="border-color: #38bdf8; color: #38bdf8;">MID <i class="ph-bold ph-arrow-right"></i></button>
-            <button class="ml-btn" onclick="attackLane(2)" style="border-color: #c084fc; color: #c084fc;">BOT <i class="ph-bold ph-arrow-down-right"></i></button>
+            <button id="summaryNextBtn" class="save-btn" style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: 85%;">
+                Next Section <i class="ph-bold ph-caret-right"></i>
+            </button>
         </div>
-
-        <div id="mlGameMenu" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20;">
-            <h2 id="mlMenuTitle" style="color: var(--text-main); font-family: monospace; letter-spacing: 2px;">READY TO DEFEND?</h2>
-            <button class="save-btn" onclick="startMLGame()" style="margin-top: 15px; font-family: monospace;">START BATTLE</button>
-        </div>
+        
     </div>
-</div>
-</div>
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyADsCX5UOybPnbVLTlFHz9_pchxfNgTMCU",
-        authDomain: "flux-os.firebaseapp.com",
-        projectId: "flux-os",
-        storageBucket: "flux-os.firebasestorage.app",
-        messagingSenderId: "460355221542",
-        appId: "1:460355221542:web:a2e0117283ba237e470ee7"
-    };
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
+        const firebaseConfig = {
+            apiKey: "AIzaSyADsCX5UOybPnbVLTlFHz9_pchxfNgTMCU",
+            authDomain: "flux-os.firebaseapp.com",
+            projectId: "flux-os",
+            storageBucket: "flux-os.firebasestorage.app",
+            messagingSenderId: "460355221542",
+            appId: "1:460355221542:web:a2e0117283ba237e470ee7"
+        };
 
-    window.db = db;
-    window.auth = auth;
-    window.provider = provider;
-    window.dbMethods = { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, where };
-    window.authMethods = { signInWithPopup, onAuthStateChanged, signOut };
-</script>
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
 
-<script src="app.js?v=3"></script> <script>
-    // PAMPATAY NG SERVICE WORKER (Goodbye Cache Hell!)
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-            for(let registration of registrations) {
-                registration.unregister().then(function(boolean) {
-                    console.log('Service worker unregistered!');
-                });
-            }
-        });
-    }
-</script>
+        window.db = db;
+        window.auth = auth;
+        window.provider = provider;
+        window.dbMethods = { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, where };
+        window.authMethods = { signInWithPopup, onAuthStateChanged, signOut };
+    </script>
 
+    <script src="app.js?v=4"></script> 
+    
+    <script>
+        // PAMPATAY NG SERVICE WORKER (Goodbye Cache Hell!)
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) {
+                    registration.unregister().then(function(boolean) {
+                        console.log('Service worker unregistered!');
+                    });
+                }
+            });
+        }
+    </script>
 </body>
 </html>
