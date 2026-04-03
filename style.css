@@ -748,3 +748,60 @@ body.theme-pink {
     color: var(--bg-dark);
     transform: scale(0.9);
 }
+/* ==========================================
+   📊 QUICK GLANCE WIDGET
+   ========================================== */
+.glance-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.glance-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 15px;
+    border-left: 3px solid transparent; /* Kulay depende sa category */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.glance-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+.glance-value {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Eye Toggle Button */
+.eye-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 14px;
+    cursor: pointer;
+    padding: 0;
+    transition: 0.2s;
+}
+.eye-btn:hover {
+    color: var(--text-main);
+    transform: scale(1.1);
+}
