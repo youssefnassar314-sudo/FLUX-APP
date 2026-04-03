@@ -489,7 +489,7 @@
         <h3 style="color: var(--primary); margin-top: 0;"><i class="ph-duotone ph-game-controller"></i> FLUX Snake</h3>
         <p style="font-size: 14px; font-weight: bold; color: var(--text-main); margin-bottom: 10px;">Score: <span id="snakeScore" style="color: var(--success);">0</span></p>
         
-        <canvas id="snakeCanvas" width="300" height="300" style="background: var(--bg-dark); border: 2px solid var(--glass-border); border-radius: 10px; display: block; margin: 0 auto; box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);"></canvas>
+        <canvas id="snakeCanvas" width="300" height="300" style="width: 100%; max-width: 270px; height: auto; aspect-ratio: 1 / 1; background: var(--bg-dark); border: 2px solid var(--glass-border); border-radius: 10px; display: block; margin: 0 auto; box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); touch-action: none;"></canvas>
         
         <button class="save-btn" onclick="startSnakeGame()" style="margin-top: 15px; width: 100%;">
             <i class="ph-bold ph-play"></i> Start / Restart
