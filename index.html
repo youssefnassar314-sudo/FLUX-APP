@@ -45,7 +45,7 @@
         </div>
 
         <div id="loginScreen" class="screen active-screen">
-            <div class="login-box" style="text-align: center; padding: 30px 20px; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: 24px;">
+            <div class="login-box" style="text-align: center; padding: 30px 20px; background: var(--card-bg); border: 1px solid var(--glass-border); border-radius: 24px;">
                 <i class="ph-duotone ph-fingerprint icon-svg" style="font-size: 64px; color: var(--primary); margin-bottom: 10px;"></i>
                 <h2 style="margin: 0 0 5px 0; font-weight: 800; letter-spacing: 1px; font-size: 22px; color: var(--text-main);">System Online.</h2>
                 <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 25px;">Welcome to your central hub, Engineer.</p>
@@ -135,11 +135,11 @@
             </button>
 
             <div class="summary-box" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 25px;">
-                <div class="stat-col" style="background: rgba(56, 189, 248, 0.05); border-color: rgba(56, 189, 248, 0.2);">
+                <div class="stat-col" style="background: var(--glass-bg); border-color: var(--glass-border);">
                     <p style="color: var(--primary);">Due This Month</p>
                     <h3 class="text-danger" style="font-size: 18px;">₱<span id="displayMonthUtang">0.00</span></h3>
                 </div>
-                <div class="stat-col" style="background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.2);">
+                <div class="stat-col" style="background: var(--glass-bg); border-color: var(--glass-border);">
                     <p style="color: var(--success);">Paid This Month</p>
                     <h3 class="text-success" style="font-size: 18px;">₱<span id="displayMonthBayad">0.00</span></h3>
                 </div>
@@ -250,9 +250,9 @@
 
             <div id="foodListContainer"></div>
 
-            <div id="aiFoodResult" style="display: none; background: rgba(56, 189, 248, 0.1); border: 1px solid var(--primary); border-radius: 16px; padding: 20px; margin-bottom: 20px; text-align: center;">
+            <div id="aiFoodResult" style="display: none; background: var(--glass-bg); border: 1px solid var(--primary); border-radius: 16px; padding: 20px; margin-bottom: 20px; text-align: center;">
                 <h3 style="color: var(--primary); margin: 0 0 10px 0;"><i class="ph-duotone ph-brain"></i> AI Verdict</h3>
-                <p id="aiVerdictText" style="font-size: 13px; font-style: italic; line-height: 1.5;"></p>
+                <p id="aiVerdictText" style="font-size: 13px; font-style: italic; line-height: 1.5; color: var(--text-main);"></p>
             </div>
 
             <button class="add-btn" onclick="playSound('click'); analyzeFoodAI()" style="width:100%;">
@@ -265,29 +265,29 @@
                 <i class="ph-bold ph-caret-left"></i> Dashboard
             </button>
 
-            <div class="utang-card" style="text-align: center; padding: 25px; background: linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(192, 132, 252, 0.1));">
+            <div class="utang-card" style="text-align: center; padding: 25px; background: linear-gradient(135deg, var(--glass-bg), var(--card-bg));">
                 <p style="font-size: 11px; text-transform: uppercase; color: var(--text-muted);">Net Liquidity</p>
                 <h1 id="totalNetWorth" style="font-size: 32px; color: var(--primary); margin: 10px 0;">₱0.00</h1>
-                <button onclick="playSound('click'); showAddWalletModal()" style="background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); padding: 8px 15px; border-radius: 20px; color: var(--text-main); font-size: 12px;">+ Add Wallet</button>
+                <button onclick="playSound('click'); showAddWalletModal()" style="background: var(--glass-bg); border: 1px solid var(--glass-border); padding: 8px 15px; border-radius: 20px; color: var(--text-main); font-size: 12px;">+ Add Wallet</button>
             </div>
 
             <div id="walletsContainer" style="display: flex; gap: 10px; overflow-x: auto; padding: 15px 0;"></div>
 
             <div class="utang-card" style="padding: 15px;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                    <span style="font-size: 12px;">Spent: <strong id="monthlySpent" style="color:var(--danger);">₱0</strong></span>
-                    <span style="font-size: 12px;">Goal: <strong id="monthlyTarget">₱0</strong></span>
+                    <span style="font-size: 12px; color: var(--text-main);">Spent: <strong id="monthlySpent" style="color:var(--danger);">₱0</strong></span>
+                    <span style="font-size: 12px; color: var(--text-main);">Goal: <strong id="monthlyTarget">₱0</strong></span>
                 </div>
-                <div style="height: 8px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden;">
+                <div style="height: 8px; background: var(--glass-bg); border-radius: 10px; overflow: hidden;">
                     <div id="budgetProgressBar" style="width: 0%; height: 100%; background: var(--success); transition: 0.4s;"></div>
                 </div>
                 <button onclick="playSound('click'); setMonthlyBudget()" style="width:100%; margin-top: 10px; background:none; border:1px dashed var(--glass-border); color:var(--text-muted); font-size: 11px; padding: 5px;">Set Monthly Budget Limit</button>
             </div>
 
             <div style="display: flex; gap: 10px; margin-top: 15px;">
-                <button onclick="playSound('click'); addIncome()" class="save-btn" style="flex: 1; background: rgba(16, 185, 129, 0.2); color: var(--success);"><i class="ph-bold ph-trend-up"></i></button>
-                <button onclick="playSound('click'); addExpense()" class="save-btn" style="flex: 1; background: rgba(244, 63, 94, 0.2); color: var(--danger);"><i class="ph-bold ph-trend-down"></i></button>
-                <button onclick="playSound('click'); addTransfer()" class="save-btn" style="flex: 1; background: rgba(192, 132, 252, 0.2); color: var(--secondary);"><i class="ph-bold ph-arrows-left-right"></i></button>
+                <button onclick="playSound('click'); addIncome()" class="save-btn" style="flex: 1; background: var(--glass-bg); color: var(--success); border: 1px solid var(--success);"><i class="ph-bold ph-trend-up"></i></button>
+                <button onclick="playSound('click'); addExpense()" class="save-btn" style="flex: 1; background: var(--glass-bg); color: var(--danger); border: 1px solid var(--danger);"><i class="ph-bold ph-trend-down"></i></button>
+                <button onclick="playSound('click'); addTransfer()" class="save-btn" style="flex: 1; background: var(--glass-bg); color: var(--secondary); border: 1px solid var(--secondary);"><i class="ph-bold ph-arrows-left-right"></i></button>
             </div>
 
             <div id="transactionListContainer"></div>
@@ -326,7 +326,7 @@
         <div id="payUtangModal" style="display: none;" class="modal-overlay">
             <div class="utang-card modal-content">
                 <h3 style="color: var(--primary);">Settle Debt</h3>
-                <p id="payUtangDetails" style="font-size: 13px;"></p>
+                <p id="payUtangDetails" style="font-size: 13px; color: var(--text-main);"></p>
                 <input type="hidden" id="payUtangId">
                 <input type="hidden" id="payUtangAmount">
                 <select id="payUtangWallet" class="glass-select"></select>
@@ -344,7 +344,7 @@
 
     </div> <style>
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; padding: 20px; display: flex; align-items: center; justify-content: center; }
-        .modal-content { width: 100%; max-width: 380px; background: var(--bg-dark) !important; border: 1px solid var(--glass-border); }
+        .modal-content { width: 100%; max-width: 380px; background: var(--card-bg) !important; border: 1px solid var(--glass-border); }
     </style>
 
     <script type="module">
@@ -373,6 +373,6 @@
         window.authMethods = { signInWithPopup, onAuthStateChanged, signOut };
     </script>
 
-    <script src="app.js?v=6"></script>
+    <script src="app.js?v=8"></script>
 </body>
 </html>
