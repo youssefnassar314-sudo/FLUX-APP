@@ -115,6 +115,10 @@
     <i class="ph-duotone ph-game-controller icon-svg" style="color: #34d399;"></i>
     <p>Snake Game</p>
 </div>
+                <div class="grid-item active" onclick="switchScreen('mlGameScreen');">
+    <i class="ph-duotone ph-sword icon-svg" style="color: var(--secondary);"></i>
+    <p>Mobile Legends</p>
+</div>
             </div>
 
           <button class="receipt-btn" onclick="openDailySummary()" style="background: var(--text-main); color: var(--bg-dark); border: none;">
@@ -493,12 +497,48 @@
             <button class="d-btn" onclick="changeSnakeDir(1, 0)"><i class="ph-bold ph-caret-right"></i></button>
         </div>
     </div>
-</div>
+</div>    
+<div id="mlGameScreen" class="screen">
+    <button class="back-btn" onclick="switchScreen('dashboardScreen'); stopMLGame();">
+        <i class="ph-bold ph-caret-left"></i> Retreat
+    </button>
+    
+    <div class="utang-card" style="text-align: center; padding: 15px; background: rgba(0,0,0,0.4); border: 2px solid var(--secondary); border-radius: 12px; position: relative; overflow: hidden;">
+        
+        <h3 style="color: var(--secondary); margin: 0 0 10px 0; font-family: monospace; font-size: 16px; letter-spacing: 2px; text-shadow: 0 0 5px var(--secondary);">
+            <i class="ph-fill ph-sword"></i> DEFEND THE BASE <i class="ph-fill ph-shield"></i>
+        </h3>
+        
+        <div style="display: flex; justify-content: space-between; font-family: monospace; font-size: 12px; margin-bottom: 10px;">
+            <span style="color: var(--text-muted);">SCORE: <span id="mlScore" style="color: var(--primary); font-weight: bold;">0</span></span>
+            <span style="color: var(--danger);">BASE HP: <span id="mlBaseHp" style="font-weight: bold;">100</span></span>
+        </div>
 
+        <div id="mlArena" style="position: relative; height: 250px; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--glass-border); border-radius: 8px; margin-bottom: 15px; display: flex; flex-direction: column; overflow: hidden;">
+            
+            <div style="position: absolute; left: 30px; top: 0; bottom: 0; width: 4px; background: var(--primary); box-shadow: 0 0 10px var(--primary); z-index: 5;"></div>
+            
+            <div class="ml-lane" id="lane-0"></div>
+            <div class="ml-lane" id="lane-1"></div>
+            <div class="ml-lane" id="lane-2"></div>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+            <button class="ml-btn" onclick="attackLane(0)" style="border-color: #fbbf24; color: #fbbf24;">TOP <i class="ph-bold ph-arrow-up-right"></i></button>
+            <button class="ml-btn" onclick="attackLane(1)" style="border-color: #38bdf8; color: #38bdf8;">MID <i class="ph-bold ph-arrow-right"></i></button>
+            <button class="ml-btn" onclick="attackLane(2)" style="border-color: #c084fc; color: #c084fc;">BOT <i class="ph-bold ph-arrow-down-right"></i></button>
+        </div>
+
+        <div id="mlGameMenu" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20;">
+            <h2 id="mlMenuTitle" style="color: var(--text-main); font-family: monospace; letter-spacing: 2px;">READY TO DEFEND?</h2>
+            <button class="save-btn" onclick="startMLGame()" style="margin-top: 15px; font-family: monospace;">START BATTLE</button>
+        </div>
+    </div>
+</div>
+</div>
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-    // BAGO: In-import ang Firebase Auth
     import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
     const firebaseConfig = {
@@ -512,7 +552,6 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    // BAGO: Setup ng Auth at Provider
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
 
@@ -521,17 +560,20 @@
     window.provider = provider;
     window.dbMethods = { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, where };
     window.authMethods = { signInWithPopup, onAuthStateChanged, signOut };
-    </script>
-        <script src="app.js"></script>
-    <script>
-        // Buhayin ang Service Worker para maging totoong PWA
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('FLUX OS Service Worker Active!', reg))
-                    .catch(err => console.error('PWA Setup Failed: ', err));
-            });
-        }
-    </script>
+</script>
+
+<script src="app.js?v=3"></script> <script>
+    // PAMPATAY NG SERVICE WORKER (Goodbye Cache Hell!)
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            for(let registration of registrations) {
+                registration.unregister().then(function(boolean) {
+                    console.log('Service worker unregistered!');
+                });
+            }
+        });
+    }
+</script>
+
 </body>
 </html>
