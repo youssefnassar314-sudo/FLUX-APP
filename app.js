@@ -38,7 +38,7 @@ let transactionDatabase = [];
 let currentUtangView = 'date'; 
 
 function switchScreen(screenId) {
-    playSound('transition'); // 🔊 Sci-fi slide sound pag nag-switch ng screen
+    playSound('transition'); 
     let screens = document.querySelectorAll('.screen');
     screens.forEach(screen => screen.classList.remove('active-screen'));
     document.getElementById(screenId).classList.add('active-screen');
@@ -119,7 +119,7 @@ async function saveUtang() {
                 });
             }
         }
-        playSound('success'); // 🔊 Crystal chime
+        playSound('success'); 
         document.getElementById('utangId').value = ''; document.getElementById('appName').value = '';
         document.getElementById('duesContainer').innerHTML = `
             <div class="due-row">
@@ -163,7 +163,7 @@ async function confirmPayUtang() {
             userId: window.currentUid, type: 'expense', walletId: walletId, amount: amount,
             note: `Bayad Utang: ${utangLabel.split('(')[0]}`, category: "Debt Payment", paidFromWallet: walletObj.name, createdAt: Date.now()
         });
-        playSound('success'); // 🔊 Crystal chime
+        playSound('success'); 
         closeBudgetModals();
     } catch (e) { console.error(e); }
 }
@@ -204,7 +204,7 @@ function renderUtangList() {
         filteredUtang.forEach(utang => {
             let day = utang.dueDate.getDate(); let shortMonth = utang.dueDate.toLocaleString('default', { month: 'short' });
             if (utang.isPaid && !hasRenderedPaidHeader) { container.innerHTML += `<div class="date-section"><h3 style="color: var(--success); border-bottom: 2px solid rgba(16, 185, 129, 0.2); padding-bottom: 5px; font-size: 14px; margin-top: 25px;"><i class="ph-bold ph-check-circle"></i> Paid This Month</h3></div>`; hasRenderedPaidHeader = true; } 
-            let cardStyle = utang.isPaid ? 'opacity: 0.5; background-color: rgba(255,255,255,0.02);' : 'background: rgba(255,255,255,0.02);';
+            let cardStyle = utang.isPaid ? 'opacity: 0.5; background-color: var(--glass-bg);' : 'background: var(--glass-bg);';
             let badgeHTML = utang.category === 'My App' ? `<span class="badge badge-primary"><i class="ph-bold ph-device-mobile"></i> My App: ${utang.appName}</span>` : `<span class="badge badge-secondary"><i class="ph-bold ph-user"></i> Under their: ${utang.appName}</span>`;
             container.innerHTML += `<div class="utang-card" style="${cardStyle}">
                 <button onclick="playSound('click'); deleteUtang('${utang.id}')" style="position: absolute; top: 12px; right: 12px; background: none; border: none; color: var(--danger); cursor: pointer; font-size: 16px; padding: 0;"><i class="ph-bold ph-x"></i></button>
@@ -229,7 +229,7 @@ function renderUtangList() {
             container.innerHTML += `<div class="date-section"><h3 style="color: var(--secondary); border-bottom: 2px solid rgba(192, 132, 252, 0.2); padding-bottom: 5px; font-size: 14px; margin-top: 25px; text-transform: uppercase; letter-spacing: 1px;"><i class="ph-bold ph-device-mobile"></i> ${app}</h3></div>`;
             for (let id in apps[app]) {
                 let group = apps[app][id]; let allPaid = group.items.every(u => u.isPaid);
-                let cardStyle = allPaid ? 'opacity: 0.5; background-color: rgba(255,255,255,0.02); border-left: 4px solid var(--success);' : 'background: rgba(192, 132, 252, 0.05); border-left: 4px solid var(--secondary);';
+                let cardStyle = allPaid ? 'opacity: 0.5; background-color: var(--glass-bg); border-left: 4px solid var(--success);' : 'background: var(--card-bg); border-left: 4px solid var(--secondary);';
                 let duesHTML = group.items.map(u => {
                     let shortMonth = u.dueDate.toLocaleString('default', { month: 'short' }); let day = u.dueDate.getDate(); let currentYear = new Date().getFullYear();
                     let dueYear = u.dueDate.getFullYear() !== currentYear ? ` '${u.dueDate.getFullYear().toString().slice(-2)}` : '';
@@ -245,7 +245,7 @@ function renderUtangList() {
                 }).join('');
                 container.innerHTML += `<div class="utang-card" style="${cardStyle} margin-bottom: 12px; padding: 15px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                        <span style="font-size: 10px; font-weight: 700; background: rgba(255,255,255,0.05); padding: 3px 8px; border-radius: 5px; text-transform: uppercase;">ID: ${id}</span>
+                        <span style="font-size: 10px; font-weight: 700; background: var(--glass-bg); padding: 3px 8px; border-radius: 5px; text-transform: uppercase;">ID: ${id}</span>
                         <span style="font-size: 11px; color: ${allPaid ? 'var(--success)' : 'var(--danger)'};">Balance: ₱${(group.totalAmount - group.totalPaid).toFixed(2)}</span>
                     </div>
                     <h4 style="margin: 5px 0 0 0; font-size: 16px; color: var(--text-main);">Total: ₱${group.totalAmount.toFixed(2)}</h4>
@@ -349,12 +349,12 @@ function renderTasks() {
             let timeText = `<span style="font-size: 11px; color: var(--text-muted);"><i class="ph-bold ph-clock"></i> Spent: ${totalSpent}m / Est: ${est}m ${runningText}</span>`;
             let controlsHTML = '';
             if (isDone) { controlsHTML = `<span style="color: var(--success); font-weight: bold; font-size: 12px;"><i class="ph-bold ph-check-circle"></i> Completed (${totalSpent}m spent)</span>`; } else {
-                let playPauseBtn = isDoing ? `<button style="background: rgba(244, 63, 94, 0.1); color: var(--danger); border: 1px solid var(--danger); padding: 6px 12px; border-radius: 8px; cursor: pointer;" onclick="moveTaskStatus('${task.id}', 'paused')"><i class="ph-bold ph-pause"></i> Pause</button>` : `<button style="background: rgba(56, 189, 248, 0.1); color: var(--primary); border: 1px solid var(--primary); padding: 6px 12px; border-radius: 8px; cursor: pointer;" onclick="moveTaskStatus('${task.id}', 'doing')"><i class="ph-bold ph-play"></i> Play</button>`;
+                let playPauseBtn = isDoing ? `<button style="background: rgba(244, 63, 94, 0.1); color: var(--danger); border: 1px solid var(--danger); padding: 6px 12px; border-radius: 8px; cursor: pointer;" onclick="moveTaskStatus('${task.id}', 'paused')"><i class="ph-bold ph-pause"></i> Pause</button>` : `<button style="background: var(--glass-bg); color: var(--primary); border: 1px solid var(--primary); padding: 6px 12px; border-radius: 8px; cursor: pointer;" onclick="moveTaskStatus('${task.id}', 'doing')"><i class="ph-bold ph-play"></i> Play</button>`;
                 controlsHTML = `<div style="display: flex; gap: 8px; margin-top: 10px;">${playPauseBtn}<button style="background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid var(--success); padding: 6px 12px; border-radius: 8px; cursor: pointer; flex: 1;" onclick="moveTaskStatus('${task.id}', 'done')"><i class="ph-bold ph-check"></i> Finish Task</button></div>`;
             }
-            taskContainer.innerHTML += `<div class="utang-card" style="position: relative; ${isDone ? 'opacity: 0.5; background: rgba(255,255,255,0.02);' : 'background: rgba(192, 132, 252, 0.05); border-left: 4px solid var(--secondary);'} margin-bottom: 10px; padding: 15px;">
+            taskContainer.innerHTML += `<div class="utang-card" style="position: relative; ${isDone ? 'opacity: 0.5; background: var(--glass-bg);' : 'background: var(--card-bg); border-left: 4px solid var(--secondary);'} margin-bottom: 10px; padding: 15px;">
                 <button onclick="deleteTask('${task.id}')" style="position: absolute; top: 12px; right: 12px; background: none; border: none; color: var(--danger); cursor: pointer; font-size: 16px; padding: 0;"><i class="ph-bold ph-x"></i></button>
-                <span style="font-size: 10px; font-weight: 700; background: rgba(255,255,255,0.05); color: ${badgeColor}; padding: 3px 8px; border-radius: 5px; text-transform: uppercase;">${task.category}</span>
+                <span style="font-size: 10px; font-weight: 700; background: var(--glass-bg); color: ${badgeColor}; padding: 3px 8px; border-radius: 5px; text-transform: uppercase;">${task.category}</span>
                 <h4 style="margin: 8px 0 2px 0; font-size: 15px; color: var(--text-main); padding-right: 25px;">${task.title}</h4>
                 ${timeText}${controlsHTML}</div>`;
         });
@@ -365,7 +365,7 @@ function renderTasks() {
             let timeParts = (habit.time || "12:00").split(':'); let hour = parseInt(timeParts[0]);
             let formattedTime = (hour % 12 || 12) + ':' + (timeParts[1] || "00") + (hour >= 12 ? ' PM' : ' AM');
             let isDoneToday = habit.lastDoneDate === todayDateStr; 
-            habitContainer.innerHTML += `<div class="utang-card" style="position: relative; ${isDoneToday ? 'opacity: 0.5;' : 'background: rgba(16, 185, 129, 0.05); border-left: 4px solid var(--success);'} margin-bottom: 10px; padding: 15px;">
+            habitContainer.innerHTML += `<div class="utang-card" style="position: relative; ${isDoneToday ? 'opacity: 0.5;' : 'background: var(--card-bg); border-left: 4px solid var(--success);'} margin-bottom: 10px; padding: 15px;">
                 <button onclick="deleteHabit('${habit.id}')" style="position: absolute; top: 12px; right: 12px; background: none; border: none; color: var(--danger); cursor: pointer; font-size: 16px; padding: 0;"><i class="ph-bold ph-x"></i></button>
                 <h4 style="margin: 0 0 5px 0; font-size: 15px; color: var(--success); padding-right: 25px;">${habit.name}</h4>
                 <span style="font-size: 12px; color: var(--text-muted);"><i class="ph-bold ph-clock"></i> ${formattedTime}</span>
@@ -380,9 +380,9 @@ function renderTasks() {
                 let isDone = task.status === 'done'; let dateObj = new Date(task.dueDate);
                 let dateFormatted = isNaN(dateObj) ? "Date not set" : dateObj.toLocaleDateString('default', { month: 'short', day: 'numeric', year: 'numeric' });
                 let controlsHTML = isDone ? `<span style="color: var(--success); font-weight: bold; font-size: 12px;"><i class="ph-bold ph-check-circle"></i> Event Completed</span>` : `<button class="paid-btn" style="border-color: #fbbf24; color: #fbbf24; padding: 6px; margin-top: 10px;" onclick="moveTaskStatus('${task.id}', 'done')"><i class="ph-bold ph-check"></i> Mark Done</button>`;
-                schedContainer.innerHTML += `<div class="utang-card" style="position: relative; ${isDone ? 'opacity: 0.5; background: rgba(255,255,255,0.02);' : 'background: rgba(251, 191, 36, 0.05); border-left: 4px solid #fbbf24;'} margin-bottom: 10px; padding: 15px;">
+                schedContainer.innerHTML += `<div class="utang-card" style="position: relative; ${isDone ? 'opacity: 0.5; background: var(--glass-bg);' : 'background: var(--card-bg); border-left: 4px solid #fbbf24;'} margin-bottom: 10px; padding: 15px;">
                     <button onclick="deleteTask('${task.id}')" style="position: absolute; top: 12px; right: 12px; background: none; border: none; color: var(--danger); cursor: pointer; font-size: 16px; padding: 0;"><i class="ph-bold ph-x"></i></button>
-                    <span style="font-size: 10px; font-weight: 700; background: rgba(255,255,255,0.05); color: #fbbf24; padding: 3px 8px; border-radius: 5px; text-transform: uppercase;">WHOLE DAY</span>
+                    <span style="font-size: 10px; font-weight: 700; background: var(--glass-bg); color: #fbbf24; padding: 3px 8px; border-radius: 5px; text-transform: uppercase;">WHOLE DAY</span>
                     <h4 style="margin: 8px 0 2px 0; font-size: 15px; color: var(--text-main); padding-right: 25px;">${task.title}</h4>
                     <span style="font-size: 11px; color: var(--text-muted);"><i class="ph-bold ph-calendar"></i> ${dateFormatted}</span>
                     <div style="margin-top: 10px;">${controlsHTML}</div>
@@ -412,7 +412,7 @@ function renderKanban() {
             colDoing.innerHTML += cardHTML;
         } else if (task.status === 'done') {
             actionButtons = `<button class="kb-btn" style="width: 100%; color: var(--text-muted);" onclick="moveTaskStatus('${task.id}', 'doing')"><i class="ph-bold ph-arrow-left"></i> Re-open</button>`;
-            cardHTML = `<div class="kanban-card" style="opacity: 0.5; background: rgba(255,255,255,0.02);"><h4 style="margin: 8px 0; font-size: 14px; color: var(--text-muted); text-decoration: line-through;">${task.title}</h4><div class="kanban-actions">${actionButtons}</div></div>`;
+            cardHTML = `<div class="kanban-card" style="opacity: 0.5; background: var(--glass-bg);"><h4 style="margin: 8px 0; font-size: 14px; color: var(--text-muted); text-decoration: line-through;">${task.title}</h4><div class="kanban-actions">${actionButtons}</div></div>`;
             colDone.innerHTML += cardHTML;
         }
     });
@@ -463,7 +463,7 @@ function initRealtimeFood() {
 }
 
 function getFoodGradeColor(grade) {
-    if (!grade || grade === '--' || grade === 'N/A') return { bg: 'rgba(255,255,255,0.05)', border: 'rgba(255,255,255,0.1)', text: 'var(--text-muted)' };
+    if (!grade || grade === '--' || grade === 'N/A') return { bg: 'var(--glass-bg)', border: 'var(--glass-border)', text: 'var(--text-muted)' };
     const g = grade.toUpperCase();
     if (g.startsWith('A')) return { bg: 'rgba(16,185,129,0.12)', border: 'rgba(16,185,129,0.4)', text: '#10b981' };
     if (g.startsWith('B')) return { bg: 'rgba(56,189,248,0.12)', border: 'rgba(56,189,248,0.4)', text: '#38bdf8' };
@@ -520,8 +520,8 @@ function renderFoodList() {
     todayFood.forEach(food => {
         let badgeColor = food.meal === 'Breakfast' ? '#fbbf24' : food.meal === 'Lunch' ? '#38bdf8' : food.meal === 'Dinner' ? '#c084fc' : '#f43f5e';
         let picIcon = food.image64 ? ' <i class="ph-bold ph-image"></i>' : ''; let priceTag = food.cost > 0 ? ` - ₱${food.cost}` : '';
-        container.innerHTML += `<div class="utang-card" style="background: rgba(255,255,255,0.02); margin-bottom: 10px; padding: 15px;">
-            <span style="font-size: 9px; font-weight: 700; background: rgba(255,255,255,0.05); color: ${badgeColor}; padding: 3px 8px; border-radius: 5px; text-transform: uppercase;">${food.meal} • ${food.source}</span>
+        container.innerHTML += `<div class="utang-card" style="background: var(--card-bg); margin-bottom: 10px; padding: 15px;">
+            <span style="font-size: 9px; font-weight: 700; background: var(--glass-bg); color: ${badgeColor}; padding: 3px 8px; border-radius: 5px; text-transform: uppercase;">${food.meal} • ${food.source}</span>
             <span style="float: right; font-size: 11px; color: var(--text-muted);">${food.time}</span>
             <h4 style="margin: 10px 0 0 0; font-size: 14px; color: var(--text-main); font-weight: 500;">${food.item}${picIcon}${priceTag}</h4>
             <button onclick="deleteFood('${food.id}')" style="background: none; border: none; color: var(--danger); font-size: 12px; margin-top: 8px; cursor: pointer; padding: 0;"><i class="ph-bold ph-trash"></i> Remove</button>
@@ -529,9 +529,7 @@ function renderFoodList() {
     });
 }
 
-// ==========================================
-// 🤖 FOOD AI (MULTI-TAP + CROSS-DEVICE SYNC)
-// ==========================================
+// MULTI-TAP FOOD AI LOGIC
 async function analyzeFoodAI() {
     if (foodDatabase.length === 0) { alert("Kumain ka muna!"); return; }
     let todayKey = new Date().toLocaleDateString('en-CA');
@@ -554,12 +552,8 @@ async function analyzeFoodAI() {
 
         if(typeof applyFoodSummaryUI === "function") { applyFoodSummaryUI({ grade: grade, calories: calories, summary: "Updated for today!" }); }
         
-        // SAVE SA FIREBASE (Ito ang mag-ti-trigger ng auto-update sa lahat ng devices)
         await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "aiAnalyses"), { userId: window.currentUid, verdict: verdict, grade: grade, calories: calories, type: 'food', dateKey: todayKey, createdAt: Date.now() });
-
-        playSound('success'); // 🔊 Crystal chime for AI Success
-
-        // Restore the button so you can tap it again later
+        playSound('success'); 
         if (aiBtn) { aiBtn.innerHTML = '<i class="ph-bold ph-sparkle"></i> Analyze My Day (AI)'; aiBtn.disabled = false; aiBtn.style.opacity = "1"; }
     } catch (e) { 
         console.error(e); alert("API Error. Hindi ko ma-analyze ngayon."); 
@@ -571,24 +565,15 @@ async function analyzeFoodAI() {
 function initRealtimeAiAnalyses() {
     const q = window.dbMethods.query(window.dbMethods.collection(window.db, "aiAnalyses"), window.dbMethods.where("userId", "==", window.currentUid));
     window.dbMethods.onSnapshot(q, (snapshot) => {
-        aiAnalyses = []; 
-        let todayKey = new Date().toLocaleDateString('en-CA');
-        
+        aiAnalyses = []; let todayKey = new Date().toLocaleDateString('en-CA');
         snapshot.forEach(doc => { aiAnalyses.push({ id: doc.id, ...doc.data() }); });
         aiAnalyses.sort((a, b) => a.createdAt - b.createdAt); 
 
-        // CROSS-DEVICE SYNC LOGIC
         let todaysAnalyses = aiAnalyses.filter(a => a.type === 'food' && a.dateKey === todayKey);
-        
         if (todaysAnalyses.length > 0) {
-            let latest = todaysAnalyses[todaysAnalyses.length - 1]; // Kukunin ang pinakahuling record
-            
-            // I-show yung result box sa lahat ng device
-            let resultDiv = document.getElementById('aiFoodResult'); 
-            let textDiv = document.getElementById('aiVerdictText');
+            let latest = todaysAnalyses[todaysAnalyses.length - 1]; 
+            let resultDiv = document.getElementById('aiFoodResult'); let textDiv = document.getElementById('aiVerdictText');
             if (resultDiv && textDiv) { resultDiv.style.display = 'block'; textDiv.innerHTML = latest.verdict; }
-
-            // I-update yung grade sa Dashboard
             let glanceGrade = document.getElementById('glance-food-grade');
             if (glanceGrade && latest.grade) { 
                 glanceGrade.innerText = latest.grade; 
@@ -596,13 +581,6 @@ function initRealtimeAiAnalyses() {
                 if (latest.grade.startsWith('A')) gColor = '#10b981'; else if (latest.grade.startsWith('B')) gColor = '#38bdf8'; else if (latest.grade.startsWith('C')) gColor = '#fbbf24'; 
                 glanceGrade.style.color = gColor; 
             }
-        }
-        
-        // Tiyaking palaging naka-enable ang button para sa multi-tap
-        let aiBtn = document.querySelector('button[onclick="playSound(\'click\'); analyzeFoodAI()"]') || document.querySelector('button[onclick="analyzeFoodAI()"]');
-        if (aiBtn && !aiBtn.disabled) { 
-            aiBtn.innerHTML = '<i class="ph-bold ph-sparkle"></i> Analyze My Day (AI)'; 
-            aiBtn.style.opacity = "1"; 
         }
     });
 }
@@ -620,7 +598,7 @@ function updateBudgetDashboard() {
     if (myWallets.length === 0) container.innerHTML = `<p style="color: var(--text-muted); font-size: 12px; font-style: italic;">Wala pang wallet.</p>`;
     else {
         myWallets.forEach(wallet => {
-            container.innerHTML += `<div style="position: relative; min-width: 120px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; flex-shrink: 0;">
+            container.innerHTML += `<div style="position: relative; min-width: 120px; background: var(--card-bg); border: 1px solid var(--glass-border); padding: 15px; border-radius: 12px; flex-shrink: 0;">
                 <button onclick="playSound('click'); deleteWallet('${wallet.id}')" style="position: absolute; top: 8px; right: 8px; background: none; border: none; color: var(--danger); cursor: pointer; padding: 0;"><i class="ph-bold ph-x"></i></button>
                 <p style="margin: 0; font-size: 11px; color: var(--text-muted); text-transform: uppercase; padding-right: 15px;">${wallet.name}</p>
                 <h4 style="margin: 5px 0 0 0; color: var(--text-main); font-size: 16px;">₱${parseFloat(wallet.balance).toLocaleString()}</h4>
@@ -685,8 +663,8 @@ function renderTransactions() {
         let categoryTag = '';
         if (t.category === 'Debt Payment') { categoryTag = `<span style="font-size: 9px; font-weight: 700; background: rgba(244,63,94,0.1); color: var(--danger); padding: 2px 6px; border-radius: 4px; margin-left: 4px;">UTANG • ${walletName}</span>`; } else if (t.category === 'Food & Drinks') { categoryTag = `<span style="font-size: 9px; font-weight: 700; background: rgba(251,191,36,0.1); color: #fbbf24; padding: 2px 6px; border-radius: 4px; margin-left: 4px;">FOOD & DRINKS</span>`; }
         let targetWalletId = t.walletToId || '';
-        container.innerHTML += `<div class="utang-card" style="padding: 12px 15px; margin-bottom: 10px; background: rgba(255,255,255,0.02); display: flex; justify-content: space-between; align-items: center; border-left-color: ${color}; position: relative;">
-            <div style="display: flex; gap: 12px; align-items: center; overflow: hidden;"><div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px; color: ${color};"><i class="ph-bold ${icon}" style="font-size: 16px;"></i></div>
+        container.innerHTML += `<div class="utang-card" style="padding: 12px 15px; margin-bottom: 10px; background: var(--card-bg); display: flex; justify-content: space-between; align-items: center; border-left-color: ${color}; position: relative;">
+            <div style="display: flex; gap: 12px; align-items: center; overflow: hidden;"><div style="background: var(--glass-bg); padding: 8px; border-radius: 8px; color: ${color};"><i class="ph-bold ${icon}" style="font-size: 16px;"></i></div>
                 <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><p style="margin: 0; font-size: 13px; font-weight: 600; color: var(--text-main);">${displayNote}${categoryTag}</p><p style="margin: 2px 0 0 0; font-size: 11px; color: var(--text-muted);">${walletName} • ${dateStr}</p></div>
             </div>
             <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0; margin-left: 10px;"><h4 style="margin: 0; font-size: 14px; color: ${color};">${sign}₱${parseFloat(t.amount).toLocaleString()}</h4><button onclick="playSound('click'); deleteTransaction('${t.id}', '${t.type}', ${t.amount}, '${t.walletId}', '${targetWalletId}')" style="background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 5px; transition: 0.2s;" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--text-muted)'"><i class="ph-bold ph-x"></i></button></div>
@@ -865,14 +843,16 @@ function forceUpdateApp() {
 }
 
 // ==========================================
-// 🎨 DYNAMIC THEME SWITCHER
+// 🎨 DYNAMIC THEME SWITCHER (UPDATED: 4 THEMES)
 // ==========================================
 function toggleTheme() {
     let body = document.body;
     if (body.classList.contains('theme-green')) {
         body.classList.remove('theme-green'); body.classList.add('theme-pink'); localStorage.setItem('flux_theme', 'pink');
     } else if (body.classList.contains('theme-pink')) {
-        body.classList.remove('theme-pink'); localStorage.setItem('flux_theme', 'default');
+        body.classList.remove('theme-pink'); body.classList.add('theme-light'); localStorage.setItem('flux_theme', 'light');
+    } else if (body.classList.contains('theme-light')) {
+        body.classList.remove('theme-light'); localStorage.setItem('flux_theme', 'default');
     } else {
         body.classList.add('theme-green'); localStorage.setItem('flux_theme', 'green');
     }
@@ -880,9 +860,10 @@ function toggleTheme() {
 
 function loadSavedTheme() {
     let savedTheme = localStorage.getItem('flux_theme'); let body = document.body;
-    body.classList.remove('theme-green', 'theme-pink');
+    body.classList.remove('theme-green', 'theme-pink', 'theme-light');
     if (savedTheme === 'green') { body.classList.add('theme-green'); } 
     else if (savedTheme === 'pink') { body.classList.add('theme-pink'); }
+    else if (savedTheme === 'light') { body.classList.add('theme-light'); }
 }
 loadSavedTheme();
 
