@@ -51,40 +51,23 @@ export default async function handler(req, res) {
         } 
         
         // ==========================================
-        // 🤖 LOGIC 2: AI LIFE COACH
+        // 🤖 LOGIC 2: DAILY AI MOTIVATION
         // ==========================================
         else if (action === 'getBriefing') {
             const prompt = `
-Act as a personal life coach with the persona: "${coachPersona}".
-The user's name is "${userName}". 
-STRICT RULE: DO NOT EVER USE THE WORD "Engineer".
+The user's name is "${userName}". They currently feel "${currentMood}".
+They have ${userData?.pendingTasks || 0} pending tasks to finish today.
 
-Context right now:
-- Pending Tasks (To-Do): ${userData?.pendingTasks || 0} 
-- Pending Daily Habits (Not done yet): ${userData?.pendingHabits || 0}
-- Today's Events (Schedule): ${userData?.todayEvents || 0}
-- Current Mood: "${currentMood}"
-- Budget Spent: ${userData?.budgetPercent || 0}%
-- Debts Due EXACTLY TODAY: ₱${userData?.duesToday || 0}  
+Provide a short, 2-sentence motivational advice in conversational Taglish (Tagalog-English). 
+Acknowledge their current mood and remind them to tackle their pending tasks.
+Then, provide a separate, highly motivational quote.
 
-STRICT INSTRUCTIONS FOR REPORTING:
-1. "Pending Tasks" are things the user needs to ACTUALLY FINISH. 
-2. "Today's Events" are just schedules or commitments. NEVER add tasks and events together (e.g., DO NOT say "You have 3 tasks" if they have 2 tasks and 1 event).
-3. "Pending Daily Habits": If > 0, remind them to complete their daily routines.
-4. "Debts Due EXACTLY TODAY": If greater than 0, urgently remind them to pay the ₱${userData?.duesToday || 0} today. If 0, do not mention debt unless their budget is over 80%.
-5. If budgetPercent > 80%, give a strict warning to control spending.
-
-CRITICAL INSTRUCTION FOR MOOD:
-If the user's mood is "Pakyu", act extremely savage, sarcastic, or match their chaotic/frustrated energy according to your persona. Validate their frustration but remind them to get back on track.
-
-Speak in conversational Taglish (Tagalog-English) like a peer or close friend.
-
-Provide a 3-4 sentence daily briefing (advice/update) connecting their mood, tasks, habits, and finances, plus a separate short motivational quote.
+STRICT RULE: DO NOT use the word "Engineer". Be a supportive and chill AI assistant.
 
 You MUST return exactly a valid JSON object (no markdown, no backticks) with this exact structure:
 {
-    "briefing": "your 3-4 sentence update here",
-    "quote": "your quote here"
+    "briefing": "your 2-sentence advice here",
+    "quote": "your motivational quote here"
 }
 `;
 
@@ -99,13 +82,10 @@ You MUST return exactly a valid JSON object (no markdown, no backticks) with thi
             const responseData = await response.json();
 
             if (!response.ok) {
-                console.error("Google API Error details:", responseData);
                 throw new Error(responseData.error?.message || 'Unknown API Error');
             }
 
             let aiText = responseData.candidates[0].content.parts[0].text.trim();
-            
-            // Lilinisin natin just in case magbigay ang AI ng markdown na ```json ... ```
             if (aiText.startsWith('```json')) {
                 aiText = aiText.replace(/^```json/, '').replace(/```$/, '').trim();
             }
@@ -114,15 +94,13 @@ You MUST return exactly a valid JSON object (no markdown, no backticks) with thi
                 const parsedResult = JSON.parse(aiText);
                 return res.status(200).json(parsedResult);
             } catch (parseError) {
-                console.error("JSON Parse Error:", parseError, "Raw AI Text:", aiText);
-                // Fallback kung pumalya ang AI sumunod sa JSON format
                 return res.status(200).json({ 
-                    briefing: `Hey ${userName}, medyo naguluhan ako pero you have ${userData.pendingTasks || 0} tasks left. Kaya mo 'yan!`,
+                    briefing: `Hey ${userName}, may ${userData.pendingTasks || 0} tasks ka pa today. Kayang-kaya mo yan!`,
                     quote: "Stay focused."
                 });
             }
         }
-
+            
         // ==========================================
         // 🥗 LOGIC 4: DAILY FOOD SUMMARY (Calories + Grade)
         // ==========================================
