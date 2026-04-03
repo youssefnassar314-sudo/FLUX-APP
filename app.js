@@ -538,10 +538,38 @@ function initRealtimeAiAnalyses() {
     const q = window.dbMethods.query(window.dbMethods.collection(window.db, "aiAnalyses"), window.dbMethods.where("userId", "==", window.currentUid));
     window.dbMethods.onSnapshot(q, (snapshot) => {
         aiAnalyses = []; 
+        let todayKey = new Date().toLocaleDateString('en-CA');
+        
         snapshot.forEach(doc => {
             aiAnalyses.push({ id: doc.id, ...doc.data() });
         });
         aiAnalyses.sort((a, b) => a.createdAt - b.createdAt); 
+
+        // Hanapin ang pinaka-latest na na-analyze ngayon
+        let todaysAnalyses = aiAnalyses.filter(a => a.type === 'food' && a.dateKey === todayKey);
+        
+        if (todaysAnalyses.length > 0) {
+            let latest = todaysAnalyses[todaysAnalyses.length - 1]; // Pinakahuli
+            
+            // I-show sa UI ang AI Verdict Box
+            let resultDiv = document.getElementById('aiFoodResult'); 
+            let textDiv = document.getElementById('aiVerdictText');
+            if (resultDiv && textDiv) { 
+                resultDiv.style.display = 'block'; 
+                textDiv.innerHTML = latest.verdict; 
+            }
+
+            // I-update din ang Food Grade sa Dashboard Glance
+            let glanceGrade = document.getElementById('glance-food-grade');
+            if (glanceGrade && latest.grade) { 
+                glanceGrade.innerText = latest.grade; 
+                let gColor = '#f43f5e'; 
+                if (latest.grade.startsWith('A')) gColor = '#10b981'; 
+                else if (latest.grade.startsWith('B')) gColor = '#38bdf8'; 
+                else if (latest.grade.startsWith('C')) gColor = '#fbbf24'; 
+                glanceGrade.style.color = gColor; 
+            }
+        }
     });
 }
 
