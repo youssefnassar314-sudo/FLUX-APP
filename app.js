@@ -660,33 +660,6 @@ function renderKanban() {
 // 🍔 MODULE 3: FOOD LOG & MULTIMODAL AI (FIREBASE)
 // ==========================================
 
-let currentBase64 = null;
-let currentMimeType = null;
-
-document.getElementById('foodImage').addEventListener('change', function(e) {
-    let file = e.target.files[0];
-    if (!file) return;
-    let display = document.getElementById('fileNameDisplay');
-    display.innerText = "Compressing..."; display.style.display = "block";
-
-    let reader = new FileReader();
-    reader.onload = function(event) {
-        let img = new Image();
-        img.onload = function() {
-            let canvas = document.createElement('canvas'); let ctx = canvas.getContext('2d');
-            let w = img.width, h = img.height;
-            if (w > h) { if (w > 800) { h *= 800 / w; w = 800; } } else { if (h > 800) { w *= 800 / h; h = 800; } }
-            canvas.width = w; canvas.height = h; ctx.drawImage(img, 0, 0, w, h);
-            
-            let split = canvas.toDataURL('image/jpeg', 0.7).split(',');
-            currentMimeType = split[0].match(/:(.*?);/)[1]; currentBase64 = split[1];
-            display.innerText = "Ready: " + file.name; display.style.color = "var(--success)";
-        };
-        img.src = event.target.result;
-    };
-    reader.readAsDataURL(file);
-});
-
 async function saveFood() {
     let mealType = document.getElementById('mealType').value;
     let foodSource = document.getElementById('foodSource').value;
@@ -696,7 +669,7 @@ async function saveFood() {
     let price = priceInput ? parseFloat(priceInput.value || 0) : 0;
     let walletId = walletInput ? walletInput.value : null;
 
-    if (!foodItem && !currentBase64) { alert("Piktyuran mo o i-type mo yung kinain mo!"); return; }
+    if (!foodItem) { alert("I-type mo muna kung anong kinain mo!"); return; }
 
     try {
         if (price > 0 && walletId) {
@@ -712,9 +685,9 @@ async function saveFood() {
             
             monthlySpent += price; 
 
-            let transactionNote = foodItem ? `Food: ${foodItem}` : `Food: ${mealType} (${foodSource})`;
+            let transactionNote = `Food: ${foodItem}`;
             await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "transactions"), {
-                userId: window.currentUid, // <-- BAGO
+                userId: window.currentUid,
                 type: 'expense',
                 walletId: walletId,
                 amount: price,
@@ -725,24 +698,21 @@ async function saveFood() {
         }
 
         await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "foodLogs"), {
-            userId: window.currentUid, // <-- BAGO
+            userId: window.currentUid,
             meal: mealType, 
             source: foodSource, 
-            item: foodItem || "*(May Picture)*", 
+            item: foodItem, 
             cost: price,
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            image64: currentBase64, 
-            mimeType: currentMimeType, 
             createdAt: Date.now()
         });
 
         document.getElementById('foodItem').value = ''; 
         if (priceInput) priceInput.value = '';
-        document.getElementById('foodImage').value = ''; 
-        document.getElementById('fileNameDisplay').style.display = 'none';
-        currentBase64 = null; 
-        currentMimeType = null; 
-        document.getElementById('aiFoodResult').style.display = 'none';
+        
+        // Isara yung old verdict result just in case
+        let resultDiv = document.getElementById('aiFoodResult');
+        if (resultDiv) resultDiv.style.display = 'none';
         
     } catch (e) { 
         console.error(e); alert("May error sa pag-save!"); 
@@ -933,7 +903,7 @@ async function analyzeFoodAI() {
         return; 
     }
 
-    // Ilalagay natin sa loading state yung Widget
+    // Ilalagay natin sa loading state yung Widget kung buhay pa siya sa screen mo
     let tipEl = document.getElementById('foodSummaryTip');
     let gradeText = document.getElementById('foodGradeText');
     if (tipEl) tipEl.innerText = 'Calculating calories...';
@@ -948,9 +918,8 @@ async function analyzeFoodAI() {
             body: JSON.stringify({ 
                 action: 'analyzeDailyFood', // BAGONG ACTION NAME
                 foodLog: allFoodText, 
-                images: todayFood.filter(f => f.image64).map(f => ({ mimeType: f.mimeType, data: f.image64 })),
                 userName: window.currentUserName || "Pat"
-            })
+            }) // WALA NANG IMAGES NA PINAPASA DITO
         });
 
         const data = await response.json();
@@ -958,19 +927,31 @@ async function analyzeFoodAI() {
         const grade = data.grade || "N/A";
         const calories = data.calories || 0;
 
-        // 1. I-UPDATE ANG WIDGET
-        applyFoodSummaryUI({ grade: grade, calories: calories, summary: "Updated for today!" });
+        // 1. I-UPDATE ANG WIDGET KUNG NASA FOOD SCREEN KA (Optional function kung nandun pa)
+        if(typeof applyFoodSummaryUI === "function") {
+            applyFoodSummaryUI({ grade: grade, calories: calories, summary: "Updated for today!" });
+        }
         
-        // Kung gusto mong ma-save sa cache yung widget data para hindi mawala pag-refresh:
-        localStorage.setItem('flux_food_summary_cache', JSON.stringify({ 
-            dateKey: todayKey, grade: grade, calories: calories, summary: "Updated for today!" 
-        }));
+        // 2. I-UPDATE ANG FUNNY VERDICT BOX SA BABA
+        let resultDiv = document.getElementById('aiFoodResult');
+        let textDiv = document.getElementById('aiVerdictText');
+        if (resultDiv && textDiv) {
+            resultDiv.style.display = 'block';
+            textDiv.innerHTML = verdict;
+        }
 
-        // 2. I-UPDATE ANG FUNNY VERDICT BOX
-        document.getElementById('aiFoodResult').style.display = 'block';
-        document.getElementById('aiVerdictText').innerHTML = verdict;
+        // 3. I-UPDATE YUNG QUICK GLANCE WIDGET MO SA DASHBOARD
+        let glanceGrade = document.getElementById('glance-food-grade');
+        if (glanceGrade) {
+            glanceGrade.innerText = grade;
+            let gColor = '#f43f5e';
+            if (grade.startsWith('A')) gColor = '#10b981';
+            else if (grade.startsWith('B')) gColor = '#38bdf8';
+            else if (grade.startsWith('C')) gColor = '#fbbf24';
+            glanceGrade.style.color = gColor;
+        }
 
-        // 3. I-SAVE SA FIREBASE ANG ANALYSIS
+        // 4. I-SAVE SA FIREBASE ANG ANALYSIS
         await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "aiAnalyses"), {
             userId: window.currentUid,
             verdict: verdict,
