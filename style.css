@@ -835,12 +835,12 @@ body.theme-pink {
     background: rgba(255,255,255,0.1);
 }
 
-/* Ang mga kalaban */
+
 .minion {
     position: absolute;
-    right: -30px;
+    left: 0; /* BAGO: Binago natin mula right papuntang left */
     font-size: 24px;
-    transition: transform 0.1s linear; /* Smooth movement */
+    transition: transform 0.05s linear; /* Mas smooth na galaw */
 }
 
 /* Yung atake mo */
