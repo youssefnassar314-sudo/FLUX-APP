@@ -1709,11 +1709,10 @@ async function generateAIBriefing() {
 
     let todayStr = new Date().toLocaleDateString('en-CA');
 
-    // 1. CHECK CACHE: Titingnan kung may nai-save na motivation for today
+    // 1. CHECK CACHE: Kukuha ng quote kung nakapag-generate na today
     try {
         let cached = JSON.parse(localStorage.getItem('flux_daily_motivation'));
         if (cached && cached.date === todayStr) {
-            // Kung meron na para sa araw na ito, ito na lang ang ipapakita (NO API CALL)
             if(textEl) textEl.innerHTML = cached.briefing;
             if(quoteEl) quoteEl.innerHTML = `"${cached.quote}"`;
             if(pulseEl) { pulseEl.style.width = "100%"; setTimeout(() => pulseEl.style.opacity = "0", 300); }
@@ -1721,12 +1720,9 @@ async function generateAIBriefing() {
         }
     } catch(e) {}
 
-    // 2. FETCH FROM AI: Kung wala pa, tatawag tayo sa Gemini
+    // 2. FETCH FROM AI: Pag wala pa for today, hihingi ng bago
     if(pulseEl) { pulseEl.style.opacity = "1"; pulseEl.style.width = "50%"; }
-    if(textEl) textEl.innerHTML = `<i class="ph-bold ph-spinner" style="animation: spin 1s linear infinite;"></i> Generating your motivation for today...`;
-
-    // Kunin kung ilang tasks pa ang pending
-    let pendingTasks = taskDatabase.filter(t => t.status !== 'done' && t.category !== 'Sched').length;
+    if(textEl) textEl.innerHTML = `<i class="ph-bold ph-spinner" style="animation: spin 1s linear infinite;"></i> Kukuha lang ng motivation for today...`;
 
     try {
         const response = await fetch('/api/analyze', {
@@ -1734,16 +1730,14 @@ async function generateAIBriefing() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 action: 'getBriefing',
-                userName: window.currentUserName || "Pat",
-                currentMood: currentMood,
-                data: { pendingTasks }
-            })
+                userName: window.currentUserName || "Pat"
+            }) // Wala na yung currentMood at pendingTasks dito!
         });
 
         const data = await response.json();
         
-        const briefingText = data.briefing || `You have ${pendingTasks} pending tasks today. Let's get things done!`;
-        const quoteText = data.quote || "Small progress is still progress.";
+        const briefingText = data.briefing || `Good morning, ${window.currentUserName || 'Pat'}! Have a great day ahead!`;
+        const quoteText = data.quote || "Keep moving forward.";
 
         if(textEl) textEl.innerHTML = briefingText;
         if(quoteEl) quoteEl.innerHTML = `"${quoteText}"`;
@@ -1757,8 +1751,8 @@ async function generateAIBriefing() {
 
     } catch (e) {
         console.error("Briefing Error:", e);
-        if(textEl) textEl.innerHTML = `May ${pendingTasks} pending tasks ka pa. Pahinga muna kung kailangan!`;
-        if(quoteEl) quoteEl.innerHTML = `"System offline. Tuloy ang laban."`;
+        if(textEl) textEl.innerHTML = `Offline muna yung system ngayon. Focus ka muna sa araw mo!`;
+        if(quoteEl) quoteEl.innerHTML = `"Tuloy ang laban."`;
     } finally {
         if(pulseEl) {
             pulseEl.style.width = "100%";
@@ -1766,7 +1760,6 @@ async function generateAIBriefing() {
         }
     }
 }
-
 
 // ==========================================
 // 🔐 AUTHENTICATION & INITIALIZE SYSTEM
