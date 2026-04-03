@@ -21,6 +21,7 @@ let transactionDatabase = [];
 let currentUtangView = 'date'; 
 
 function switchScreen(screenId) {
+    playSound('transition');
     let screens = document.querySelectorAll('.screen');
     screens.forEach(screen => screen.classList.remove('active-screen'));
     document.getElementById(screenId).classList.add('active-screen');
@@ -31,6 +32,24 @@ function switchScreen(screenId) {
     if (screenId === 'budgetScreen') updateBudgetDashboard();
     if (screenId === 'kanbanScreen') renderKanban();
     if (screenId === 'dashboardScreen') fetchFoodSummary();
+}
+
+// ==========================================
+// 🔊 SOUND ENGINE (COSMIC UI)
+// ==========================================
+const soundFX = {
+    click: new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3'), // Subtle blip
+    success: new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3'), // Crystal chime
+    transition: new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3') // Sci-fi slide
+};
+
+// Pampa-play ng sound (low volume para di nakakagulat)
+function playSound(type) {
+    if (soundFX[type]) {
+        soundFX[type].volume = 0.2; 
+        soundFX[type].currentTime = 0; // Reset para pwede pindutin nang mabilis
+        soundFX[type].play().catch(e => console.log("Sound blocked by browser until first interaction."));
+    }
 }
 
 // ==========================================
@@ -966,4 +985,5 @@ window.closeBudgetModals = closeBudgetModals; window.deleteUtang = deleteUtang; 
 window.deleteTransaction = deleteTransaction; window.openDailySummary = openDailySummary; window.forceUpdateApp = forceUpdateApp;
 window.setUtangView = setUtangView; window.toggleTheme = toggleTheme; window.setCustomUsername = setCustomUsername;
 window.refreshFoodSummary = refreshFoodSummary; window.toggleVisibility = toggleVisibility; window.updateQuickGlance = updateQuickGlance;
-window.setReceiptFilter = setReceiptFilter;
+window.setReceiptFilter = setReceiptFilter; // Sa window exports sa pinakababa, dagdag mo 'to:
+window.playSound = playSound;
