@@ -2146,10 +2146,14 @@ function spawnMinion() {
     let laneId = Math.floor(Math.random() * 3); // Random lane 0, 1, or 2
     let isBoss = Math.random() > 0.8; // 20% chance mag-spawn ang malakas
     
+    // BAGO: Kukunin ang saktong lapad ng screen mo para doon mag-spawn
+    let arena = document.getElementById('mlArena');
+    let arenaWidth = arena ? arena.clientWidth : 350; 
+    
     let minion = {
         id: Date.now() + Math.random(),
         lane: laneId,
-        x: 300, // Starting position sa kanan
+        x: arenaWidth, // BAGO: Start saktong gilid sa kanan
         hp: isBoss ? 3 : 1, // Ilang tap bago mamatay
         type: isBoss ? 'ph-alien' : 'ph-skull',
         color: isBoss ? 'var(--danger)' : 'var(--text-muted)'
