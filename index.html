@@ -134,6 +134,10 @@
                     <i class="ph-duotone ph-chart-pie-slice icon-svg"></i>
                     <p>Budget</p>
                 </div>
+                <div class="grid-item active" onclick="switchScreen('snakeScreen')">
+    <i class="ph-duotone ph-game-controller icon-svg" style="color: #34d399;"></i>
+    <p>Snake Game</p>
+</div>
             </div>
 
           <button class="receipt-btn" onclick="openDailySummary()" style="background: var(--text-main); color: var(--bg-dark); border: none;">
@@ -476,8 +480,31 @@
     </button>
 </div>
         
+<div id="snakeScreen" class="screen">
+    <button class="back-btn" onclick="switchScreen('dashboardScreen'); stopSnakeGame();">
+        <i class="ph-bold ph-caret-left"></i> Dashboard
+    </button>
+    
+    <div class="utang-card" style="text-align: center; padding: 15px; background: rgba(0,0,0,0.3);">
+        <h3 style="color: var(--primary); margin-top: 0;"><i class="ph-duotone ph-game-controller"></i> FLUX Snake</h3>
+        <p style="font-size: 14px; font-weight: bold; color: var(--text-main); margin-bottom: 10px;">Score: <span id="snakeScore" style="color: var(--success);">0</span></p>
+        
+        <canvas id="snakeCanvas" width="300" height="300" style="background: var(--bg-dark); border: 2px solid var(--glass-border); border-radius: 10px; display: block; margin: 0 auto; box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);"></canvas>
+        
+        <button class="save-btn" onclick="startSnakeGame()" style="margin-top: 15px; width: 100%;">
+            <i class="ph-bold ph-play"></i> Start / Restart
+        </button>
 
+        <div class="d-pad" style="margin-top: 15px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; max-width: 200px; margin-left: auto; margin-right: auto;">
+            <div></div>
+            <button class="d-btn" onclick="changeSnakeDir(0, -1)"><i class="ph-bold ph-caret-up"></i></button>
+            <div></div>
+            <button class="d-btn" onclick="changeSnakeDir(-1, 0)"><i class="ph-bold ph-caret-left"></i></button>
+            <button class="d-btn" onclick="changeSnakeDir(0, 1)"><i class="ph-bold ph-caret-down"></i></button>
+            <button class="d-btn" onclick="changeSnakeDir(1, 0)"><i class="ph-bold ph-caret-right"></i></button>
+        </div>
     </div>
+</div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
