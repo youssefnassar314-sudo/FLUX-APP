@@ -1706,52 +1706,27 @@ async function generateAIBriefing() {
     const textEl = document.getElementById('briefingText');
     const quoteEl = document.getElementById('briefingQuote');
     const pulseEl = document.getElementById('aiLoadingPulse');
-    const coachType = document.getElementById('coachSelector').value;
 
-    // ✅ Check localStorage cache muna — valid for 1 hour, same mood + coach
+    let todayStr = new Date().toLocaleDateString('en-CA');
+
+    // 1. CHECK CACHE: Titingnan kung may nai-save na motivation for today
     try {
-        let cached = JSON.parse(localStorage.getItem('flux_briefing_cache') || 'null');
-        let now = Date.now();
-        if (cached && cached.mood === currentMood && cached.coach === coachType) {
+        let cached = JSON.parse(localStorage.getItem('flux_daily_motivation'));
+        if (cached && cached.date === todayStr) {
+            // Kung meron na para sa araw na ito, ito na lang ang ipapakita (NO API CALL)
             if(textEl) textEl.innerHTML = cached.briefing;
             if(quoteEl) quoteEl.innerHTML = `"${cached.quote}"`;
             if(pulseEl) { pulseEl.style.width = "100%"; setTimeout(() => pulseEl.style.opacity = "0", 300); }
-            return; // Cached pa — hindi na mag-aAPI call
+            return; 
         }
-    } catch(e) { /* ignore parse errors */ }
-    
+    } catch(e) {}
+
+    // 2. FETCH FROM AI: Kung wala pa, tatawag tayo sa Gemini
     if(pulseEl) { pulseEl.style.opacity = "1"; pulseEl.style.width = "50%"; }
-    if(textEl) textEl.innerHTML = `<i class="ph-bold ph-spinner" style="animation: spin 1s linear infinite;"></i> Coach is analyzing your day...`;
+    if(textEl) textEl.innerHTML = `<i class="ph-bold ph-spinner" style="animation: spin 1s linear infinite;"></i> Generating your motivation for today...`;
 
-    // 1. Ipunin ang data (Filtered explicitly for TODAY)
-    let todayStr = new Date().toLocaleDateString('en-CA');
-
-    // 📝 PENDING TASKS: Lahat ng tasks na hindi pa done at hindi event
-    let pendingTasks = taskDatabase.filter(t => {
-        const cat = (t.category || "").toLowerCase().trim();
-        return t.status !== 'done' && cat !== 'event' && cat !== 'schedule' && cat !== 'whole day' && cat !== 'sched';
-    }).length;
-
-    // 🔄 DAILY HABITS: Bibilangin yung mga habit na hindi pa naki-click "Done" ngayong araw
-    let pendingHabits = habitDatabase.filter(h => h.lastDoneDate !== todayStr).length;
-
-    // 📅 EVENTS TODAY: Bibilangin lang yung event na naka-schedule MISMO NGAYONG ARAW
-    let todayEvents = taskDatabase.filter(t => {
-        const cat = (t.category || "").toLowerCase().trim();
-        let isEvent = (cat === 'event' || cat === 'schedule' || cat === 'whole day' || cat === 'sched');
-        // I-check kung yung dueDate ng event ay ngayon
-        let isToday = new Date(t.dueDate).toLocaleDateString('en-CA') === todayStr; 
-        return isEvent && isToday;
-    }).length;
-
-    // 💸 UTANG DUE TODAY: Bibilangin lang ang utang na kailangan bayaran NGAYONG ARAW
-    let duesToday = utangDatabase.filter(u => {
-        let isToday = new Date(u.dueDate).toLocaleDateString('en-CA') === todayStr;
-        return !u.isPaid && isToday;
-    }).reduce((sum, u) => sum + (parseFloat(u.amount) || 0), 0);
-
-    // 📊 BUDGET: Overall pa rin for the month
-    let budgetPercent = monthlyTarget > 0 ? Math.round((monthlySpent / monthlyTarget) * 100) : 0;
+    // Kunin kung ilang tasks pa ang pending
+    let pendingTasks = taskDatabase.filter(t => t.status !== 'done' && t.category !== 'Sched').length;
 
     try {
         const response = await fetch('/api/analyze', {
@@ -1759,50 +1734,36 @@ async function generateAIBriefing() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 action: 'getBriefing',
-                userName: window.currentUserName || "User",
-                coachPersona: document.getElementById('coachSelector').value,
+                userName: window.currentUserName || "Pat",
                 currentMood: currentMood,
-                data: {
-                    pendingTasks,
-                    pendingHabits, // <--- BAGO: Para sa daily habits
-                    todayEvents,   // <--- BAGO: Filtered to TODAY
-                    budgetPercent,
-                    duesToday,     // <--- BAGO: Utang for TODAY lang
-                    currentTime: new Date().toLocaleTimeString()
-                }
+                data: { pendingTasks }
             })
         });
 
         const data = await response.json();
         
-        const briefingText = data.briefing || `Hey ${window.currentUserName || 'there'}! You have ${pendingTasks} tasks left today. Let's get it!`;
-        const quoteText = data.quote || `"Small progress is still progress."`;
+        const briefingText = data.briefing || `You have ${pendingTasks} pending tasks today. Let's get things done!`;
+        const quoteText = data.quote || "Small progress is still progress.";
 
         if(textEl) textEl.innerHTML = briefingText;
         if(quoteEl) quoteEl.innerHTML = `"${quoteText}"`;
 
-        // I-save sa localStorage — valid for 1 hour
-        try {
-            localStorage.setItem('flux_briefing_cache', JSON.stringify({
-                briefing: briefingText,
-                quote: quoteText,
-                mood: currentMood,
-                coach: document.getElementById('coachSelector').value,
-                timestamp: Date.now()
-            }));
-        } catch(e) { /* ignore storage errors */ }
+        // 3. I-SAVE SA CACHE PANG-ISANG ARAW
+        localStorage.setItem('flux_daily_motivation', JSON.stringify({
+            date: todayStr,
+            briefing: briefingText,
+            quote: quoteText
+        }));
 
     } catch (e) {
         console.error("Briefing Error:", e);
-        if(textEl) textEl.innerHTML = "System offline. Refresh the OS to reconnect to your coach.";
+        if(textEl) textEl.innerHTML = `May ${pendingTasks} pending tasks ka pa. Pahinga muna kung kailangan!`;
+        if(quoteEl) quoteEl.innerHTML = `"System offline. Tuloy ang laban."`;
     } finally {
         if(pulseEl) {
             pulseEl.style.width = "100%";
             setTimeout(() => pulseEl.style.opacity = "0", 500);
         }
-        setTimeout(() => {
-            isCoachThinking = false; 
-        }, 3000); 
     }
 }
 
