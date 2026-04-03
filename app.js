@@ -32,8 +32,6 @@ function switchScreen(screenId) {
     if (screenId === 'budgetScreen') updateBudgetDashboard();
     if (screenId === 'kanbanScreen') renderKanban();
     if (screenId === 'dashboardScreen') fetchFoodSummary();
-    if (screenId === 'snakeScreen') {
-}
 }
 
 // ==========================================
@@ -85,7 +83,7 @@ async function saveUtang() {
     let appName = document.getElementById('appName').value;
     let utangId = document.getElementById('utangId').value;
 
-    if (!utangId) { alert("Engineer, pakilagay yung 6-digit Utang ID!"); return; }
+    if (!utangId) { alert("Pakilagay yung 6-digit Utang ID!"); return; }
     if (!appName) appName = "N/A";
 
     let amounts = document.querySelectorAll('.dynamic-amt');
@@ -98,7 +96,7 @@ async function saveUtang() {
 
             if (!isNaN(amt) && dateVal) {
                 await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "utang"), {
-                    userId: window.currentUid, // <-- BAGO
+                    userId: window.currentUid, 
                     utangId: utangId + ` (Due ${i + 1})`,
                     amount: amt,
                     dueDate: dateVal, 
@@ -162,13 +160,13 @@ async function confirmPayUtang() {
         await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "utang", utangId), { isPaid: true });
 
         await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "transactions"), {
-            userId: window.currentUid, // <-- BAGO
+            userId: window.currentUid, 
             type: 'expense',
             walletId: walletId,
             amount: amount,
             note: `Bayad Utang: ${utangLabel.split('(')[0]}`,
             category: "Debt Payment", 
-            paidFromWallet: walletObj.name, // Para visible sa history kung saan galing
+            paidFromWallet: walletObj.name, 
             createdAt: Date.now()
         });
 
@@ -182,7 +180,6 @@ function changeMonth(offset) {
 }
 
 function initRealtimeUtang() {
-    // BAGO: Nilagyan ng filter by userId
     const q = window.dbMethods.query(
         window.dbMethods.collection(window.db, "utang"),
         window.dbMethods.where("userId", "==", window.currentUid)
@@ -348,7 +345,7 @@ async function estimateAITask() {
     let category = document.getElementById('aiTaskCategory').value;
     let dateVal = document.getElementById('aiTaskDate').value;
     
-    if (!title || !dateVal) { alert("Engineer, pakilagay ang Task Title at Date!"); return; }
+    if (!title || !dateVal) { alert("Pakilagay ang Task Title at Date!"); return; }
 
     let aiBtn = document.querySelector('button[onclick="estimateAITask()"]');
     let originalText = aiBtn.innerHTML; 
@@ -372,7 +369,7 @@ async function estimateAITask() {
         alert(`FLUX AI says: Naisip ko na! Yung "${title}" aabutin yan ng mga ${estMins} minutes.`);
 
         await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "tasks"), {
-            userId: window.currentUid, // <-- BAGO
+            userId: window.currentUid,
             title: title, 
             category: category, 
             dueDate: dateVal, 
@@ -400,7 +397,7 @@ async function saveManualTask() {
     if (!title || !dateVal) { alert("Pakikumpleto ang Manual Task details!"); return; }
 
     await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "tasks"), {
-        userId: window.currentUid, // <-- BAGO
+        userId: window.currentUid, 
         title: title, category: category, dueDate: dateVal, estMins: parseInt(mins) || 0, status: 'todo', createdAt: Date.now()
     });
 
@@ -415,7 +412,7 @@ async function saveHabit() {
     if (!name || !timeVal) { alert("Pakilagay yung Habit at Oras!"); return; }
 
     await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "habits"), {
-        userId: window.currentUid, // <-- BAGO
+        userId: window.currentUid, 
         name: name, time: timeVal, lastDoneDate: "", createdAt: Date.now()
     });
 
@@ -429,7 +426,6 @@ async function markHabitDone(id) {
 }
 
 function initRealtimeTasks() {
-    // BAGO: Filter by User ID
     const qTasks = window.dbMethods.query(window.dbMethods.collection(window.db, "tasks"), window.dbMethods.where("userId", "==", window.currentUid));
     window.dbMethods.onSnapshot(qTasks, (snapshot) => {
         taskDatabase = [];
@@ -438,7 +434,6 @@ function initRealtimeTasks() {
         updateQuickGlance();
     });
     
-    // BAGO: Filter by User ID
     const qHabits = window.dbMethods.query(window.dbMethods.collection(window.db, "habits"), window.dbMethods.where("userId", "==", window.currentUid));
     window.dbMethods.onSnapshot(qHabits, (snapshot) => {
         habitDatabase = [];
@@ -710,7 +705,6 @@ async function saveFood() {
         document.getElementById('foodItem').value = ''; 
         if (priceInput) priceInput.value = '';
         
-        // Isara yung old verdict result just in case
         let resultDiv = document.getElementById('aiFoodResult');
         if (resultDiv) resultDiv.style.display = 'none';
         
@@ -731,11 +725,9 @@ function initRealtimeFood() {
         foodDatabase.sort((a, b) => b.createdAt - a.createdAt);
         renderFoodList();
         updateBudgetDashboard();
-        // BINURA NA NATIN YUNG AUTO FETCH DITO!
     });
 }
 
-// Grade color helper
 function getFoodGradeColor(grade) {
     if (!grade || grade === '--' || grade === 'N/A') return { bg: 'rgba(255,255,255,0.05)', border: 'rgba(255,255,255,0.1)', text: 'var(--text-muted)' };
     const g = grade.toUpperCase();
@@ -783,7 +775,6 @@ async function fetchFoodSummary(forceRefresh = false) {
         return;
     }
 
-    // 1. CHECK FIREBASE CACHE MUNA (Cross-device sync!)
     if (!forceRefresh) {
         try {
             const q = window.dbMethods.query(
@@ -794,16 +785,14 @@ async function fetchFoodSummary(forceRefresh = false) {
             const snap = await window.dbMethods.getDocs(q);
             if (!snap.empty) {
                 let savedData = snap.docs[0].data();
-                // Kung parehas ang dami ng kinain, ibig sabihin updated na ang database.
                 if (savedData.foodCount === todayFood.length) {
                     applyFoodSummaryUI(savedData);
-                    return; // 🛑 STOP DITO: Nakatipid tayo ng API quota! Walang bagong API Call.
+                    return; 
                 }
             }
         } catch(e) { console.error("Firebase Cache Error:", e); }
     }
 
-    // 2. KUNG MAY BAGONG KINAIN, TATAWAG SA AI
     let tipEl = document.getElementById('foodSummaryTip');
     let gradeText = document.getElementById('foodGradeText');
     if (tipEl) tipEl.innerText = 'Analyzing your meal...';
@@ -820,7 +809,6 @@ async function fetchFoodSummary(forceRefresh = false) {
 
         applyFoodSummaryUI(result);
 
-        // 3. I-SAVE ANG BAGONG RESULT SA FIREBASE PARA MAG-SYNC SA IBANG DEVICES
         const q = window.dbMethods.query(
             window.dbMethods.collection(window.db, "foodSummaries"),
             window.dbMethods.where("userId", "==", window.currentUid),
@@ -829,13 +817,11 @@ async function fetchFoodSummary(forceRefresh = false) {
         const snap = await window.dbMethods.getDocs(q);
         
         if (!snap.empty) {
-            // I-update yung record for today
             await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "foodSummaries", snap.docs[0].id), {
                 ...result,
                 foodCount: todayFood.length
             });
         } else {
-            // Gawa ng bagong record for today
             await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "foodSummaries"), {
                 userId: window.currentUid,
                 dateKey: todayKey,
@@ -851,7 +837,7 @@ async function fetchFoodSummary(forceRefresh = false) {
 }
 
 function refreshFoodSummary() {
-    fetchFoodSummary(true); // I-force niya na tumawag sa AI API
+    fetchFoodSummary(true); 
 }
 
 function renderFoodList() {
@@ -903,7 +889,6 @@ async function analyzeFoodAI() {
         return; 
     }
 
-    // Ilalagay natin sa loading state yung Widget kung buhay pa siya sa screen mo
     let tipEl = document.getElementById('foodSummaryTip');
     let gradeText = document.getElementById('foodGradeText');
     if (tipEl) tipEl.innerText = 'Calculating calories...';
@@ -916,10 +901,10 @@ async function analyzeFoodAI() {
             method: 'POST', 
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
-                action: 'analyzeDailyFood', // BAGONG ACTION NAME
+                action: 'analyzeDailyFood', 
                 foodLog: allFoodText, 
                 userName: window.currentUserName || "Pat"
-            }) // WALA NANG IMAGES NA PINAPASA DITO
+            }) 
         });
 
         const data = await response.json();
@@ -927,12 +912,10 @@ async function analyzeFoodAI() {
         const grade = data.grade || "N/A";
         const calories = data.calories || 0;
 
-        // 1. I-UPDATE ANG WIDGET KUNG NASA FOOD SCREEN KA (Optional function kung nandun pa)
         if(typeof applyFoodSummaryUI === "function") {
             applyFoodSummaryUI({ grade: grade, calories: calories, summary: "Updated for today!" });
         }
         
-        // 2. I-UPDATE ANG FUNNY VERDICT BOX SA BABA
         let resultDiv = document.getElementById('aiFoodResult');
         let textDiv = document.getElementById('aiVerdictText');
         if (resultDiv && textDiv) {
@@ -940,7 +923,6 @@ async function analyzeFoodAI() {
             textDiv.innerHTML = verdict;
         }
 
-        // 3. I-UPDATE YUNG QUICK GLANCE WIDGET MO SA DASHBOARD
         let glanceGrade = document.getElementById('glance-food-grade');
         if (glanceGrade) {
             glanceGrade.innerText = grade;
@@ -951,7 +933,6 @@ async function analyzeFoodAI() {
             glanceGrade.style.color = gColor;
         }
 
-        // 4. I-SAVE SA FIREBASE ANG ANALYSIS
         await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "aiAnalyses"), {
             userId: window.currentUid,
             verdict: verdict,
@@ -973,7 +954,6 @@ async function analyzeFoodAI() {
 }
 
 function initRealtimeAiAnalyses() {
-    // BAGO: Filter by User ID
     const q = window.dbMethods.query(window.dbMethods.collection(window.db, "aiAnalyses"), window.dbMethods.where("userId", "==", window.currentUid));
     window.dbMethods.onSnapshot(q, (snapshot) => {
         aiAnalyses = [];
@@ -990,10 +970,10 @@ function updateBudgetDashboard() {
     let totalPera = myWallets.reduce((sum, wallet) => sum + parseFloat(wallet.balance), 0);
     document.getElementById('totalNetWorth').innerText = `₱${totalPera.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
     let glanceWallet = document.getElementById('glance-wallet');
-if (glanceWallet) {
-    glanceWallet.setAttribute('data-value', totalPera.toLocaleString('en-US', {minimumFractionDigits: 2}));
-    updateGlanceVisibility(); // Para i-check kung naka-hide o hindi
-}
+    if (glanceWallet) {
+        glanceWallet.setAttribute('data-value', totalPera.toLocaleString('en-US', {minimumFractionDigits: 2}));
+        updateGlanceVisibility(); 
+    }
     let container = document.getElementById('walletsContainer'); container.innerHTML = '';
     if (myWallets.length === 0) container.innerHTML = `<p style="color: var(--text-muted); font-size: 12px; font-style: italic;">Wala pang wallet.</p>`;
     else {
@@ -1013,8 +993,6 @@ if (glanceWallet) {
     
     if (typeof transactionDatabase !== 'undefined') {
         transactionDatabase.forEach(tx => {
-            // Hindi isasama ang Debt Payment sa budget computation
-            // Utang ay hindi expense ng budget — bayad lang ng utang yan
             if (tx.type === 'expense' && tx.category !== 'Debt Payment') {
                 let d = new Date(tx.createdAt);
                 if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
@@ -1023,9 +1001,6 @@ if (glanceWallet) {
             }
         });
     }
-    // NOTE: Hindi na kailangan ang foodDatabase loop dito — 
-    // kasama na ang food sa transactionDatabase (category: "Food & Drinks")
-    // para hindi mag-double count
     
     monthlySpent = computedSpent; 
 
@@ -1046,7 +1021,6 @@ if (glanceWallet) {
 function showAddWalletModal() { document.getElementById('walletModal').style.display = 'flex'; }
 
 function initRealtimeBudget() {
-    // BAGO: Filter by User ID
     const q = window.dbMethods.query(window.dbMethods.collection(window.db, "wallets"), window.dbMethods.where("userId", "==", window.currentUid));
     window.dbMethods.onSnapshot(q, (snapshot) => {
         myWallets = [];
@@ -1061,7 +1035,7 @@ async function saveWallet() {
     if (!name || !bal) return alert("Kulang details!");
     try {
         await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "wallets"), { 
-            userId: window.currentUid, // <-- BAGO
+            userId: window.currentUid, 
             name: name, balance: parseFloat(bal), createdAt: Date.now() 
         });
         document.getElementById('walletName').value = ''; document.getElementById('walletBalance').value = ''; closeBudgetModals();
@@ -1077,7 +1051,6 @@ async function deleteWallet(id) {
 }
 
 function initRealtimeTransactions() {
-    // BAGO: Filter by User ID
     const q = window.dbMethods.query(window.dbMethods.collection(window.db, "transactions"), window.dbMethods.where("userId", "==", window.currentUid));
     window.dbMethods.onSnapshot(q, (snapshot) => {
         transactionDatabase = [];
@@ -1114,8 +1087,6 @@ function renderTransactions() {
 
         let displayNote = t.note && t.note !== "N/A" ? t.note : t.category;
         
-        // Para sa Debt Payment: ipakita kung saan galing ang bayad
-        // Para sa Food & Drinks: auto-label ang category
         let categoryTag = '';
         if (t.category === 'Debt Payment') {
             categoryTag = `<span style="font-size: 9px; font-weight: 700; background: rgba(244,63,94,0.1); color: var(--danger); padding: 2px 6px; border-radius: 4px; margin-left: 4px;">UTANG • ${walletName}</span>`;
@@ -1166,7 +1137,7 @@ async function saveTransaction() {
         newBal += amount;
         await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletId), { balance: newBal });
         await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "transactions"), {
-            userId: window.currentUid, // <-- BAGO
+            userId: window.currentUid, 
             type: 'income', walletId: walletId, amount: amount, note: note || "N/A", category: "Income", createdAt: Date.now()
         });
     } 
@@ -1176,7 +1147,7 @@ async function saveTransaction() {
         monthlySpent += amount; 
         await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletId), { balance: newBal });
         await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "transactions"), {
-            userId: window.currentUid, // <-- BAGO
+            userId: window.currentUid, 
             type: 'expense', walletId: walletId, amount: amount, note: note || "N/A", category: category, createdAt: Date.now()
         });
     } 
@@ -1193,7 +1164,7 @@ async function saveTransaction() {
         await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletId), { balance: newBal });
         await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletToId), { balance: newTargetBal });
         await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "transactions"), {
-            userId: window.currentUid, // <-- BAGO
+            userId: window.currentUid, 
             type: 'transfer', walletId: walletId, walletToId: walletToId, amount: amount, note: note || "Wallet Transfer", category: "Transfer", createdAt: Date.now()
         });
     }
@@ -1242,7 +1213,7 @@ async function setMonthlyBudget() {
                 await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "budgetConfig", budgetDocId), { target: parsedTarget });
             } else {
                 let docRef = await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "budgetConfig"), { 
-                    userId: window.currentUid, // <-- BAGO
+                    userId: window.currentUid, 
                     target: parsedTarget 
                 });
                 budgetDocId = docRef.id;
@@ -1252,7 +1223,6 @@ async function setMonthlyBudget() {
 }
 
 function initRealtimeBudgetConfig() {
-    // BAGO: Filter by User ID
     const q = window.dbMethods.query(window.dbMethods.collection(window.db, "budgetConfig"), window.dbMethods.where("userId", "==", window.currentUid));
     window.dbMethods.onSnapshot(q, (snapshot) => {
         if (!snapshot.empty) {
@@ -1299,9 +1269,11 @@ function openTransactionModal(type) {
         selectTo.innerHTML += `<option value="${w.id}">${w.name}</option>`; 
     });
 }
+
 function addIncome() { openTransactionModal('income'); }
 function addExpense() { openTransactionModal('expense'); }
 function addTransfer() { openTransactionModal('transfer'); } 
+
 function closeBudgetModals() { 
     document.getElementById('walletModal').style.display = 'none'; 
     document.getElementById('transactionModal').style.display = 'none'; 
@@ -1355,8 +1327,10 @@ function buildReceiptSections() {
         let db = b.dueDate instanceof Date ? b.dueDate : new Date(b.dueDate);
         return da - db;
     });
+    
     let utangByDay = groupByDay(paidUtang, u => (u.dueDate instanceof Date ? u.dueDate : new Date(u.dueDate)).getTime());
     let totalUtangPaid = paidUtang.reduce((s, u) => s + u.amount, 0);
+    
     let utangRows = utangByDay.map(day => `
         <div class="receipt-day-header">${day.label}</div>
         ${day.items.map(u => `
@@ -1410,6 +1384,7 @@ function buildReceiptSections() {
     let doneTasks = taskDatabase.filter(t => t.status === 'done' && t.createdAt >= startOfMonth);
     let tasksByDay = groupByDay(doneTasks, t => t.createdAt);
     let totalMins = doneTasks.reduce((s, t) => s + (t.timeSpent || t.estMins || 0), 0);
+    
     let taskRows = tasksByDay.map(day => `
         <div class="receipt-day-header">${day.label}</div>
         ${day.items.map(t => `
@@ -1430,10 +1405,12 @@ function buildReceiptSections() {
 
     let remaining = monthlyTarget - monthlySpent;
     let dailyLeft = remaining > 0 && daysLeft > 0 ? (remaining / daysLeft) : 0;
+    
     let expensesByDay = groupByDay(
         transactionDatabase.filter(t => t.type === 'expense' && t.createdAt >= startOfMonth),
         t => t.createdAt
     );
+    
     let expRows = expensesByDay.map(day => `
         <div class="receipt-day-header">${day.label}</div>
         ${day.items.map(t => `
@@ -1491,13 +1468,11 @@ function renderFullReceipt() {
     const now = new Date();
     const monthName = now.toLocaleString('default', { month: 'long', year: 'numeric' }).toUpperCase();
 
-const bars = [3,1,4,2,1,3,2,1,4,2,1,3,1,4,2,3,1,2,4,1,3,2,1,4,2,1,3,2,4,1,2,3,1,4,2,1,3,2,1,4,3,1,2,1,3,4,2,1];
+    const bars = [3,1,4,2,1,3,2,1,4,2,1,3,1,4,2,3,1,2,4,1,3,2,1,4,2,1,3,2,4,1,2,3,1,4,2,1,3,2,1,4,3,1,2,1,3,4,2,1];
     
-    // BAGO: Kunin ang saktong total width ng lahat ng barcode lines
     let totalWidth = bars.reduce((sum, w) => sum + w + 1, 0); 
     let bx = 0;
     
-    // BAGO: Ipasok ang saktong width sa SVG para sumakto sa gitna
     let barcodeSvg = `<svg width="${totalWidth}" height="44" viewBox="0 0 ${totalWidth} 44" style="display:block;margin:0 auto;">`;
     bars.forEach((w, i) => {
         if (i % 2 === 0) barcodeSvg += `<rect x="${bx}" y="0" width="${w}" height="40" fill="#1a1a1a"/>`;
@@ -1565,8 +1540,6 @@ const bars = [3,1,4,2,1,3,2,1,4,2,1,3,1,4,2,3,1,2,4,1,3,2,1,4,2,1,3,2,4,1,2,3,1,
     renderReceiptBody();
 }
 
-window.setReceiptFilter = setReceiptFilter;
-
 // ==========================================
 // 🕒 LIVE CLOCK & DATE
 // ==========================================
@@ -1602,23 +1575,17 @@ function forceUpdateApp() {
 // ==========================================
 // 🎨 THEME SWITCHER
 // ==========================================
-// ==========================================
-// 🎨 BAGO: THEME SWITCHER (Blue -> Green -> Pink Cycle)
-// ==========================================
 function toggleTheme() {
     let body = document.body;
     
     if (body.classList.contains('theme-green')) {
-        // Kapag Green na ngayon, gawing Pink
         body.classList.remove('theme-green');
         body.classList.add('theme-pink');
         localStorage.setItem('flux_theme', 'pink');
     } else if (body.classList.contains('theme-pink')) {
-        // Kapag Pink na ngayon, gawing Default (Blue)
         body.classList.remove('theme-pink');
         localStorage.setItem('flux_theme', 'default');
     } else {
-        // Kapag Default (Blue) ngayon, gawing Green
         body.classList.add('theme-green');
         localStorage.setItem('flux_theme', 'green');
     }
@@ -1628,7 +1595,6 @@ function loadSavedTheme() {
     let savedTheme = localStorage.getItem('flux_theme');
     let body = document.body;
     
-    // Siguraduhing linisin muna ang mga lumang classes bago mag-load
     body.classList.remove('theme-green', 'theme-pink');
     
     if (savedTheme === 'green') {
@@ -1637,11 +1603,10 @@ function loadSavedTheme() {
         body.classList.add('theme-pink');
     }
 }
-// Patakbuhin agad para magpalit ng kulay bago pa makita ang screen
 loadSavedTheme();
 
 // ==========================================
-// 👤 BAGO: CUSTOM USERNAME PROFILE
+// 👤 CUSTOM USERNAME PROFILE
 // ==========================================
 async function setCustomUsername() {
     let defaultName = window.currentUserName || "Engineer";
@@ -1651,18 +1616,15 @@ async function setCustomUsername() {
         let finalName = newName.trim().toUpperCase();
         
         try {
-            // Hahanapin kung may profile na kayo sa database
             const q = window.dbMethods.query(window.dbMethods.collection(window.db, "userProfiles"), window.dbMethods.where("userId", "==", window.currentUid));
             const snap = await window.dbMethods.getDocs(q);
             
             if (snap.empty) {
-                // Kung wala pa, gagawa ng bago
                 await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "userProfiles"), {
                     userId: window.currentUid,
                     username: finalName
                 });
             } else {
-                // Kung meron na, ia-update lang yung pangalan
                 await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "userProfiles", snap.docs[0].id), {
                     username: finalName
                 });
@@ -1675,153 +1637,69 @@ async function setCustomUsername() {
 }
 
 // ==========================================
-// 🤖 MODULE: AI LIFE COACH & MOOD SYNC
+// 👁️ MODULE 7: QUICK GLANCE & PRIVACY TOGGLE
 // ==========================================
+let isWalletHidden = localStorage.getItem('flux_hide_wallet') === 'true';
+let isUtangHidden = localStorage.getItem('flux_hide_utang') === 'true';
 
-// Emoji map para sa mood pill display
-const moodEmojiMap = {
-    'Pakyu': '🖕', 'Angry': '😡', 'Crying': '😭', 'Sad': '😢',
-    'Overwhelmed': '😳', 'Sleepy': '😴', 'Neutral': '😑', 'Happy': '🙂', 'Excited': '😁'
-};
+function updateGlanceVisibility() {
+    let walletEl = document.getElementById('glance-wallet');
+    let utangEl = document.getElementById('glance-utang');
+    let eyeWallet = document.getElementById('eye-wallet');
+    let eyeUtang = document.getElementById('eye-utang');
 
-let currentMood = localStorage.getItem('flux_mood') || "Neutral";
+    if(walletEl && eyeWallet) {
+        let val = walletEl.getAttribute('data-value') || "0.00";
+        walletEl.innerText = isWalletHidden ? "₱••••" : `₱${val}`;
+        eyeWallet.className = isWalletHidden ? "ph-bold ph-eye-closed" : "ph-bold ph-eye";
+    }
 
-// I-restore ang mood pill display on load
-function restoreMoodUI() {
-    let emoji = moodEmojiMap[currentMood] || '😑';
-    let emojiEl = document.getElementById('moodCurrentEmoji');
-    let labelEl = document.getElementById('moodLabel');
-    if (emojiEl) emojiEl.innerText = emoji;
-    if (labelEl) labelEl.innerText = currentMood;
-
-    // I-highlight ang active mood button kung visible
-    document.querySelectorAll('.mood-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.innerText === emoji);
-    });
-
-    // I-restore ang cached briefing sa UI agad — walang API call
-    try {
-        let cached = JSON.parse(localStorage.getItem('flux_briefing_cache') || 'null');
-        let textEl = document.getElementById('briefingText');
-        let quoteEl = document.getElementById('briefingQuote');
-        if (cached && cached.briefing && textEl) {
-            textEl.innerHTML = cached.briefing;
-            if (quoteEl && cached.quote) quoteEl.innerHTML = `"${cached.quote}"`;
-        }
-    } catch(e) { /* ignore */ }
-}
-
-function toggleMoodPicker() {
-    let strip = document.getElementById('moodPickerStrip');
-    let label = document.getElementById('moodLabel');
-    if (!strip) return;
-    let isOpen = strip.style.display === 'flex';
-    strip.style.display = isOpen ? 'none' : 'flex';
-    if (label) label.style.display = isOpen ? 'inline' : 'none'; // hide label when open to save space
-}
-
-// I-load kung ano yung huling piniling coach sa phone
-function loadSavedCoach() {
-    let savedCoach = localStorage.getItem('flux_coach');
-    let selector = document.getElementById('coachSelector');
-    if (savedCoach && selector) {
-        selector.value = savedCoach;
+    if(utangEl && eyeUtang) {
+        let val = utangEl.getAttribute('data-value') || "0.00";
+        utangEl.innerText = isUtangHidden ? "₱••••" : `₱${val}`;
+        eyeUtang.className = isUtangHidden ? "ph-bold ph-eye-closed" : "ph-bold ph-eye";
     }
 }
-// Run agad pagka-load
-setTimeout(() => { loadSavedCoach(); restoreMoodUI(); }, 500);
 
-function changeCoach() {
-    let selector = document.getElementById('coachSelector');
-    localStorage.setItem('flux_coach', selector.value);
-    generateAIBriefing(); // Magre-refresh agad ang AI pag nagpalit ng coach
+function toggleVisibility(type) {
+    if (type === 'wallet') {
+        isWalletHidden = !isWalletHidden;
+        localStorage.setItem('flux_hide_wallet', isWalletHidden);
+    } else if (type === 'utang') {
+        isUtangHidden = !isUtangHidden;
+        localStorage.setItem('flux_hide_utang', isUtangHidden);
+    }
+    updateGlanceVisibility();
 }
 
-function setMood(mood, btnElement) {
-    currentMood = mood;
-    localStorage.setItem('flux_mood', mood); // I-persist ang mood
-
-    // Update ang mood pill sa header
-    let emoji = moodEmojiMap[mood] || '😑';
-    let emojiEl = document.getElementById('moodCurrentEmoji');
-    let labelEl = document.getElementById('moodLabel');
-    if (emojiEl) emojiEl.innerText = emoji;
-    if (labelEl) labelEl.innerText = mood;
-
-    // Isara ang picker pagkatapos pumili
-    let strip = document.getElementById('moodPickerStrip');
-    let label = document.getElementById('moodLabel');
-    if (strip) strip.style.display = 'none';
-    if (label) label.style.display = 'inline'; // ipakita ulit ang label
-
-    // Highlight ang napiling button
-    document.querySelectorAll('.mood-btn').forEach(btn => btn.classList.remove('active'));
-    if (btnElement) btnElement.classList.add('active');
-
-    // I-clear ang briefing cache para makakuha ng fresh response sa bagong mood
-    localStorage.removeItem('flux_briefing_cache');
-    generateAIBriefing();
-}
-
-async function generateAIBriefing() {
-    if (!window.currentUid) return;
-
-    const textEl = document.getElementById('briefingText');
-    const quoteEl = document.getElementById('briefingQuote');
-    const pulseEl = document.getElementById('aiLoadingPulse');
+function updateQuickGlance() {
+    let totalPera = myWallets.reduce((sum, wallet) => sum + parseFloat(wallet.balance), 0);
+    let walletEl = document.getElementById('glance-wallet');
+    if (walletEl) walletEl.setAttribute('data-value', totalPera.toLocaleString('en-US', {minimumFractionDigits: 2}));
 
     let todayStr = new Date().toLocaleDateString('en-CA');
+    let dueToday = utangDatabase.filter(u => {
+        let d = u.dueDate instanceof Date ? u.dueDate : new Date(u.dueDate);
+        return !u.isPaid && d.toLocaleDateString('en-CA') === todayStr;
+    }).reduce((sum, u) => sum + parseFloat(u.amount), 0);
+    
+    let utangEl = document.getElementById('glance-utang');
+    if (utangEl) utangEl.setAttribute('data-value', dueToday.toLocaleString('en-US', {minimumFractionDigits: 2}));
 
-    // 1. CHECK CACHE: Kukuha ng quote kung nakapag-generate na today
-    try {
-        let cached = JSON.parse(localStorage.getItem('flux_daily_motivation'));
-        if (cached && cached.date === todayStr) {
-            if(textEl) textEl.innerHTML = cached.briefing;
-            if(quoteEl) quoteEl.innerHTML = `"${cached.quote}"`;
-            if(pulseEl) { pulseEl.style.width = "100%"; setTimeout(() => pulseEl.style.opacity = "0", 300); }
-            return; 
-        }
-    } catch(e) {}
-
-    // 2. FETCH FROM AI: Pag wala pa for today, hihingi ng bago
-    if(pulseEl) { pulseEl.style.opacity = "1"; pulseEl.style.width = "50%"; }
-    if(textEl) textEl.innerHTML = `<i class="ph-bold ph-spinner" style="animation: spin 1s linear infinite;"></i> Kukuha lang ng motivation for today...`;
-
-    try {
-        const response = await fetch('/api/analyze', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                action: 'getBriefing',
-                userName: window.currentUserName || "Pat"
-            }) // Wala na yung currentMood at pendingTasks dito!
-        });
-
-        const data = await response.json();
-        
-        const briefingText = data.briefing || `Good morning, ${window.currentUserName || 'Pat'}! Have a great day ahead!`;
-        const quoteText = data.quote || "Keep moving forward.";
-
-        if(textEl) textEl.innerHTML = briefingText;
-        if(quoteEl) quoteEl.innerHTML = `"${quoteText}"`;
-
-        // 3. I-SAVE SA CACHE PANG-ISANG ARAW
-        localStorage.setItem('flux_daily_motivation', JSON.stringify({
-            date: todayStr,
-            briefing: briefingText,
-            quote: quoteText
-        }));
-
-    } catch (e) {
-        console.error("Briefing Error:", e);
-        if(textEl) textEl.innerHTML = `Offline muna yung system ngayon. Focus ka muna sa araw mo!`;
-        if(quoteEl) quoteEl.innerHTML = `"Tuloy ang laban."`;
-    } finally {
-        if(pulseEl) {
-            pulseEl.style.width = "100%";
-            setTimeout(() => pulseEl.style.opacity = "0", 500);
+    let pendingTasks = taskDatabase.filter(t => t.status !== 'done' && t.category !== 'Sched').length;
+    let glanceStreak = document.getElementById('glance-streak');
+    
+    if (glanceStreak) {
+        if (pendingTasks === 0 && taskDatabase.length > 0) {
+            glanceStreak.innerHTML = `ALL <span style="font-size: 12px; color: var(--success); font-weight: 500;">Clear</span>`;
+            glanceStreak.style.color = 'var(--success)';
+        } else {
+            glanceStreak.innerHTML = `${pendingTasks} <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">Left</span>`;
+            glanceStreak.style.color = 'var(--primary)';
         }
     }
+
+    updateGlanceVisibility();
 }
 
 // ==========================================
@@ -1848,14 +1726,13 @@ function handleLogout() {
 function startApp() {
     if (window.auth && window.authMethods && window.db) {
         
-window.authMethods.onAuthStateChanged(window.auth, (user) => {
+        window.authMethods.onAuthStateChanged(window.auth, (user) => {
             if (user) {
-                window.currentUid = user.uid; // ID SAVED
+                window.currentUid = user.uid;
                 document.getElementById('logoutBtn').style.display = 'block';
 
-                // BAGO: Kunin ang Custom Username sa Firebase
                 let fallbackName = user.displayName ? user.displayName.split(' ')[0].toUpperCase() : "USER";
-                window.currentUserName = fallbackName; // Default muna
+                window.currentUserName = fallbackName;
 
                 const qProfile = window.dbMethods.query(window.dbMethods.collection(window.db, "userProfiles"), window.dbMethods.where("userId", "==", window.currentUid));
                 window.dbMethods.onSnapshot(qProfile, (snapshot) => {
@@ -1863,7 +1740,6 @@ window.authMethods.onAuthStateChanged(window.auth, (user) => {
                         window.currentUserName = snapshot.docs[0].data().username.toUpperCase();
                     }
                     
-                    // I-update ang greeting sa dashboard
                     let subtitle = document.getElementById('greetingSubtitle');
                     if (subtitle) {
                         subtitle.innerHTML = `Welcome back, <span style="color: var(--primary); font-weight: bold;">${window.currentUserName}</span> <i class="ph-bold ph-pencil-simple" style="font-size: 11px; opacity: 0.5;"></i>`;
@@ -1898,372 +1774,6 @@ window.authMethods.onAuthStateChanged(window.auth, (user) => {
 startApp();
 
 // ==========================================
-// 🐍 MODULE 6: SNAKE GAME
-// ==========================================
-let snakeCanvas, ctx;
-let snake = [];
-let snakeFood = {};
-let dx = 1, dy = 0; // Direction
-let snakeScore = 0;
-let gameLoop;
-let isGameRunning = false;
-const gridSize = 15; // Laki ng block ng ahas
-
-function initSnakeCanvas() {
-    if (!snakeCanvas) {
-        snakeCanvas = document.getElementById('snakeCanvas');
-        ctx = snakeCanvas.getContext('2d');
-    }
-}
-
-function startSnakeGame() {
-    initSnakeCanvas();
-    clearInterval(gameLoop);
-    
-    // Initial State
-    snake = [
-        { x: 150, y: 150 },
-        { x: 135, y: 150 },
-        { x: 120, y: 150 }
-    ];
-    dx = 1; dy = 0;
-    snakeScore = 0;
-    document.getElementById('snakeScore').innerText = snakeScore;
-    isGameRunning = true;
-    
-    spawnFood();
-    gameLoop = setInterval(updateSnake, 100); // 100ms speed
-}
-
-function stopSnakeGame() {
-    clearInterval(gameLoop);
-    isGameRunning = false;
-}
-
-function spawnFood() {
-    snakeFood.x = Math.floor(Math.random() * (snakeCanvas.width / gridSize)) * gridSize;
-    snakeFood.y = Math.floor(Math.random() * (snakeCanvas.height / gridSize)) * gridSize;
-}
-
-function updateSnake() {
-    if (!isGameRunning) return;
-
-    // Move snake head
-    const head = { x: snake[0].x + (dx * gridSize), y: snake[0].y + (dy * gridSize) };
-
-    // Wall Collision (Game Over)
-    if (head.x < 0 || head.x >= snakeCanvas.width || head.y < 0 || head.y >= snakeCanvas.height) {
-        return gameOver();
-    }
-
-    // Self Collision (Game Over)
-    for (let i = 0; i < snake.length; i++) {
-        if (head.x === snake[i].x && head.y === snake[i].y) return gameOver();
-    }
-
-    snake.unshift(head); // Add new head
-
-    // Check if food eaten
-    if (head.x === snakeFood.x && head.y === snakeFood.y) {
-        snakeScore += 10;
-        document.getElementById('snakeScore').innerText = snakeScore;
-        spawnFood();
-    } else {
-        snake.pop(); // Remove tail if no food eaten
-    }
-
-    drawSnakeGame();
-}
-
-function drawSnakeGame() {
-    // Clear canvas
-    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--bg-dark').trim() || '#0f172a';
-    ctx.fillRect(0, 0, snakeCanvas.width, snakeCanvas.height);
-
-    // Draw Food
-    ctx.fillStyle = '#f43f5e'; // Danger/Red color for food
-    ctx.fillRect(snakeFood.x, snakeFood.y, gridSize, gridSize);
-
-    // Draw Snake
-    ctx.fillStyle = '#38bdf8'; // Primary color for snake
-    snake.forEach((part, index) => {
-        ctx.fillRect(part.x, part.y, gridSize, gridSize);
-        ctx.strokeStyle = '#0f172a';
-        ctx.strokeRect(part.x, part.y, gridSize, gridSize);
-    });
-}
-
-function gameOver() {
-    stopSnakeGame();
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-    ctx.fillRect(0, 0, snakeCanvas.width, snakeCanvas.height);
-    ctx.fillStyle = '#f43f5e';
-    ctx.font = '20px "Plus Jakarta Sans"';
-    ctx.textAlign = 'center';
-    ctx.fillText('GAME OVER!', snakeCanvas.width / 2, snakeCanvas.height / 2);
-}
-
-function changeSnakeDir(newDx, newDy) {
-    // Prevent reversing directly
-    if (dx === 1 && newDx === -1) return;
-    if (dx === -1 && newDx === 1) return;
-    if (dy === 1 && newDy === -1) return;
-    if (dy === -1 && newDy === 1) return;
-    
-    dx = newDx;
-    dy = newDy;
-}
-
-// Keyboard controls (for desktop)
-window.addEventListener('keydown', e => {
-    if (!isGameRunning) return;
-    switch (e.key) {
-        case 'ArrowUp': changeSnakeDir(0, -1); break;
-        case 'ArrowDown': changeSnakeDir(0, 1); break;
-        case 'ArrowLeft': changeSnakeDir(-1, 0); break;
-        case 'ArrowRight': changeSnakeDir(1, 0); break;
-    }
-});
-
-// ==========================================
-// 👁️ MODULE 7: QUICK GLANCE & PRIVACY TOGGLE
-// ==========================================
-let isWalletHidden = localStorage.getItem('flux_hide_wallet') === 'true';
-let isUtangHidden = localStorage.getItem('flux_hide_utang') === 'true';
-
-// I-apply ang maskara ('****') o totoong value
-function updateGlanceVisibility() {
-    let walletEl = document.getElementById('glance-wallet');
-    let utangEl = document.getElementById('glance-utang');
-    let eyeWallet = document.getElementById('eye-wallet');
-    let eyeUtang = document.getElementById('eye-utang');
-
-    if(walletEl && eyeWallet) {
-        let val = walletEl.getAttribute('data-value') || "0.00";
-        walletEl.innerText = isWalletHidden ? "₱••••" : `₱${val}`;
-        eyeWallet.className = isWalletHidden ? "ph-bold ph-eye-closed" : "ph-bold ph-eye";
-    }
-
-    if(utangEl && eyeUtang) {
-        let val = utangEl.getAttribute('data-value') || "0.00";
-        utangEl.innerText = isUtangHidden ? "₱••••" : `₱${val}`;
-        eyeUtang.className = isUtangHidden ? "ph-bold ph-eye-closed" : "ph-bold ph-eye";
-    }
-}
-
-// Function kapag pinindot ang Eye Icon
-function toggleVisibility(type) {
-    if (type === 'wallet') {
-        isWalletHidden = !isWalletHidden;
-        localStorage.setItem('flux_hide_wallet', isWalletHidden);
-    } else if (type === 'utang') {
-        isUtangHidden = !isUtangHidden;
-        localStorage.setItem('flux_hide_utang', isUtangHidden);
-    }
-    updateGlanceVisibility();
-}
-
-// ==========================================
-// 🔄 UPDATE QUICK GLANCE WIDGET
-// ==========================================
-function updateQuickGlance() {
-    // 1. WALLET (Net Worth)
-    let totalPera = myWallets.reduce((sum, wallet) => sum + parseFloat(wallet.balance), 0);
-    let walletEl = document.getElementById('glance-wallet');
-    if (walletEl) walletEl.setAttribute('data-value', totalPera.toLocaleString('en-US', {minimumFractionDigits: 2}));
-
-    // 2. UTANG DUE TODAY (Bibilangin lang yung saktong due ngayon)
-    let todayStr = new Date().toLocaleDateString('en-CA');
-    let dueToday = utangDatabase.filter(u => {
-        let d = u.dueDate instanceof Date ? u.dueDate : new Date(u.dueDate);
-        return !u.isPaid && d.toLocaleDateString('en-CA') === todayStr;
-    }).reduce((sum, u) => sum + parseFloat(u.amount), 0);
-    
-    let utangEl = document.getElementById('glance-utang');
-    if (utangEl) utangEl.setAttribute('data-value', dueToday.toLocaleString('en-US', {minimumFractionDigits: 2}));
-
-    // 3. PENDING TASKS
-    let pendingTasks = taskDatabase.filter(t => t.status !== 'done' && t.category !== 'Sched').length;
-    let glanceStreak = document.getElementById('glance-streak');
-    
-    if (glanceStreak) {
-        if (pendingTasks === 0 && taskDatabase.length > 0) {
-            glanceStreak.innerHTML = `ALL <span style="font-size: 12px; color: var(--success); font-weight: 500;">Clear</span>`;
-            glanceStreak.style.color = 'var(--success)';
-        } else {
-            glanceStreak.innerHTML = `${pendingTasks} <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">Left</span>`;
-            glanceStreak.style.color = 'var(--primary)';
-        }
-    }
-
-    // 4. I-APPLY ANG HIDE/UNHIDE SA MATA
-    updateGlanceVisibility();
-}
-
-// ==========================================
-// ⚔️ MODULE 8: RETRO ML LANE DEFENSE
-// ==========================================
-let mlScore = 0;
-let mlBaseHp = 100;
-let mlGameInterval;
-let minionSpawner;
-let minions = [];
-let gameSpeed = 50; // Milliseconds per frame (mas mababa, mas mabilis)
-let spawnRate = 1500; // Milliseconds per spawn
-
-function startMLGame() {
-    // Reset Stats
-    mlScore = 0;
-    mlBaseHp = 100;
-    gameSpeed = 50;
-    spawnRate = 1500;
-    minions = [];
-    document.getElementById('mlScore').innerText = mlScore;
-    document.getElementById('mlBaseHp').innerText = mlBaseHp;
-    
-    // Clear arena
-    document.getElementById('lane-0').innerHTML = '';
-    document.getElementById('lane-1').innerHTML = '';
-    document.getElementById('lane-2').innerHTML = '';
-    
-    // Hide Menu
-    document.getElementById('mlGameMenu').style.display = 'none';
-
-    // Start Loops
-    clearInterval(mlGameInterval);
-    clearInterval(minionSpawner);
-    
-    mlGameInterval = setInterval(updateMLGame, gameSpeed);
-    minionSpawner = setInterval(spawnMinion, spawnRate);
-}
-
-function stopMLGame() {
-    clearInterval(mlGameInterval);
-    clearInterval(minionSpawner);
-}
-
-function spawnMinion() {
-    let laneId = Math.floor(Math.random() * 3); // Random lane 0, 1, or 2
-    let isBoss = Math.random() > 0.8; // 20% chance mag-spawn ang malakas
-    
-    // BAGO: Kukunin ang saktong lapad ng screen mo para doon mag-spawn
-    let arena = document.getElementById('mlArena');
-    let arenaWidth = arena ? arena.clientWidth : 350; 
-    
-    let minion = {
-        id: Date.now() + Math.random(),
-        lane: laneId,
-        x: arenaWidth, // BAGO: Start saktong gilid sa kanan
-        hp: isBoss ? 3 : 1, // Ilang tap bago mamatay
-        type: isBoss ? 'ph-alien' : 'ph-skull',
-        color: isBoss ? 'var(--danger)' : 'var(--text-muted)'
-    };
-    
-    minions.push(minion);
-    
-    // Create HTML element
-    let el = document.createElement('i');
-    el.className = `minion ph-fill ${minion.type}`;
-    el.id = `m-${minion.id}`;
-    el.style.color = minion.color;
-    el.style.transform = `translateX(${minion.x}px)`;
-    
-    if(isBoss) el.style.fontSize = "32px"; // Mas malaki boss
-    
-    document.getElementById(`lane-${laneId}`).appendChild(el);
-
-    // Papahirap nang papahirap yung laro!
-    if (spawnRate > 500) {
-        spawnRate -= 20; 
-        clearInterval(minionSpawner);
-        minionSpawner = setInterval(spawnMinion, spawnRate);
-    }
-}
-
-function updateMLGame() {
-    let baseLineX = 30; // Coordinates ng base mo
-
-    for (let i = minions.length - 1; i >= 0; i--) {
-        let m = minions[i];
-        m.x -= 3; // Movement speed pa-kaliwa
-        
-        let el = document.getElementById(`m-${m.id}`);
-        if (el) {
-            el.style.transform = `translateX(${m.x}px)`;
-            
-            // Check Base Collision (Nakapasok na yung kalaban)
-            if (m.x <= baseLineX) {
-                mlBaseHp -= (m.hp === 1 ? 10 : 30); // Boss hits harder
-                document.getElementById('mlBaseHp').innerText = Math.max(0, mlBaseHp);
-                
-                // Shake Base effect
-                let arena = document.getElementById('mlArena');
-                arena.style.boxShadow = "inset 0 0 20px var(--danger)";
-                setTimeout(() => arena.style.boxShadow = "none", 100);
-
-                el.remove();
-                minions.splice(i, 1);
-                
-                // GAME OVER
-                if (mlBaseHp <= 0) {
-                    gameOverML();
-                }
-            }
-        }
-    }
-}
-
-function attackLane(laneId) {
-    if (mlBaseHp <= 0) return;
-
-    // Visual Effect ng Atake
-    let effect = document.createElement('div');
-    effect.className = 'slash-wave';
-    document.getElementById(`lane-${laneId}`).appendChild(effect);
-    setTimeout(() => effect.remove(), 200); // Remove element after animation
-
-    // Hit Detection (Hahanapin yung pinaka-unang kalaban sa lane)
-    let targets = minions.filter(m => m.lane === laneId);
-    if (targets.length > 0) {
-        // Kunin yung pinakamalapit sa base
-        targets.sort((a, b) => a.x - b.x); 
-        let target = targets[0];
-        
-        target.hp -= 1; // Bawas buhay ng kalaban
-        
-        let el = document.getElementById(`m-${target.id}`);
-        if (target.hp <= 0) {
-            // Patay na
-            mlScore += (target.type === 'ph-alien' ? 50 : 10);
-            document.getElementById('mlScore').innerText = mlScore;
-            
-            if(el) {
-                el.className = "minion ph-fill ph-explosion";
-                el.style.color = "var(--primary)";
-                setTimeout(() => el.remove(), 100);
-            }
-            minions = minions.filter(m => m.id !== target.id);
-        } else {
-            // Blink effect pag natamaan pero di pa patay
-            if(el) {
-                el.style.opacity = "0.5";
-                setTimeout(() => el.style.opacity = "1", 50);
-            }
-        }
-    }
-}
-
-function gameOverML() {
-    stopMLGame();
-    let menu = document.getElementById('mlGameMenu');
-    menu.style.display = 'flex';
-    document.getElementById('mlMenuTitle').innerHTML = `DEFEAT!<br><span style="font-size:14px; color:var(--text-muted);">FINAL SCORE: ${mlScore}</span>`;
-}
-
-// Wag kalimutan i-export!
-
-
-// ==========================================
 // 🌍 GLOBAL EXPORTS 
 // ==========================================
 window.switchScreen = switchScreen;
@@ -2295,25 +1805,11 @@ window.deleteTask = deleteTask;
 window.deleteHabit = deleteHabit;
 window.deleteTransaction = deleteTransaction;
 window.openDailySummary = openDailySummary;
-window.deleteTask = deleteTask;
-window.deleteHabit = deleteHabit;
-window.deleteTransaction = deleteTransaction;
-window.openDailySummary = openDailySummary;
-window.forceUpdateApp = forceUpdateApp; // <--- IDINAGDAG
-window.setUtangView = setUtangView;     // <--- IDINAGDAG
+window.forceUpdateApp = forceUpdateApp; 
+window.setUtangView = setUtangView;     
 window.toggleTheme = toggleTheme;
 window.setCustomUsername = setCustomUsername;
-window.changeCoach = changeCoach;
-window.setMood = setMood;
-window.toggleMoodPicker = toggleMoodPicker;
-window.generateAIBriefing = generateAIBriefing;
 window.refreshFoodSummary = refreshFoodSummary;
-// Idagdag ito sa pinakadulo ng app.js kasama ng ibang window exports
-window.startSnakeGame = startSnakeGame;
-window.stopSnakeGame = stopSnakeGame;
-window.changeSnakeDir = changeSnakeDir;
 window.toggleVisibility = toggleVisibility;
 window.updateQuickGlance = updateQuickGlance;
-window.startMLGame = startMLGame;
-window.stopMLGame = stopMLGame;
-window.attackLane = attackLane;
+window.setReceiptFilter = setReceiptFilter;
