@@ -201,6 +201,7 @@ function initRealtimeUtang() {
         
         document.getElementById('displayTotalUtang').innerText = runningTotalUtang.toFixed(2);
         document.getElementById('displayTotalBayad').innerText = runningTotalBayad.toFixed(2);
+        updateQuickGlance();
         renderUtangList();
     });
 }
@@ -434,6 +435,7 @@ function initRealtimeTasks() {
         taskDatabase = [];
         snapshot.forEach(doc => taskDatabase.push({ id: doc.id, ...doc.data(), dueDate: new Date(doc.data().dueDate) }));
         renderTasks(); renderKanban();
+        updateQuickGlance();
     });
     
     // BAGO: Filter by User ID
@@ -790,7 +792,11 @@ function applyFoodSummaryUI(result) {
     gradeEl.style.borderColor = colors.border;
     gradeText.style.color = colors.text;
     gradeText.innerText = grade;
-
+    let glanceGrade = document.getElementById('glance-food-grade');
+    if (glanceGrade) {
+        glanceGrade.innerText = grade;
+        glanceGrade.style.color = colors.text;
+    }
     calEl.innerHTML = result.calories > 0
         ? `${result.calories.toLocaleString()} <span style="font-size: 11px; font-weight: 400; color: var(--text-muted);">kcal</span>`
         : `-- <span style="font-size: 11px; font-weight: 400; color: var(--text-muted);">kcal</span>`;
@@ -994,6 +1000,7 @@ function initRealtimeBudget() {
         myWallets = [];
         snapshot.forEach(doc => myWallets.push({ id: doc.id, ...doc.data() }));
         updateBudgetDashboard(); 
+        updateQuickGlance();
     });
 }
 
@@ -2005,6 +2012,45 @@ function toggleVisibility(type) {
 }
 
 // ==========================================
+// 🔄 UPDATE QUICK GLANCE WIDGET
+// ==========================================
+function updateQuickGlance() {
+    // 1. WALLET (Net Worth)
+    let totalPera = myWallets.reduce((sum, wallet) => sum + parseFloat(wallet.balance), 0);
+    let walletEl = document.getElementById('glance-wallet');
+    if (walletEl) walletEl.setAttribute('data-value', totalPera.toLocaleString('en-US', {minimumFractionDigits: 2}));
+
+    // 2. UTANG DUE TODAY (Bibilangin lang yung saktong due ngayon)
+    let todayStr = new Date().toLocaleDateString('en-CA');
+    let dueToday = utangDatabase.filter(u => {
+        let d = u.dueDate instanceof Date ? u.dueDate : new Date(u.dueDate);
+        return !u.isPaid && d.toLocaleDateString('en-CA') === todayStr;
+    }).reduce((sum, u) => sum + parseFloat(u.amount), 0);
+    
+    let utangEl = document.getElementById('glance-utang');
+    if (utangEl) utangEl.setAttribute('data-value', dueToday.toLocaleString('en-US', {minimumFractionDigits: 2}));
+
+    // 3. PENDING TASKS
+    let pendingTasks = taskDatabase.filter(t => t.status !== 'done' && t.category !== 'Sched').length;
+    let glanceStreak = document.getElementById('glance-streak');
+    
+    if (glanceStreak) {
+        if (pendingTasks === 0 && taskDatabase.length > 0) {
+            glanceStreak.innerHTML = `ALL <span style="font-size: 12px; color: var(--success); font-weight: 500;">Clear</span>`;
+            glanceStreak.style.color = 'var(--success)';
+        } else {
+            glanceStreak.innerHTML = `${pendingTasks} <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">Left</span>`;
+            glanceStreak.style.color = 'var(--primary)';
+        }
+    }
+
+    // 4. I-APPLY ANG HIDE/UNHIDE SA MATA
+    updateGlanceVisibility();
+}
+
+
+
+// ==========================================
 // 🌍 GLOBAL EXPORTS 
 // ==========================================
 window.switchScreen = switchScreen;
@@ -2054,3 +2100,4 @@ window.startSnakeGame = startSnakeGame;
 window.stopSnakeGame = stopSnakeGame;
 window.changeSnakeDir = changeSnakeDir;
 window.toggleVisibility = toggleVisibility;
+window.updateQuickGlance = updateQuickGlance;
