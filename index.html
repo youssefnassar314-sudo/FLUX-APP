@@ -153,17 +153,19 @@
                     <option value="My App">My Account / App</option>
                     <option value="Other Person">Other Person's Account</option>
                 </select>
+
                 <label>App Used</label>
                 <input type="text" id="appName" placeholder="e.g., SPayLater, GCash, Maya">
+
                 <label>Utang ID (MMDDYY)</label>
-                <input type="number" id="utangId" placeholder="e.g., 033026">
+                <input type="number" id="utangId" placeholder="e.g., 033026" oninput="if(this.value.length > 6) this.value = this.value.slice(0,6);">
                 
                 <div id="duesContainer">
                     <div class="due-row">
-                        <label>Due 1:</label>
+                        <label style="font-size: 11px; color: var(--primary); font-weight: 700; display: block; margin-bottom: 8px; text-transform: uppercase;">Due 1:</label>
                         <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                            <input type="number" class="dynamic-amt" placeholder="Amount">
-                            <input type="date" class="dynamic-date">
+                            <input type="number" class="dynamic-amt" placeholder="Amount" style="flex: 1;">
+                            <input type="date" class="dynamic-date" style="flex: 1;">
                         </div>
                     </div>
                 </div>
@@ -191,25 +193,85 @@
                 <i class="ph-bold ph-caret-left"></i> Dashboard
             </button>
             
-            <div class="hidden-form" style="display: block;">
-                <h3 style="color: var(--primary); margin-bottom: 15px; font-size: 14px;"><i class="ph-duotone ph-cpu"></i> AI Task Estimator</h3>
-                <input type="text" id="aiTaskTitle" placeholder="Task Title">
-                <textarea id="aiTaskDetails" placeholder="Details for better estimate"></textarea>
-                <div style="display: flex; gap: 10px;">
-                    <select id="aiTaskCategory" class="glass-select" style="flex:1;">
-                        <option value="School">School</option>
+            <div class="hidden-form" style="display: block; margin-bottom: 20px;">
+                <h3 style="color: var(--primary); margin-top: 0; margin-bottom: 15px; font-size: 16px; display: flex; align-items: center; gap: 8px;"><i class="ph-duotone ph-cpu"></i> AI Task Estimator</h3>
+                <input type="text" id="aiTaskTitle" placeholder="Task Title (Ex: Review Integral Calculus)">
+                <textarea id="aiTaskDetails" placeholder="Give details to get a better estimate (Ex: I need to solve 50 practice problems...)"></textarea>
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <select id="aiTaskCategory" class="glass-select" style="margin-bottom: 0; flex: 1;">
                         <option value="Work">Work</option>
+                        <option value="School">School</option>
                         <option value="Personal">Personal</option>
-                        <option value="Sched">Sched</option>
+                        <option value="Sched">Sched (Whole Day)</option> 
                     </select>
-                    <input type="date" id="aiTaskDate" style="flex:1;">
+                    <input type="date" id="aiTaskDate" style="margin-bottom: 0; flex: 1;">
                 </div>
-                <button class="save-btn" onclick="playSound('click'); estimateAITask()"><i class="ph-bold ph-sparkle"></i> Estimate with AI</button>
+                <button class="save-btn" onclick="playSound('click'); estimateAITask()" style="margin-bottom: 0;">
+                    <i class="ph-bold ph-sparkle"></i> Estimate with FLUX AI
+                </button>
+            </div>
+
+            <div class="hidden-form" style="display: block; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="color: var(--secondary); margin: 0; font-size: 16px; display: flex; align-items: center; gap: 8px;"><i class="ph-duotone ph-calendar"></i> Schedule & Deadlines</h3>
+                    <button class="badge badge-secondary" onclick="playSound('click'); switchScreen('kanbanScreen')" style="cursor: pointer;">
+                        <i class="ph-bold ph-columns"></i> Kanban View
+                    </button>
+                </div>
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <input type="text" id="manualTaskTitle" placeholder="Ex: Finish HTML layout" style="margin-bottom: 0; flex: 2;">
+                    <select id="manualTaskCategory" class="glass-select" style="margin-bottom: 0; flex: 1;">
+                        <option value="Work">Work</option>
+                        <option value="School">School</option>
+                        <option value="Personal">Personal</option>
+                        <option value="Sched">Sched (Whole Day)</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <input type="date" id="manualTaskDate" style="margin-bottom: 0; flex: 1;">
+                    <input type="number" id="manualTaskMins" placeholder="Est. Mins" style="margin-bottom: 0; flex: 1;">
+                </div>
+                <button class="save-btn" onclick="playSound('click'); saveManualTask()" style="margin-bottom: 0; background: linear-gradient(135deg, var(--secondary), #7e22ce);">
+                    Add Manual Task
+                </button>
+            </div>
+
+            <div class="hidden-form" style="display: block;">
+                <h3 style="color: var(--success); margin-top: 0; margin-bottom: 15px; font-size: 16px; display: flex; align-items: center; gap: 8px;"><i class="ph-duotone ph-arrows-clockwise"></i> Daily Habits</h3>
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <input type="text" id="habitName" placeholder="Ex: Inom Vitamins" style="margin-bottom: 0; flex: 2;">
+                    <input type="time" id="habitTime" style="margin-bottom: 0; flex: 1;">
+                </div>
+                <button class="save-btn" onclick="playSound('click'); saveHabit()" style="margin-bottom: 0; background: linear-gradient(135deg, var(--success), #059669);">
+                    <i class="ph-bold ph-plus"></i> Add Daily Habit
+                </button>
             </div>
 
             <div id="taskListContainer"></div>
             <div id="habitListContainer"></div>
-            <div id="schedListContainer"></div>
+            <div id="schedListContainer" style="margin-bottom: 20px;"></div>
+        </div>
+
+        <div id="kanbanScreen" class="screen">
+            <button class="back-btn" onclick="playSound('click'); switchScreen('taskScreen')">
+                <i class="ph-bold ph-caret-left"></i> Back to Tasks
+            </button>
+            <h2 style="color: var(--primary); margin-top: 0; margin-bottom: 20px; font-weight: 800; letter-spacing: 1px;"><i class="ph-duotone ph-columns"></i> Kanban Board</h2>
+
+            <div class="kanban-board">
+                <div class="kanban-col">
+                    <h4 style="color: var(--danger);"><i class="ph-bold ph-push-pin"></i> TO DO</h4>
+                    <div id="kb-todo" class="kanban-list"></div>
+                </div>
+                <div class="kanban-col">
+                    <h4 style="color: var(--primary);"><i class="ph-bold ph-rocket"></i> DOING</h4>
+                    <div id="kb-doing" class="kanban-list"></div>
+                </div>
+                <div class="kanban-col">
+                    <h4 style="color: var(--success);"><i class="ph-bold ph-check-circle"></i> DONE</h4>
+                    <div id="kb-done" class="kanban-list"></div>
+                </div>
+            </div>
         </div>
 
         <div id="foodScreen" class="screen">
@@ -233,19 +295,42 @@
                 </div>
             </div>
 
-            <div class="hidden-form" style="display: block;">
-                <select id="mealType" class="glass-select">
-                    <option value="Breakfast">Breakfast</option>
-                    <option value="Lunch">Lunch</option>
-                    <option value="Dinner">Dinner</option>
-                    <option value="Snack">Snack</option>
-                </select>
-                <input type="text" id="foodItem" placeholder="What did you eat?">
-                <div style="display: flex; gap: 10px;">
-                    <input type="number" id="foodPrice" placeholder="₱ Amount" style="flex:1;">
-                    <select id="foodWallet" class="glass-select" style="flex:1;"><option value="">Deduct from...</option></select>
+            <div class="hidden-form" style="display: block; margin-bottom: 20px;">
+                <h3 style="color: var(--danger); margin-top: 0; margin-bottom: 15px; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+                    <i class="ph-duotone ph-sparkle"></i> Quick Food Log
+                </h3>
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <select id="mealType" class="glass-select" style="margin-bottom: 0; flex: 1;">
+                        <option value="Breakfast">Breakfast</option>
+                        <option value="Lunch">Lunch</option>
+                        <option value="Dinner">Dinner</option>
+                        <option value="Snack">Snack</option>
+                    </select>
+                    <select id="foodSource" class="glass-select" style="margin-bottom: 0; flex: 1;">
+                        <option value="Homecooked">Luto sa Bahay</option>
+                        <option value="Carinderia">Carinderia / Turo-turo</option>
+                        <option value="Panaderya">Panaderya</option>
+                        <option value="SariSariStore">Tindahan / De-lata</option>
+                        <option value="ConvenienceStore">7-Eleven / Alfamart</option>
+                        <option value="StreetFood">Street Food / Pares</option>
+                        <option value="FastFood">Fast Food</option>
+                        <option value="Delivery">Delivery App</option>
+                        <option value="Cafe">Coffee Shop</option>
+                        <option value="Libre">Libre / Bigay</option>
+                    </select>
                 </div>
-                <button class="save-btn" onclick="playSound('click'); saveFood()"><i class="ph-bold ph-plus"></i> Log Meal</button>
+                <div style="display: flex; gap: 10px; margin-bottom: 15px; align-items: center;">
+                    <input type="text" id="foodItem" placeholder="Ano kinain mo?" style="flex: 2; margin-bottom: 0;">
+                </div>
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <input type="number" id="foodPrice" placeholder="Magkano? (₱)" style="margin-bottom: 0; flex: 1;">
+                    <select id="foodWallet" class="glass-select" style="margin-bottom: 0; flex: 1;">
+                        <option value="">Saan ibabawas?</option>
+                    </select>
+                </div>
+                <button class="save-btn" onclick="playSound('click'); saveFood()" style="margin-bottom: 0; background: linear-gradient(135deg, #f43f5e, #fb923c);">
+                    <i class="ph-bold ph-plus"></i> Log Meal
+                </button>
             </div>
 
             <div id="foodListContainer"></div>
@@ -373,6 +458,6 @@
         window.authMethods = { signInWithPopup, onAuthStateChanged, signOut };
     </script>
 
-    <script src="app.js?v=8"></script>
+    <script src="app.js?v=9"></script>
 </body>
 </html>
