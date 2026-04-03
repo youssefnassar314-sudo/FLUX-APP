@@ -2100,6 +2100,163 @@ function updateQuickGlance() {
     updateGlanceVisibility();
 }
 
+// ==========================================
+// ⚔️ MODULE 8: RETRO ML LANE DEFENSE
+// ==========================================
+let mlScore = 0;
+let mlBaseHp = 100;
+let mlGameInterval;
+let minionSpawner;
+let minions = [];
+let gameSpeed = 50; // Milliseconds per frame (mas mababa, mas mabilis)
+let spawnRate = 1500; // Milliseconds per spawn
+
+function startMLGame() {
+    // Reset Stats
+    mlScore = 0;
+    mlBaseHp = 100;
+    gameSpeed = 50;
+    spawnRate = 1500;
+    minions = [];
+    document.getElementById('mlScore').innerText = mlScore;
+    document.getElementById('mlBaseHp').innerText = mlBaseHp;
+    
+    // Clear arena
+    document.getElementById('lane-0').innerHTML = '';
+    document.getElementById('lane-1').innerHTML = '';
+    document.getElementById('lane-2').innerHTML = '';
+    
+    // Hide Menu
+    document.getElementById('mlGameMenu').style.display = 'none';
+
+    // Start Loops
+    clearInterval(mlGameInterval);
+    clearInterval(minionSpawner);
+    
+    mlGameInterval = setInterval(updateMLGame, gameSpeed);
+    minionSpawner = setInterval(spawnMinion, spawnRate);
+}
+
+function stopMLGame() {
+    clearInterval(mlGameInterval);
+    clearInterval(minionSpawner);
+}
+
+function spawnMinion() {
+    let laneId = Math.floor(Math.random() * 3); // Random lane 0, 1, or 2
+    let isBoss = Math.random() > 0.8; // 20% chance mag-spawn ang malakas
+    
+    let minion = {
+        id: Date.now() + Math.random(),
+        lane: laneId,
+        x: 300, // Starting position sa kanan
+        hp: isBoss ? 3 : 1, // Ilang tap bago mamatay
+        type: isBoss ? 'ph-alien' : 'ph-skull',
+        color: isBoss ? 'var(--danger)' : 'var(--text-muted)'
+    };
+    
+    minions.push(minion);
+    
+    // Create HTML element
+    let el = document.createElement('i');
+    el.className = `minion ph-fill ${minion.type}`;
+    el.id = `m-${minion.id}`;
+    el.style.color = minion.color;
+    el.style.transform = `translateX(${minion.x}px)`;
+    
+    if(isBoss) el.style.fontSize = "32px"; // Mas malaki boss
+    
+    document.getElementById(`lane-${laneId}`).appendChild(el);
+
+    // Papahirap nang papahirap yung laro!
+    if (spawnRate > 500) {
+        spawnRate -= 20; 
+        clearInterval(minionSpawner);
+        minionSpawner = setInterval(spawnMinion, spawnRate);
+    }
+}
+
+function updateMLGame() {
+    let baseLineX = 30; // Coordinates ng base mo
+
+    for (let i = minions.length - 1; i >= 0; i--) {
+        let m = minions[i];
+        m.x -= 3; // Movement speed pa-kaliwa
+        
+        let el = document.getElementById(`m-${m.id}`);
+        if (el) {
+            el.style.transform = `translateX(${m.x}px)`;
+            
+            // Check Base Collision (Nakapasok na yung kalaban)
+            if (m.x <= baseLineX) {
+                mlBaseHp -= (m.hp === 1 ? 10 : 30); // Boss hits harder
+                document.getElementById('mlBaseHp').innerText = Math.max(0, mlBaseHp);
+                
+                // Shake Base effect
+                let arena = document.getElementById('mlArena');
+                arena.style.boxShadow = "inset 0 0 20px var(--danger)";
+                setTimeout(() => arena.style.boxShadow = "none", 100);
+
+                el.remove();
+                minions.splice(i, 1);
+                
+                // GAME OVER
+                if (mlBaseHp <= 0) {
+                    gameOverML();
+                }
+            }
+        }
+    }
+}
+
+function attackLane(laneId) {
+    if (mlBaseHp <= 0) return;
+
+    // Visual Effect ng Atake
+    let effect = document.createElement('div');
+    effect.className = 'slash-wave';
+    document.getElementById(`lane-${laneId}`).appendChild(effect);
+    setTimeout(() => effect.remove(), 200); // Remove element after animation
+
+    // Hit Detection (Hahanapin yung pinaka-unang kalaban sa lane)
+    let targets = minions.filter(m => m.lane === laneId);
+    if (targets.length > 0) {
+        // Kunin yung pinakamalapit sa base
+        targets.sort((a, b) => a.x - b.x); 
+        let target = targets[0];
+        
+        target.hp -= 1; // Bawas buhay ng kalaban
+        
+        let el = document.getElementById(`m-${target.id}`);
+        if (target.hp <= 0) {
+            // Patay na
+            mlScore += (target.type === 'ph-alien' ? 50 : 10);
+            document.getElementById('mlScore').innerText = mlScore;
+            
+            if(el) {
+                el.className = "minion ph-fill ph-explosion";
+                el.style.color = "var(--primary)";
+                setTimeout(() => el.remove(), 100);
+            }
+            minions = minions.filter(m => m.id !== target.id);
+        } else {
+            // Blink effect pag natamaan pero di pa patay
+            if(el) {
+                el.style.opacity = "0.5";
+                setTimeout(() => el.style.opacity = "1", 50);
+            }
+        }
+    }
+}
+
+function gameOverML() {
+    stopMLGame();
+    let menu = document.getElementById('mlGameMenu');
+    menu.style.display = 'flex';
+    document.getElementById('mlMenuTitle').innerHTML = `DEFEAT!<br><span style="font-size:14px; color:var(--text-muted);">FINAL SCORE: ${mlScore}</span>`;
+}
+
+// Wag kalimutan i-export!
 
 
 // ==========================================
@@ -2153,3 +2310,6 @@ window.stopSnakeGame = stopSnakeGame;
 window.changeSnakeDir = changeSnakeDir;
 window.toggleVisibility = toggleVisibility;
 window.updateQuickGlance = updateQuickGlance;
+window.startMLGame = startMLGame;
+window.stopMLGame = stopMLGame;
+window.attackLane = attackLane;
