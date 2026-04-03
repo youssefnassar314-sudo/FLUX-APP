@@ -57,22 +57,41 @@
         </div>
 
         <div id="dashboardScreen" class="screen">
-            <div class="utang-card" style="margin-bottom: 20px; padding: 15px; background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border);">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <h3 style="margin: 0; font-size: 13px; color: var(--primary); display: flex; align-items: center; gap: 6px;">
-            <i class="ph-duotone ph-brain"></i> Daily Briefing
+<div style="margin-bottom: 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 0 5px;">
+        <h3 style="margin: 0; font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px; font-weight: 700;">
+            <i class="ph-bold ph-squares-four"></i> Quick Glance
         </h3>
     </div>
 
+    <div class="glance-grid">
+        <div class="glance-card" style="border-left-color: var(--success);">
+            <div class="glance-header">
+                <span><i class="ph-bold ph-wallet"></i> Net Worth</span>
+                <button onclick="toggleVisibility('wallet')" class="eye-btn"><i id="eye-wallet" class="ph-bold ph-eye"></i></button>
+            </div>
+            <h3 id="glance-wallet" class="glance-value" data-value="0.00">₱0.00</h3>
+        </div>
 
-    <div id="aiBriefingContent" style="padding: 12px; background: rgba(0,0,0,0.2); border-radius: 10px; position: relative; overflow: hidden;">
-        <div id="aiLoadingPulse" style="position: absolute; bottom: 0; left: 0; height: 2px; background: var(--primary); width: 0%; transition: 0.3s;"></div>
-        <i id="briefingQuote" style="color: var(--primary); font-size: 10px; display: block; text-align: center; opacity: 0.7; margin-bottom: 8px; letter-spacing: 0.3px;">"Waiting for sync..."</i>
-        <hr style="border: 0; height: 1px; background: var(--glass-border); margin: 0 0 8px 0;">
-        <div id="briefingText" style="font-size: 11px; line-height: 1.6; color: var(--text-muted); text-align: center;">Tap your mood above to get your briefing...</div>
+        <div class="glance-card" style="border-left-color: var(--danger);">
+            <div class="glance-header">
+                <span><i class="ph-bold ph-hand-coins"></i> Due Today</span>
+                <button onclick="toggleVisibility('utang')" class="eye-btn"><i id="eye-utang" class="ph-bold ph-eye"></i></button>
+            </div>
+            <h3 id="glance-utang" class="glance-value" data-value="0.00">₱0.00</h3>
+        </div>
+
+        <div class="glance-card" style="border-left-color: #fbbf24; align-items: center; text-align: center;">
+            <p style="margin: 0 0 5px 0; font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;"><i class="ph-bold ph-fork-knife"></i> Diet Grade</p>
+            <h1 id="glance-food-grade" style="margin: 0; font-size: 28px; color: #fbbf24; font-weight: 800; line-height: 1;">--</h1>
+        </div>
+
+        <div class="glance-card" style="border-left-color: var(--primary); align-items: center; text-align: center;">
+            <p style="margin: 0 0 5px 0; font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;"><i class="ph-bold ph-fire"></i> Streak</p>
+            <h1 id="glance-streak" style="margin: 0; font-size: 24px; color: var(--primary); font-weight: 800; line-height: 1;">0 <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">Days</span></h1>
+        </div>
     </div>
 </div>
-
             <!-- Food Summary Widget -->
             <div class="utang-card" id="foodSummaryCard" style="margin-bottom: 20px; padding: 15px; background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
