@@ -497,14 +497,11 @@ function renderFoodList() {
     });
 }
 
-// FOOD AI ONE-TAP LOGIC
+// MULTI-TAP FOOD AI LOGIC
 async function analyzeFoodAI() {
     if (foodDatabase.length === 0) { alert("Kumain ka muna!"); return; }
     let todayKey = new Date().toLocaleDateString('en-CA');
     
-    let existingAnalysis = aiAnalyses.find(a => a.type === 'food' && a.dateKey === todayKey);
-    if (existingAnalysis) { alert("Nakapag-analyze ka na today, Engineer! Bukas ulit."); return; }
-
     let aiBtn = document.querySelector('button[onclick="analyzeFoodAI()"]');
     if (!aiBtn) return;
     let originalText = aiBtn.innerHTML; 
@@ -532,27 +529,19 @@ async function analyzeFoodAI() {
 
         await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "aiAnalyses"), { userId: window.currentUid, verdict: verdict, grade: grade, calories: calories, type: 'food', dateKey: todayKey, createdAt: Date.now() });
 
-        aiBtn.innerHTML = '<i class="ph-bold ph-check"></i> Analyzed for Today'; aiBtn.style.opacity = "0.5";
+        // Restore the button so you can tap it again later today
+        aiBtn.innerHTML = originalText; aiBtn.disabled = false;
     } catch (e) { console.error(e); alert("API Error. Hindi ko ma-analyze ngayon."); if (tipEl) tipEl.innerText = 'Error. Try again later.'; aiBtn.innerHTML = originalText; aiBtn.disabled = false; }
 }
 
 function initRealtimeAiAnalyses() {
     const q = window.dbMethods.query(window.dbMethods.collection(window.db, "aiAnalyses"), window.dbMethods.where("userId", "==", window.currentUid));
     window.dbMethods.onSnapshot(q, (snapshot) => {
-        aiAnalyses = []; let todayKey = new Date().toLocaleDateString('en-CA'); let hasAnalyzedToday = false; let todayVerdict = "";
+        aiAnalyses = []; 
         snapshot.forEach(doc => {
-            let data = doc.data(); aiAnalyses.push({ id: doc.id, ...data });
-            if (data.type === 'food' && data.dateKey === todayKey) { hasAnalyzedToday = true; todayVerdict = data.verdict; }
+            aiAnalyses.push({ id: doc.id, ...doc.data() });
         });
         aiAnalyses.sort((a, b) => a.createdAt - b.createdAt); 
-
-        let aiBtn = document.querySelector('button[onclick="analyzeFoodAI()"]'); let resultDiv = document.getElementById('aiFoodResult'); let textDiv = document.getElementById('aiVerdictText');
-        if (hasAnalyzedToday) {
-            if (aiBtn) { aiBtn.innerHTML = '<i class="ph-bold ph-check"></i> Analyzed for Today'; aiBtn.disabled = true; aiBtn.style.opacity = "0.5"; }
-            if (resultDiv && textDiv) { resultDiv.style.display = 'block'; textDiv.innerHTML = todayVerdict; }
-        } else {
-            if (aiBtn) { aiBtn.innerHTML = '<i class="ph-bold ph-sparkle"></i> Analyze My Day (AI)'; aiBtn.disabled = false; aiBtn.style.opacity = "1"; }
-        }
     });
 }
 
