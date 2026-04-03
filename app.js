@@ -931,7 +931,11 @@ function initRealtimeAiAnalyses() {
 function updateBudgetDashboard() {
     let totalPera = myWallets.reduce((sum, wallet) => sum + parseFloat(wallet.balance), 0);
     document.getElementById('totalNetWorth').innerText = `₱${totalPera.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
-
+    let glanceWallet = document.getElementById('glance-wallet');
+if (glanceWallet) {
+    glanceWallet.setAttribute('data-value', totalPera.toLocaleString('en-US', {minimumFractionDigits: 2}));
+    updateGlanceVisibility(); // Para i-check kung naka-hide o hindi
+}
     let container = document.getElementById('walletsContainer'); container.innerHTML = '';
     if (myWallets.length === 0) container.innerHTML = `<p style="color: var(--text-muted); font-size: 12px; font-style: italic;">Wala pang wallet.</p>`;
     else {
@@ -1963,6 +1967,44 @@ window.addEventListener('keydown', e => {
 });
 
 // ==========================================
+// 👁️ MODULE 7: QUICK GLANCE & PRIVACY TOGGLE
+// ==========================================
+let isWalletHidden = localStorage.getItem('flux_hide_wallet') === 'true';
+let isUtangHidden = localStorage.getItem('flux_hide_utang') === 'true';
+
+// I-apply ang maskara ('****') o totoong value
+function updateGlanceVisibility() {
+    let walletEl = document.getElementById('glance-wallet');
+    let utangEl = document.getElementById('glance-utang');
+    let eyeWallet = document.getElementById('eye-wallet');
+    let eyeUtang = document.getElementById('eye-utang');
+
+    if(walletEl && eyeWallet) {
+        let val = walletEl.getAttribute('data-value') || "0.00";
+        walletEl.innerText = isWalletHidden ? "₱••••" : `₱${val}`;
+        eyeWallet.className = isWalletHidden ? "ph-bold ph-eye-closed" : "ph-bold ph-eye";
+    }
+
+    if(utangEl && eyeUtang) {
+        let val = utangEl.getAttribute('data-value') || "0.00";
+        utangEl.innerText = isUtangHidden ? "₱••••" : `₱${val}`;
+        eyeUtang.className = isUtangHidden ? "ph-bold ph-eye-closed" : "ph-bold ph-eye";
+    }
+}
+
+// Function kapag pinindot ang Eye Icon
+function toggleVisibility(type) {
+    if (type === 'wallet') {
+        isWalletHidden = !isWalletHidden;
+        localStorage.setItem('flux_hide_wallet', isWalletHidden);
+    } else if (type === 'utang') {
+        isUtangHidden = !isUtangHidden;
+        localStorage.setItem('flux_hide_utang', isUtangHidden);
+    }
+    updateGlanceVisibility();
+}
+
+// ==========================================
 // 🌍 GLOBAL EXPORTS 
 // ==========================================
 window.switchScreen = switchScreen;
@@ -2011,3 +2053,4 @@ window.refreshFoodSummary = refreshFoodSummary;
 window.startSnakeGame = startSnakeGame;
 window.stopSnakeGame = stopSnakeGame;
 window.changeSnakeDir = changeSnakeDir;
+window.toggleVisibility = toggleVisibility;
