@@ -135,13 +135,21 @@
             </button>
 
             <div class="summary-box" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 25px;">
-                <div class="stat-col" style="background: var(--glass-bg); border-color: var(--glass-border);">
-                    <p style="color: var(--primary);">Due This Month</p>
-                    <h3 class="text-danger" style="font-size: 18px;">₱<span id="displayMonthUtang">0.00</span></h3>
+                <div class="stat-col" style="background: var(--glass-bg); border-color: var(--glass-border); padding: 12px;">
+                    <p style="color: var(--primary); font-size: 10px;">Due This Month</p>
+                    <h3 class="text-danger" style="font-size: 16px;">₱<span id="displayMonthUtang">0.00</span></h3>
                 </div>
-                <div class="stat-col" style="background: var(--glass-bg); border-color: var(--glass-border);">
-                    <p style="color: var(--success);">Paid This Month</p>
-                    <h3 class="text-success" style="font-size: 18px;">₱<span id="displayMonthBayad">0.00</span></h3>
+                <div class="stat-col" style="background: var(--glass-bg); border-color: var(--glass-border); padding: 12px;">
+                    <p style="color: var(--success); font-size: 10px;">Paid This Month</p>
+                    <h3 class="text-success" style="font-size: 16px;">₱<span id="displayMonthBayad">0.00</span></h3>
+                </div>
+                <div class="stat-col" style="background: var(--glass-bg); border-color: var(--glass-border); padding: 12px;">
+                    <p style="font-size: 10px;">Overall Utang</p>
+                    <h3 class="text-danger" style="font-size: 16px;">₱<span id="displayTotalUtang">0.00</span></h3>
+                </div>
+                <div class="stat-col" style="background: var(--glass-bg); border-color: var(--glass-border); padding: 12px;">
+                    <p style="font-size: 10px;">Overall Paid</p>
+                    <h3 class="text-success" style="font-size: 16px;">₱<span id="displayTotalBayad">0.00</span></h3>
                 </div>
             </div>
 
@@ -163,31 +171,30 @@
                 <div id="duesContainer">
                     <div class="due-row">
                         <label style="font-size: 11px; color: var(--primary); font-weight: 700; display: block; margin-bottom: 8px; text-transform: uppercase;">Due 1:</label>
-                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                            <input type="number" class="dynamic-amt" placeholder="Amount" style="flex: 1;">
-                            <input type="date" class="dynamic-date" style="flex: 1;">
+                        <div style="display: flex; gap: 8px; margin-bottom: 12px; align-items: center;">
+                            <input type="number" class="dynamic-amt" placeholder="₱ Amount" style="flex: 1.5; padding: 10px; font-size: 13px; margin-bottom: 0;">
+                            <input type="date" class="dynamic-date" style="flex: 1; padding: 10px; font-size: 12px; margin-bottom: 0; color: var(--text-muted);">
                         </div>
                     </div>
                 </div>
 
-                <button class="secondary-btn" type="button" onclick="playSound('click'); addDueRow()"><i class="ph-bold ph-plus"></i> Add Another Due</button>
+                <button class="secondary-btn" type="button" onclick="playSound('click'); addDueRow()" style="padding: 10px; font-size: 12px;"><i class="ph-bold ph-plus"></i> Add Another Due</button>
                 <button class="save-btn" onclick="playSound('click'); saveUtang()"><i class="ph-bold ph-floppy-disk"></i> Save & Sync</button>
             </div>
 
-            <div class="month-nav">
+            <div class="month-nav" style="padding: 10px 20px;">
                 <button onclick="playSound('click'); changeMonth(-1)"><i class="ph-bold ph-caret-left"></i></button>
-                <h3 id="currentMonthLabel">Month Year</h3>
+                <h3 id="currentMonthLabel" style="font-size: 13px; text-transform: uppercase; letter-spacing: 2px; color: var(--primary);">Month Year</h3>
                 <button onclick="playSound('click'); changeMonth(1)"><i class="ph-bold ph-caret-right"></i></button>
             </div>
 
             <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                <button id="btnViewDate" onclick="playSound('click'); setUtangView('date')" class="secondary-btn" style="flex:1;"><i class="ph-bold ph-calendar"></i> Dates</button>
-                <button id="btnViewApp" onclick="playSound('click'); setUtangView('app')" class="secondary-btn" style="flex:1;"><i class="ph-bold ph-device-mobile"></i> Apps</button>
+                <button id="btnViewDate" onclick="playSound('click'); setUtangView('date')" class="secondary-btn" style="flex:1; margin-bottom: 0;"><i class="ph-bold ph-calendar"></i> Dates</button>
+                <button id="btnViewApp" onclick="playSound('click'); setUtangView('app')" class="secondary-btn" style="flex:1; margin-bottom: 0;"><i class="ph-bold ph-device-mobile"></i> Apps</button>
             </div>
 
             <div id="utangListContainer"></div>
         </div>
-
         <div id="taskScreen" class="screen">
             <button class="back-btn" onclick="playSound('click'); switchScreen('dashboardScreen')">
                 <i class="ph-bold ph-caret-left"></i> Dashboard
@@ -204,7 +211,7 @@
                         <option value="Personal">Personal</option>
                         <option value="Sched">Sched (Whole Day)</option> 
                     </select>
-                    <input type="date" id="aiTaskDate" style="margin-bottom: 0; flex: 1;">
+                    <input type="date" id="aiTaskDate" style="margin-bottom: 0; flex: 1; padding: 10px; font-size: 12px; color: var(--text-muted);">
                 </div>
                 <button class="save-btn" onclick="playSound('click'); estimateAITask()" style="margin-bottom: 0;">
                     <i class="ph-bold ph-sparkle"></i> Estimate with FLUX AI
@@ -227,8 +234,8 @@
                         <option value="Sched">Sched (Whole Day)</option>
                     </select>
                 </div>
-                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                    <input type="date" id="manualTaskDate" style="margin-bottom: 0; flex: 1;">
+                <div style="display: flex; gap: 10px; margin-bottom: 15px; align-items: center;">
+                    <input type="date" id="manualTaskDate" style="margin-bottom: 0; flex: 1.5; padding: 10px; font-size: 12px; color: var(--text-muted);">
                     <input type="number" id="manualTaskMins" placeholder="Est. Mins" style="margin-bottom: 0; flex: 1;">
                 </div>
                 <button class="save-btn" onclick="playSound('click'); saveManualTask()" style="margin-bottom: 0; background: linear-gradient(135deg, var(--secondary), #7e22ce);">
@@ -238,9 +245,9 @@
 
             <div class="hidden-form" style="display: block;">
                 <h3 style="color: var(--success); margin-top: 0; margin-bottom: 15px; font-size: 16px; display: flex; align-items: center; gap: 8px;"><i class="ph-duotone ph-arrows-clockwise"></i> Daily Habits</h3>
-                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <div style="display: flex; gap: 10px; margin-bottom: 15px; align-items: center;">
                     <input type="text" id="habitName" placeholder="Ex: Inom Vitamins" style="margin-bottom: 0; flex: 2;">
-                    <input type="time" id="habitTime" style="margin-bottom: 0; flex: 1;">
+                    <input type="time" id="habitTime" style="margin-bottom: 0; flex: 1; padding: 10px; font-size: 12px; color: var(--text-muted);">
                 </div>
                 <button class="save-btn" onclick="playSound('click'); saveHabit()" style="margin-bottom: 0; background: linear-gradient(135deg, var(--success), #059669);">
                     <i class="ph-bold ph-plus"></i> Add Daily Habit
@@ -411,11 +418,11 @@
         <div id="payUtangModal" style="display: none;" class="modal-overlay">
             <div class="utang-card modal-content">
                 <h3 style="color: var(--primary);">Settle Debt</h3>
-                <p id="payUtangDetails" style="font-size: 13px; color: var(--text-main);"></p>
+                <p id="payUtangDetails" style="font-size: 13px; color: var(--text-main); margin-bottom: 15px; font-weight: 600;"></p>
                 <input type="hidden" id="payUtangId">
                 <input type="hidden" id="payUtangAmount">
-                <select id="payUtangWallet" class="glass-select"></select>
-                <button onclick="playSound('click'); confirmPayUtang()" class="save-btn" style="background: var(--success);">Confirm Payment</button>
+                <select id="payUtangWallet" class="glass-select" style="margin-bottom: 15px;"></select>
+                <button onclick="playSound('click'); confirmPayUtang()" class="save-btn" style="margin-bottom: 10px; background: var(--success);">Confirm Payment</button>
                 <button onclick="playSound('click'); closeBudgetModals()" style="width:100%; background:none; border:none; color:var(--text-muted);">Cancel</button>
             </div>
         </div>
@@ -430,6 +437,8 @@
     </div> <style>
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; padding: 20px; display: flex; align-items: center; justify-content: center; }
         .modal-content { width: 100%; max-width: 380px; background: var(--card-bg) !important; border: 1px solid var(--glass-border); }
+        /* Temporary patch for webkit date/time inputs making them too long on some phones */
+        input[type="date"], input[type="time"] { min-width: 120px; }
     </style>
 
     <script type="module">
@@ -458,6 +467,6 @@
         window.authMethods = { signInWithPopup, onAuthStateChanged, signOut };
     </script>
 
-    <script src="app.js?v=9"></script>
+    <script src="app.js?v=10"></script>
 </body>
 </html>
