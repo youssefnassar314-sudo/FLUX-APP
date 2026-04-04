@@ -315,3 +315,20 @@ body.theme-light .badge-secondary { color: var(--secondary); border-color: var(-
     .header-icon-btn { font-size: 18px; }
     .header-branding .logo { font-size: 28px; }
 }
+/* ==========================================
+   🔲 QUICK GLANCE WRAPPER STYLING
+   ========================================== */
+.quick-glance-wrapper {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.05));
+    border: 1px solid var(--glass-border);
+    border-radius: 28px;
+    padding: 20px 15px;
+    margin-bottom: 25px;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
+}
+
+/* Light Theme adjustment para sa wrapper */
+body.theme-light .quick-glance-wrapper {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.2));
+    box-shadow: inset 0 0 20px rgba(255,255,255,0.5);
+}
