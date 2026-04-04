@@ -411,6 +411,10 @@
                     <option value="Wants / Lifestyle">Wants</option>
                 </select>
                 <input type="text" id="transactionNote" placeholder="Notes">
+                <div id="budgetCheckboxRow" style="display:none; align-items:center; gap:10px; margin-bottom:15px; padding: 12px 14px; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius:12px;">
+                    <input type="checkbox" id="includeInBudget" checked style="width:16px; height:16px; accent-color: var(--primary); cursor:pointer; flex-shrink:0;">
+                    <label for="includeInBudget" style="font-size:13px; color:var(--text-main); font-weight:600; cursor:pointer; margin:0;">Include in budget tracking</label>
+                </div>
                 <button id="saveTransactionBtn" onclick="playSound('click'); saveTransaction()" class="save-btn">Confirm</button>
                 <button onclick="playSound('click'); closeBudgetModals()" style="width:100%; background:none; border:none; color:var(--text-muted);">Cancel</button>
             </div>
