@@ -422,12 +422,9 @@ body.theme-light .google-btn { color: #ffffff; background: #111111; }
     font-size: 13px;
     letter-spacing: 1px;
     transition: all 0.3s ease;
-    position: absolute;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 85%;
+    width: 100%;
     cursor: pointer;
+    margin-top: 15px;
 }
 .cosmic-btn:hover {
     background: var(--primary) !important;
