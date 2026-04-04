@@ -629,7 +629,7 @@ function updateBudgetDashboard() {
     let now = new Date(); let computedSpent = 0;
     if (typeof transactionDatabase !== 'undefined') {
         transactionDatabase.forEach(tx => {
-            if (tx.type === 'expense' && tx.category !== 'Debt Payment') {
+            if (tx.type === 'expense' && tx.category !== 'Debt Payment' && tx.includeInBudget !== false) {
                 let d = new Date(tx.createdAt);
                 if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) { computedSpent += parseFloat(tx.amount); }
             }
@@ -703,9 +703,11 @@ async function saveTransaction() {
         newBal += amount; await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletId), { balance: newBal });
         await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "transactions"), { userId: window.currentUid, type: 'income', walletId: walletId, amount: amount, note: note || "N/A", category: "Income", createdAt: Date.now() });
     } else if (type === 'expense') { 
-        if (newBal < amount) return alert("Kulang pondo sa wallet na ito!"); newBal -= amount; monthlySpent += amount; 
+        let includeInBudget = document.getElementById('includeInBudget') ? document.getElementById('includeInBudget').checked : true;
+        if (newBal < amount) return alert("Kulang pondo sa wallet na ito!"); newBal -= amount;
+        if (includeInBudget) monthlySpent += amount;
         await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletId), { balance: newBal });
-        await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "transactions"), { userId: window.currentUid, type: 'expense', walletId: walletId, amount: amount, note: note || "N/A", category: category, createdAt: Date.now() });
+        await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "transactions"), { userId: window.currentUid, type: 'expense', walletId: walletId, amount: amount, note: note || "N/A", category: category, includeInBudget: includeInBudget, createdAt: Date.now() });
     } else if (type === 'transfer') {
         let walletToId = document.getElementById('transactionWalletTo').value; if (!walletToId || walletId === walletToId) return alert("Pumili ng tamang wallet na paglilipatan!");
         let walletToObj = myWallets.find(w => w.id === walletToId); if (newBal < amount) return alert("Kulang ang pondo pampa-transfer!");
@@ -764,6 +766,10 @@ function openTransactionModal(type) {
     
     if (type === 'income') { title.innerHTML = '<i class="ph-bold ph-trend-up"></i> Add Income'; title.style.color = 'var(--success)'; btn.style.background = 'var(--success)'; selectTo.style.display = 'none'; selectCat.style.display = 'none'; } 
     else if (type === 'expense') { title.innerHTML = '<i class="ph-bold ph-trend-down"></i> Add Expense'; title.style.color = 'var(--danger)'; btn.style.background = 'var(--danger)'; selectTo.style.display = 'none'; selectCat.style.display = 'block'; }
+    let budgetCheckboxRow = document.getElementById('budgetCheckboxRow');
+    if (budgetCheckboxRow) { budgetCheckboxRow.style.display = type === 'expense' ? 'flex' : 'none'; }
+    let includeInBudgetCb = document.getElementById('includeInBudget');
+    if (includeInBudgetCb) includeInBudgetCb.checked = true;
     else if (type === 'transfer') { title.innerHTML = '<i class="ph-bold ph-arrows-left-right"></i> Transfer Funds'; title.style.color = 'var(--secondary)'; btn.style.background = 'var(--secondary)'; selectTo.style.display = 'block'; selectCat.style.display = 'none'; }
 
     let select = document.getElementById('transactionWallet'); select.innerHTML = type === 'transfer' ? '<option value="">Transfer From...</option>' : ''; selectTo.innerHTML = '<option value="">Transfer To...</option>';
@@ -803,7 +809,7 @@ function buildReceiptSections() {
     let taskSection = `<div class="receipt-section-title">TASK PROGRESS</div>${taskRows}<div class="receipt-divider-solid"></div><div class="receipt-row r-total"><span class="r-label">TIME INVESTED</span><span class="r-val">${totalMins} MINS</span></div>`;
 
     let remaining = monthlyTarget - monthlySpent; let dailyLeft = remaining > 0 && daysLeft > 0 ? (remaining / daysLeft) : 0;
-    let expensesByDay = groupByDay(transactionDatabase.filter(t => t.type === 'expense' && t.createdAt >= startOfMonth), t => t.createdAt);
+    let expensesByDay = groupByDay(transactionDatabase.filter(t => t.type === 'expense' && t.createdAt >= startOfMonth && t.includeInBudget !== false), t => t.createdAt);
     let expRows = expensesByDay.map(day => `<div class="receipt-day-header">${day.label}</div>${day.items.map(t => `<div class="receipt-row"><span class="r-label">${t.note || t.category || 'Expense'}</span><span class="r-val">-₱${parseFloat(t.amount).toFixed(2)}</span></div>`).join('')}`).join('') || '<p style="text-align:center;font-size:10px;color:#888;letter-spacing:1px;margin:12px 0;">NO EXPENSES LOGGED</p>';
     let budgetSection = `<div class="receipt-section-title">BUDGET BREAKDOWN</div>${expRows}<div class="receipt-divider-solid"></div><div class="receipt-row" style="font-size:11px;"><span class="r-label">MONTHLY TARGET</span><span class="r-val">₱${parseFloat(monthlyTarget).toFixed(2)}</span></div><div class="receipt-row" style="font-size:11px;"><span class="r-label">TOTAL SPENT</span><span class="r-val">-₱${monthlySpent.toFixed(2)}</span></div><div class="receipt-divider-solid"></div><div class="receipt-row r-total"><span class="r-label">REMAINING</span><span class="r-val">₱${remaining.toFixed(2)}</span></div><div class="receipt-daily-budget"><p>DAILY ALLOWANCE LEFT</p><h2>₱${dailyLeft.toFixed(2)}</h2></div>`;
     return { debtSection, foodSection, taskSection, budgetSection };
