@@ -577,12 +577,8 @@ function initRealtimeAiAnalyses() {
             let latest = todaysAnalyses[todaysAnalyses.length - 1]; 
             let resultDiv = document.getElementById('aiFoodResult'); let textDiv = document.getElementById('aiVerdictText');
             if (resultDiv && textDiv) { resultDiv.style.display = 'block'; textDiv.innerHTML = latest.verdict; }
-            let glanceGrade = document.getElementById('glance-food-grade');
-            if (glanceGrade && latest.grade) { 
-                glanceGrade.innerText = latest.grade; 
-                let gColor = '#f43f5e'; 
-                if (latest.grade.startsWith('A')) gColor = '#10b981'; else if (latest.grade.startsWith('B')) gColor = '#38bdf8'; else if (latest.grade.startsWith('C')) gColor = '#fbbf24'; 
-                glanceGrade.style.color = gColor; 
+            if (latest.grade) {
+                applyFoodSummaryUI({ grade: latest.grade, calories: latest.calories || 0, summary: latest.verdict || '' });
             }
         }
     });
