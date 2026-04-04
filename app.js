@@ -45,7 +45,7 @@ function switchScreen(screenId) {
     
     if (screenId === 'utangScreen') renderUtangList();
     if (screenId === 'taskScreen') { renderTasks(); renderKanban(); }
-    if (screenId === 'foodScreen') renderFoodList();
+    if (screenId === 'foodScreen') { renderFoodList(); fetchFoodSummary(); }
     if (screenId === 'budgetScreen') updateBudgetDashboard();
     if (screenId === 'kanbanScreen') renderKanban();
     if (screenId === 'dashboardScreen') fetchFoodSummary();
