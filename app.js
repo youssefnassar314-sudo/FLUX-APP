@@ -35,7 +35,8 @@ let dueCounter = 1;
 let currentDateView = new Date(); 
 let transactionDatabase = [];
 
-let currentUtangView = 'date'; 
+let currentUtangView = 'date';
+let lastFoodSummaryCache = null; // instant restore cache 
 
 function switchScreen(screenId) {
     playSound('transition'); 
@@ -45,10 +46,10 @@ function switchScreen(screenId) {
     
     if (screenId === 'utangScreen') renderUtangList();
     if (screenId === 'taskScreen') { renderTasks(); renderKanban(); }
-    if (screenId === 'foodScreen') { renderFoodList(); fetchFoodSummary(); }
+    if (screenId === 'foodScreen') { renderFoodList(); if (lastFoodSummaryCache) applyFoodSummaryUI(lastFoodSummaryCache); }
     if (screenId === 'budgetScreen') updateBudgetDashboard();
     if (screenId === 'kanbanScreen') renderKanban();
-    if (screenId === 'dashboardScreen') fetchFoodSummary();
+    if (screenId === 'dashboardScreen') updateQuickGlance();
 }
 
 // ==========================================
@@ -472,6 +473,7 @@ function getFoodGradeColor(grade) {
 }
 
 function applyFoodSummaryUI(result) {
+    if (result && result.grade && result.grade !== '--') lastFoodSummaryCache = result;
     let gradeEl = document.getElementById('foodGradeDisplay'); let gradeText = document.getElementById('foodGradeText');
     let calEl = document.getElementById('foodCalorieText'); let tipEl = document.getElementById('foodSummaryTip');
     if (!gradeEl) return;
@@ -485,6 +487,7 @@ function applyFoodSummaryUI(result) {
 
 async function fetchFoodSummary(forceRefresh = false) {
     if (!window.currentUid) return;
+    if (lastFoodSummaryCache && !forceRefresh) applyFoodSummaryUI(lastFoodSummaryCache);
     let todayKey = new Date().toLocaleDateString('en-CA'); let todayFood = foodDatabase.filter(f => new Date(f.createdAt).toLocaleDateString('en-CA') === todayKey);
     if (todayFood.length === 0) { applyFoodSummaryUI({ calories: 0, grade: '--', summary: 'Mag-log ng pagkain mo para makita ang summary.' }); return; }
     if (!forceRefresh) {
@@ -580,6 +583,27 @@ function initRealtimeAiAnalyses() {
                 let gColor = '#f43f5e'; 
                 if (latest.grade.startsWith('A')) gColor = '#10b981'; else if (latest.grade.startsWith('B')) gColor = '#38bdf8'; else if (latest.grade.startsWith('C')) gColor = '#fbbf24'; 
                 glanceGrade.style.color = gColor; 
+            }
+        }
+    });
+}
+
+// ==========================================
+// 🍽️ REALTIME FOOD SUMMARY LISTENER
+// ==========================================
+function initRealtimeFoodSummary() {
+    let todayKey = new Date().toLocaleDateString('en-CA');
+    const q = window.dbMethods.query(
+        window.dbMethods.collection(window.db, "foodSummaries"),
+        window.dbMethods.where("userId", "==", window.currentUid),
+        window.dbMethods.where("dateKey", "==", todayKey)
+    );
+    window.dbMethods.onSnapshot(q, (snapshot) => {
+        if (!snapshot.empty) {
+            let data = snapshot.docs[0].data();
+            if (data.grade && data.grade !== '--') {
+                lastFoodSummaryCache = data;
+                applyFoodSummaryUI(data);
             }
         }
     });
@@ -909,7 +933,7 @@ function startApp() {
                     if (subtitle) { subtitle.innerHTML = `Welcome back, <span style="color: var(--primary); font-weight: bold;">${window.currentUserName}</span> <i class="ph-bold ph-pencil-simple" style="font-size: 11px; opacity: 0.5;"></i>`; }
                 });
                 switchScreen('dashboardScreen');
-                if (!isAppInitialized) { initRealtimeUtang(); initRealtimeTasks(); initRealtimeFood(); initRealtimeBudget(); initRealtimeTransactions(); initRealtimeBudgetConfig(); initRealtimeAiAnalyses(); isAppInitialized = true; }
+                if (!isAppInitialized) { initRealtimeUtang(); initRealtimeTasks(); initRealtimeFood(); initRealtimeBudget(); initRealtimeTransactions(); initRealtimeBudgetConfig(); initRealtimeAiAnalyses(); initRealtimeFoodSummary(); isAppInitialized = true; }
             } else {
                 document.getElementById('logoutBtn').style.display = 'none'; switchScreen('loginScreen');
             }
