@@ -709,11 +709,21 @@ async function saveTransaction() {
         await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletId), { balance: newBal });
         await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "transactions"), { userId: window.currentUid, type: 'expense', walletId: walletId, amount: amount, note: note || "N/A", category: category, includeInBudget: includeInBudget, createdAt: Date.now() });
     } else if (type === 'transfer') {
-        let walletToId = document.getElementById('transactionWalletTo').value; if (!walletToId || walletId === walletToId) return alert("Pumili ng tamang wallet na paglilipatan!");
-        let walletToObj = myWallets.find(w => w.id === walletToId); if (newBal < amount) return alert("Kulang ang pondo pampa-transfer!");
-        let newTargetBal = parseFloat(walletToObj.balance) + amount; newBal -= amount;
-        await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletId), { balance: newBal }); await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletToId), { balance: newTargetBal });
-        await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "transactions"), { userId: window.currentUid, type: 'transfer', walletId: walletId, walletToId: walletToId, amount: amount, note: note || "Wallet Transfer", category: "Transfer", createdAt: Date.now() });
+        let walletToId = document.getElementById('transactionWalletTo').value;
+        if (!walletToId || walletId === walletToId) return alert("Pumili ng tamang wallet na paglilipatan!");
+        let walletToObj = myWallets.find(w => w.id === walletToId);
+        if (!walletToObj) return alert("Hindi mahanap ang destination wallet. I-refresh muna ang page.");
+        if (newBal < amount) return alert("Kulang ang pondo pampa-transfer!");
+        try {
+            let newTargetBal = parseFloat(walletToObj.balance) + amount;
+            newBal -= amount;
+            await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletId), { balance: newBal });
+            await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletToId), { balance: newTargetBal });
+            await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "transactions"), { userId: window.currentUid, type: 'transfer', walletId: walletId, walletToId: walletToId, amount: amount, note: note || "Wallet Transfer", category: "Transfer", createdAt: Date.now() });
+        } catch (e) {
+            console.error("Transfer error:", e);
+            return alert("May error sa transfer: " + e.message);
+        }
     }
     try { playSound('success'); document.getElementById('transactionAmount').value = ''; document.getElementById('transactionNote').value = ''; document.getElementById('transactionCategory').value = ''; closeBudgetModals(); updateBudgetDashboard(); } catch (e) { console.error(e); }
 }
@@ -764,13 +774,13 @@ function openTransactionModal(type) {
     document.getElementById('transactionModal').style.display = 'flex'; document.getElementById('transactionType').value = type;
     let title = document.getElementById('transactionTitle'); let btn = document.getElementById('saveTransactionBtn'); let selectTo = document.getElementById('transactionWalletTo'); let selectCat = document.getElementById('transactionCategory'); 
     
-    if (type === 'income') { title.innerHTML = '<i class="ph-bold ph-trend-up"></i> Add Income'; title.style.color = 'var(--success)'; btn.style.background = 'var(--success)'; selectTo.style.display = 'none'; selectCat.style.display = 'none'; } 
+    if (type === 'income') { title.innerHTML = '<i class="ph-bold ph-trend-up"></i> Add Income'; title.style.color = 'var(--success)'; btn.style.background = 'var(--success)'; selectTo.style.display = 'none'; selectCat.style.display = 'none'; }
     else if (type === 'expense') { title.innerHTML = '<i class="ph-bold ph-trend-down"></i> Add Expense'; title.style.color = 'var(--danger)'; btn.style.background = 'var(--danger)'; selectTo.style.display = 'none'; selectCat.style.display = 'block'; }
+    else if (type === 'transfer') { title.innerHTML = '<i class="ph-bold ph-arrows-left-right"></i> Transfer Funds'; title.style.color = 'var(--secondary)'; btn.style.background = 'var(--secondary)'; selectTo.style.display = 'block'; selectCat.style.display = 'none'; }
     let budgetCheckboxRow = document.getElementById('budgetCheckboxRow');
     if (budgetCheckboxRow) { budgetCheckboxRow.style.display = type === 'expense' ? 'flex' : 'none'; }
     let includeInBudgetCb = document.getElementById('includeInBudget');
     if (includeInBudgetCb) includeInBudgetCb.checked = true;
-    else if (type === 'transfer') { title.innerHTML = '<i class="ph-bold ph-arrows-left-right"></i> Transfer Funds'; title.style.color = 'var(--secondary)'; btn.style.background = 'var(--secondary)'; selectTo.style.display = 'block'; selectCat.style.display = 'none'; }
 
     let select = document.getElementById('transactionWallet'); select.innerHTML = type === 'transfer' ? '<option value="">Transfer From...</option>' : ''; selectTo.innerHTML = '<option value="">Transfer To...</option>';
     myWallets.forEach(w => { select.innerHTML += `<option value="${w.id}">${w.name} (Bal: ₱${parseFloat(w.balance).toLocaleString()})</option>`; selectTo.innerHTML += `<option value="${w.id}">${w.name}</option>`; });
