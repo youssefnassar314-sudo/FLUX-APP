@@ -1008,6 +1008,36 @@ function updateQuickGlance() {
     }
 }
 
+function exportUtangToCSV() {
+    // 1. Setup the CSV headers (Kasama na ang Firebase ID)
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "Firebase ID,Utang ID,App Name,Amount,Due Date,Category,Status\n";
+
+    // 2. Loop through your existing utangDatabase
+    utangDatabase.forEach(utang => {
+        let status = utang.isPaid ? "Paid" : "Unpaid";
+        // Format the date so it's clean
+        let dateObj = new Date(utang.dueDate);
+        let formattedDate = !isNaN(dateObj) ? dateObj.toLocaleDateString('en-CA') : "N/A";
+        
+        // 3. Create the row (Nandito na sa unahan ang utang.id)
+        let row = `${utang.id},${utang.utangId},${utang.appName},${utang.amount},${formattedDate},${utang.category},${status}`;
+        csvContent += row + "\n";
+    });
+
+    // 4. Trigger the download automatically
+    var encodedUri = encodeURI(csvContent);
+    var link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    // Iniba ko ng konti yung file name para madaling ma-identify
+    link.setAttribute("download", "flux_utang_export_with_id.csv"); 
+    document.body.appendChild(link); 
+    
+    playSound('success'); 
+    link.click();
+    document.body.removeChild(link);
+}
+
 // ==========================================
 // 🌍 GLOBAL EXPORTS 
 // ==========================================
@@ -1022,4 +1052,4 @@ window.closeBudgetModals = closeBudgetModals; window.deleteUtang = deleteUtang; 
 window.deleteTransaction = deleteTransaction; window.openDailySummary = openDailySummary; window.forceUpdateApp = forceUpdateApp;
 window.setUtangView = setUtangView; window.toggleTheme = toggleTheme; window.setCustomUsername = setCustomUsername;
 window.refreshFoodSummary = refreshFoodSummary; window.toggleVisibility = toggleVisibility; window.updateQuickGlance = updateQuickGlance;
-window.setReceiptFilter = setReceiptFilter; window.playSound = playSound;
+window.setReceiptFilter = setReceiptFilter; window.playSound = playSound; window.exportUtangToCSV = exportUtangToCSV;
