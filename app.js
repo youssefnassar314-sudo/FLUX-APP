@@ -18,7 +18,7 @@ function playSound(type) {
 // ==========================================
 // 🔗 GOOGLE SHEETS SYNC ENGINE
 // ==========================================
-const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbxpveW9yTss2djHdndfO-lgJ1QqVHY_XqZMu4P2xmw-mMJRLucksx1pU-fiFLCEyXNH/exec";
+const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbzmUohkXuIy00zUn4csr1EQAHuuhGVnTgWQtOSw6E7oJcd_JALvNfvj3-CXpbLP343o/exec";
 
 async function syncToSheets(payload) {
     try {
