@@ -16,6 +16,25 @@ function playSound(type) {
 }
 
 // ==========================================
+// 🔗 GOOGLE SHEETS SYNC ENGINE
+// ==========================================
+const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbxpveW9yTss2djHdndfO-lgJ1QqVHY_XqZMu4P2xmw-mMJRLucksx1pU-fiFLCEyXNH/exec";
+
+async function syncToSheets(payload) {
+    try {
+        await fetch(GOOGLE_SHEETS_URL, {
+            method: 'POST',
+            mode: 'no-cors', // Para iwas error sa browser security
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify(payload)
+        });
+        console.log("Synced to Sheets:", payload.action);
+    } catch (e) {
+        console.error("Sheet sync failed:", e);
+    }
+}
+
+// ==========================================
 // 🌐 MGA GLOBAL VARIABLES
 // ==========================================
 let utangDatabase = []; 
@@ -108,18 +127,29 @@ async function saveUtang() {
             let dateVal = dates[i].value;
 
             if (!isNaN(amt) && dateVal) {
-                await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "utang"), {
-                    userId: window.currentUid,
-                    utangId: utangId + ` (Due ${i + 1})`,
-                    amount: amt,
-                    dueDate: dateVal, 
-                    isPaid: false,
-                    category: category,
-                    appName: appName,
-                    createdAt: Date.now()
-                });
-            }
-        }
+    // 1. Kunin muna yung reference ng bagong document para makuha yung ID
+    let docRef = await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "utang"), {
+        userId: window.currentUid,
+        utangId: utangId + ` (Due ${i + 1})`,
+        amount: amt,
+        dueDate: dateVal, 
+        isPaid: false,
+        category: category,
+        appName: appName,
+        createdAt: Date.now()
+    });
+
+    // 2. I-send ang data sa Google Sheets!
+    syncToSheets({
+        action: 'addUtang',
+        firebaseId: docRef.id,
+        utangId: utangId + ` (Due ${i + 1})`,
+        appName: appName,
+        amount: amt,
+        dueDate: dateVal,
+        category: category
+    });
+}
         playSound('success'); 
         document.getElementById('utangId').value = ''; document.getElementById('appName').value = '';
         document.getElementById('duesContainer').innerHTML = `
@@ -160,6 +190,10 @@ async function confirmPayUtang() {
     try {
         await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletId), { balance: parseFloat(walletObj.balance) - amount });
         await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "utang", utangId), { isPaid: true });
+        syncToSheets({
+    action: 'payUtang',
+    firebaseId: utangId
+});
         await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "transactions"), {
             userId: window.currentUid, type: 'expense', walletId: walletId, amount: amount,
             note: `Bayad Utang: ${utangLabel.split('(')[0]}`, category: "Debt Payment", paidFromWallet: walletObj.name, createdAt: Date.now()
