@@ -150,6 +150,7 @@ async function saveUtang() {
         category: category
     });
 }
+        }
         playSound('success'); 
         document.getElementById('utangId').value = ''; document.getElementById('appName').value = '';
         document.getElementById('duesContainer').innerHTML = `
