@@ -389,60 +389,63 @@
             <div id="transactionListContainer"></div>
         </div>
 
-        <div id="walletModal" style="display: none;" class="modal-overlay">
-            <div class="utang-card modal-content">
-                <h3 style="color: var(--primary);">Add Wallet</h3>
-                <input type="text" id="walletName" placeholder="Wallet Name">
-                <input type="number" id="walletBalance" placeholder="Initial Balance">
-                <button onclick="playSound('click'); saveWallet()" class="save-btn">Save Wallet</button>
-                <button onclick="playSound('click'); closeBudgetModals()" style="width:100%; background:none; border:none; color:var(--text-muted);">Cancel</button>
-            </div>
-        </div>
-
-        <div id="transactionModal" style="display: none;" class="modal-overlay">
-            <div class="utang-card modal-content">
-                <h3 id="transactionTitle">Transaction</h3>
-                <input type="hidden" id="transactionType">
-                <select id="transactionWallet" class="glass-select"></select>
-                <select id="transactionWalletTo" class="glass-select" style="display:none;"></select>
-                <input type="number" id="transactionAmount" placeholder="Amount">
-                <select id="transactionCategory" class="glass-select" style="display:none;">
-                    <option value="">Category...</option>
-                    <option value="Needs (Essentials)">Needs</option>
-                    <option value="Food & Drinks">Food</option>
-                    <option value="Education">Education</option>
-                    <option value="Wants / Lifestyle">Wants</option>
-                </select>
-                <input type="text" id="transactionNote" placeholder="Notes">
-                <div id="budgetCheckboxRow" style="display:none; align-items:center; gap:10px; margin-bottom:15px; padding: 12px 14px; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius:12px;">
-                    <input type="checkbox" id="includeInBudget" checked style="width:16px; height:16px; accent-color: var(--primary); cursor:pointer; flex-shrink:0;">
-                    <label for="includeInBudget" style="font-size:13px; color:var(--text-main); font-weight:600; cursor:pointer; margin:0;">Include in budget tracking</label>
-                </div>
-                <button id="saveTransactionBtn" onclick="playSound('click'); saveTransaction()" class="save-btn">Confirm</button>
-                <button onclick="playSound('click'); closeBudgetModals()" style="width:100%; background:none; border:none; color:var(--text-muted);">Cancel</button>
-            </div>
-        </div>
-
-        <div id="payUtangModal" style="display: none;" class="modal-overlay">
-            <div class="utang-card modal-content">
-                <h3 style="color: var(--primary);">Settle Debt</h3>
-                <p id="payUtangDetails" style="font-size: 13px; color: var(--text-main); margin-bottom: 15px; font-weight: 600;"></p>
-                <input type="hidden" id="payUtangId">
-                <input type="hidden" id="payUtangAmount">
-                <select id="payUtangWallet" class="glass-select" style="margin-bottom: 15px;"></select>
-                <button onclick="playSound('click'); confirmPayUtang()" class="save-btn" style="margin-bottom: 10px; background: var(--success);">Confirm Payment</button>
-                <button onclick="playSound('click'); closeBudgetModals()" style="width:100%; background:none; border:none; color:var(--text-muted);">Cancel</button>
-            </div>
-        </div>
-
-        <div id="summaryScreen" class="screen" style="padding-bottom: 80px;">
+<div id="summaryScreen" class="screen" style="padding-bottom: 80px;">
             <button class="back-btn" onclick="playSound('click'); switchScreen('dashboardScreen')">
                 <i class="ph-bold ph-caret-left"></i> Close Receipt
             </button>
             <div id="summaryContent"></div>
         </div>
 
-    </div> <style>
+    </div> <!-- Dito na natatapos ang app-container -->
+
+    <!-- INILABAS NA NATIN YUNG MGA MODALS DITO -->
+    <div id="walletModal" style="display: none;" class="modal-overlay">
+        <div class="utang-card modal-content">
+            <h3 style="color: var(--primary);">Add Wallet</h3>
+            <input type="text" id="walletName" placeholder="Wallet Name">
+            <input type="number" id="walletBalance" placeholder="Initial Balance">
+            <button onclick="playSound('click'); saveWallet()" class="save-btn">Save Wallet</button>
+            <button onclick="playSound('click'); closeBudgetModals()" style="width:100%; background:none; border:none; color:var(--text-muted);">Cancel</button>
+        </div>
+    </div>
+
+    <div id="transactionModal" style="display: none;" class="modal-overlay">
+        <div class="utang-card modal-content">
+            <h3 id="transactionTitle">Transaction</h3>
+            <input type="hidden" id="transactionType">
+            <select id="transactionWallet" class="glass-select"></select>
+            <select id="transactionWalletTo" class="glass-select" style="display:none;"></select>
+            <input type="number" id="transactionAmount" placeholder="Amount">
+            <select id="transactionCategory" class="glass-select" style="display:none;">
+                <option value="">Category...</option>
+                <option value="Needs (Essentials)">Needs</option>
+                <option value="Food & Drinks">Food</option>
+                <option value="Education">Education</option>
+                <option value="Wants / Lifestyle">Wants</option>
+            </select>
+            <input type="text" id="transactionNote" placeholder="Notes">
+            <div id="budgetCheckboxRow" style="display:none; align-items:center; gap:10px; margin-bottom:15px; padding: 12px 14px; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius:12px;">
+                <input type="checkbox" id="includeInBudget" checked style="width:16px; height:16px; accent-color: var(--primary); cursor:pointer; flex-shrink:0;">
+                <label for="includeInBudget" style="font-size:13px; color:var(--text-main); font-weight:600; cursor:pointer; margin:0;">Include in budget tracking</label>
+            </div>
+            <button id="saveTransactionBtn" onclick="playSound('click'); saveTransaction()" class="save-btn">Confirm</button>
+            <button onclick="playSound('click'); closeBudgetModals()" style="width:100%; background:none; border:none; color:var(--text-muted);">Cancel</button>
+        </div>
+    </div>
+
+    <div id="payUtangModal" style="display: none;" class="modal-overlay">
+        <div class="utang-card modal-content">
+            <h3 style="color: var(--primary);">Settle Debt</h3>
+            <p id="payUtangDetails" style="font-size: 13px; color: var(--text-main); margin-bottom: 15px; font-weight: 600;"></p>
+            <input type="hidden" id="payUtangId">
+            <input type="hidden" id="payUtangAmount">
+            <select id="payUtangWallet" class="glass-select" style="margin-bottom: 15px;"></select>
+            <button onclick="playSound('click'); confirmPayUtang()" class="save-btn" style="margin-bottom: 10px; background: var(--success);">Confirm Payment</button>
+            <button onclick="playSound('click'); closeBudgetModals()" style="width:100%; background:none; border:none; color:var(--text-muted);">Cancel</button>
+        </div>
+    </div>
+
+    <style>
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; padding: 20px; display: flex; align-items: center; justify-content: center; }
         .modal-content { width: 100%; max-width: 380px; background: var(--card-bg) !important; border: 1px solid var(--glass-border); }
         /* Temporary patch for webkit date/time inputs making them too long on some phones */
