@@ -821,7 +821,38 @@ function openTransactionModal(type) {
     myWallets.forEach(w => { select.innerHTML += `<option value="${w.id}">${w.name} (Bal: ₱${parseFloat(w.balance).toLocaleString()})</option>`; selectTo.innerHTML += `<option value="${w.id}">${w.name}</option>`; });
 }
 function addIncome() { openTransactionModal('income'); } function addExpense() { openTransactionModal('expense'); } function addTransfer() { openTransactionModal('transfer'); } 
-function closeBudgetModals() { document.getElementById('walletModal').style.display = 'none'; document.getElementById('transactionModal').style.display = 'none'; let payUtangModal = document.getElementById('payUtangModal'); if (payUtangModal) payUtangModal.style.display = 'none'; }
+
+function openHistoryModal() {
+    playSound('click');
+    document.getElementById('historyModal').style.display = 'flex';
+    let container = document.getElementById('fullHistoryContainer');
+    container.innerHTML = '';
+    
+    if (transactionDatabase.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: var(--text-muted); font-size: 12px; font-style: italic; margin-top: 20px;">Walang history ng transactions.</p>';
+        return;
+    }
+
+    transactionDatabase.forEach(t => {
+        let isIncome = t.type === 'income'; let isTransfer = t.type === 'transfer';
+        let color = isIncome ? 'var(--success)' : (isTransfer ? 'var(--secondary)' : 'var(--danger)');
+        let sign = isIncome ? '+' : (isTransfer ? '' : '-');
+        let walletObj = myWallets.find(w => w.id === t.walletId); let walletName = walletObj ? walletObj.name : 'Deleted Wallet';
+        let dateStr = new Date(t.createdAt).toLocaleDateString('default', { month: 'short', day: 'numeric', year: 'numeric' });
+        
+        container.innerHTML += `<div class="utang-card" style="padding: 10px; margin-bottom: 8px; background: var(--glass-bg); display: flex; justify-content: space-between; align-items: center; border-left: 3px solid ${color};">
+            <div><p style="margin: 0; font-size: 13px; color: var(--text-main); font-weight: 600;">${t.note !== "N/A" ? t.note : t.category}</p><p style="margin: 0; font-size: 10px; color: var(--text-muted);">${walletName} • ${dateStr}</p></div>
+            <h4 style="margin: 0; font-size: 13px; color: ${color};">${sign}₱${parseFloat(t.amount).toLocaleString()}</h4>
+        </div>`;
+    });
+}
+
+function closeBudgetModals() { 
+    document.getElementById('walletModal').style.display = 'none'; 
+    document.getElementById('transactionModal').style.display = 'none'; 
+    let payUtangModal = document.getElementById('payUtangModal'); if (payUtangModal) payUtangModal.style.display = 'none'; 
+    let histModal = document.getElementById('historyModal'); if (histModal) histModal.style.display = 'none';
+}
 
 let activeReceiptFilter = 'all';
 function openDailySummary() { activeReceiptFilter = 'all'; switchScreen('summaryScreen'); renderFullReceipt(); }
@@ -1084,6 +1115,7 @@ window.deleteFood = deleteFood; window.analyzeFoodAI = analyzeFoodAI; window.sho
 window.saveWallet = saveWallet; window.deleteWallet = deleteWallet; window.setMonthlyBudget = setMonthlyBudget;
 window.addIncome = addIncome; window.addExpense = addExpense; window.addTransfer = addTransfer; window.saveTransaction = saveTransaction;
 window.closeBudgetModals = closeBudgetModals; window.deleteUtang = deleteUtang; window.deleteTask = deleteTask; window.deleteHabit = deleteHabit;
+window.openHistoryModal = openHistoryModal;
 window.deleteTransaction = deleteTransaction; window.openDailySummary = openDailySummary; window.forceUpdateApp = forceUpdateApp;
 window.setUtangView = setUtangView; window.toggleTheme = toggleTheme; window.setCustomUsername = setCustomUsername;
 window.refreshFoodSummary = refreshFoodSummary; window.toggleVisibility = toggleVisibility; window.updateQuickGlance = updateQuickGlance;
