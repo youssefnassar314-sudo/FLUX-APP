@@ -179,7 +179,8 @@ function openPayUtangModal(id, amount, utangIdLabel) {
 }
 
 async function confirmPayUtang() {
-    let utangId = document.getElementById('payUtangId').value;
+    // Kukunin natin as array ang mga ID (kung isa o marami)
+    let utangIds = document.getElementById('payUtangId').value.split(','); 
     let amount = parseFloat(document.getElementById('payUtangAmount').value);
     let walletId = document.getElementById('payUtangWallet').value;
     let utangLabel = document.getElementById('payUtangDetails').innerText;
@@ -189,19 +190,49 @@ async function confirmPayUtang() {
     if (!walletObj || parseFloat(walletObj.balance) < amount) return alert("Kulang ang pondo!");
 
     try {
+        // Bawas sa wallet ng isahan
         await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletId), { balance: parseFloat(walletObj.balance) - amount });
-        await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "utang", utangId), { isPaid: true });
-        syncToSheets({
-    action: 'payUtang',
-    firebaseId: utangId
-});
+        
+        // Update Firebase & Google Sheets ng sabay-sabay for each due
+        for (let id of utangIds) {
+            if (id) {
+                await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "utang", id), { isPaid: true });
+                syncToSheets({ action: 'payUtang', firebaseId: id });
+            }
+        }
+
+        // I-save ang transaction record (inalis lang yung "Babayaran: " para mas malinis sa receipt)
         await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "transactions"), {
             userId: window.currentUid, type: 'expense', walletId: walletId, amount: amount,
-            note: `Bayad Utang: ${utangLabel.split('(')[0]}`, category: "Debt Payment", paidFromWallet: walletObj.name, createdAt: Date.now()
+            note: `Bayad Utang: ${utangLabel.split('(')[0].replace('Babayaran: ', '').trim()}`, category: "Debt Payment", paidFromWallet: walletObj.name, createdAt: Date.now()
         });
         playSound('success'); 
         closeBudgetModals();
     } catch (e) { console.error(e); }
+}
+
+// BAGONG FUNCTION PARA SA FULL PAYMENT
+function openPayFullUtang(baseId) {
+    // Hahanapin lahat ng dues sa ilalim ng ID na 'to na isPaid = false
+    let unpaidItems = utangDatabase.filter(u => u.utangId.split(' (Due')[0] === baseId && !u.isPaid);
+    if(unpaidItems.length === 0) return alert("Bayad na lahat ng dues para dito!");
+    
+    // Ipag-add yung total utang
+    let totalAmount = unpaidItems.reduce((sum, u) => sum + u.amount, 0);
+    // Pagsasamahin yung mga Firebase IDs nila gamit ang comma
+    let ids = unpaidItems.map(u => u.id).join(',');
+    
+    if (myWallets.length === 0) return alert("Gumawa ka muna ng wallet sa Budget tab!");
+    playSound('click');
+    
+    document.getElementById('payUtangId').value = ids; // Naka-store dito lahat ng IDs
+    document.getElementById('payUtangAmount').value = totalAmount;
+    document.getElementById('payUtangDetails').innerText = `Babayaran: FULL BALANCE ID ${baseId} (₱${totalAmount.toLocaleString()})`;
+
+    let select = document.getElementById('payUtangWallet');
+    select.innerHTML = '<option value="">Saan kukunin ang pera?</option>';
+    myWallets.forEach(w => { select.innerHTML += `<option value="${w.id}">${w.name} (Bal: ₱${parseFloat(w.balance).toLocaleString()})</option>`; });
+    document.getElementById('payUtangModal').style.display = 'flex';
 }
 
 function changeMonth(offset) { currentDateView.setMonth(currentDateView.getMonth() + offset); renderUtangList(); }
@@ -234,22 +265,45 @@ function renderUtangList() {
     document.getElementById('displayMonthUtang').innerText = monthUtang.toFixed(2);
     document.getElementById('displayMonthBayad').innerText = monthBayad.toFixed(2);
 
-    if (currentUtangView === 'date') {
+if (currentUtangView === 'date') {
         if (filteredUtang.length === 0) { container.innerHTML = `<p style="text-align: center; color: var(--text-muted); font-style: italic; margin-top: 30px;">Walang due para sa buwang ito.</p>`; return; }
-        let hasRenderedPaidHeader = false;
+        
+        let unpaidHTML = '';
+        let paidHTML = '';
+        
         filteredUtang.forEach(utang => {
             let day = utang.dueDate.getDate(); let shortMonth = utang.dueDate.toLocaleString('default', { month: 'short' });
-            if (utang.isPaid && !hasRenderedPaidHeader) { container.innerHTML += `<div class="date-section"><h3 style="color: var(--success); border-bottom: 2px solid rgba(16, 185, 129, 0.2); padding-bottom: 5px; font-size: 14px; margin-top: 25px;"><i class="ph-bold ph-check-circle"></i> Paid This Month</h3></div>`; hasRenderedPaidHeader = true; } 
-            let cardStyle = utang.isPaid ? 'opacity: 0.5; background-color: var(--glass-bg);' : 'background: var(--glass-bg);';
+            let cardStyle = utang.isPaid ? 'opacity: 0.5; background-color: var(--glass-bg);' : 'background: var(--glass-bg); border-left: 3px solid var(--primary);';
             let badgeHTML = utang.category === 'My App' ? `<span class="badge badge-primary"><i class="ph-bold ph-device-mobile"></i> My App: ${utang.appName}</span>` : `<span class="badge badge-secondary"><i class="ph-bold ph-user"></i> Under their: ${utang.appName}</span>`;
-            container.innerHTML += `<div class="utang-card" style="${cardStyle}">
+            
+            let cardContent = `<div class="utang-card" style="${cardStyle}">
                 <button onclick="playSound('click'); deleteUtang('${utang.id}')" style="position: absolute; top: 12px; right: 12px; background: none; border: none; color: var(--danger); cursor: pointer; font-size: 16px; padding: 0;"><i class="ph-bold ph-x"></i></button>
                 <div style="margin-bottom: 10px; padding-right: 20px;">${badgeHTML}</div>
                 <h4><span style="font-family: monospace; letter-spacing: 1px; color: var(--primary);">ID: ${utang.utangId}</span> <span>₱${utang.amount.toFixed(2)}</span></h4>
                 <p style="color: var(--danger); font-weight: bold;"><i class="ph-bold ph-calendar-x"></i> Due On: ${shortMonth} ${day}</p>
                 <button class="paid-btn" onclick="openPayUtangModal('${utang.id}', ${utang.amount}, '${utang.utangId}')" ${utang.isPaid ? 'disabled' : ''}>${utang.isPaid ? '<i class="ph-bold ph-check"></i> Paid' : 'Pay via Wallet'}</button>
             </div>`;
+
+            if (utang.isPaid) paidHTML += cardContent;
+            else unpaidHTML += cardContent;
         });
+
+        // Ilalabas muna lahat ng unpaid
+        container.innerHTML += unpaidHTML;
+
+        // Kung may bayad na, gagawan natin ng clickable folder sa ibaba
+        if (paidHTML !== '') {
+            container.innerHTML += `
+            <div class="date-section">
+                <button onclick="playSound('click'); togglePaidFolder()" style="width: 100%; background: none; border: none; color: var(--success); border-bottom: 2px solid rgba(16, 185, 129, 0.2); padding-bottom: 10px; font-size: 14px; margin-top: 25px; text-align: left; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 700;">
+                    <span><i class="ph-bold ph-check-circle"></i> Paid This Month</span>
+                    <i id="paidFolderIcon" class="ph-bold ph-caret-down"></i>
+                </button>
+            </div>
+            <div id="paidUtangFolder" style="display: none; margin-top: 15px;">
+                ${paidHTML}
+            </div>`;
+        }
     } else {
         if (utangDatabase.length === 0) { container.innerHTML = `<p style="text-align: center; color: var(--text-muted); font-style: italic; margin-top: 30px;">Wala kang na-log na utang.</p>`; return; }
         let apps = {}; let allUtangSorted = [...utangDatabase].sort((a, b) => a.dueDate - b.dueDate);
@@ -292,12 +346,25 @@ function renderUtangList() {
     }
 }
 
+function togglePaidFolder() {
+    let folder = document.getElementById('paidUtangFolder');
+    let icon = document.getElementById('paidFolderIcon');
+    if (folder) {
+        if (folder.style.display === 'none') {
+            folder.style.display = 'block';
+            if (icon) icon.className = 'ph-bold ph-caret-up';
+        } else {
+            folder.style.display = 'none';
+            if (icon) icon.className = 'ph-bold ph-caret-down';
+        }
+    }
+}
+
 async function deleteUtang(id) {
     if (confirm("Sigurado ka bang gusto mong burahin ang utang na ito? Hindi na ito maibabalik.")) {
         try { await window.dbMethods.deleteDoc(window.dbMethods.doc(window.db, "utang", id)); playSound('click'); } catch (e) { console.error(e); }
     }
 }
-
 // ==========================================
 // 🚀 MODULE 2: TASKS, DEADLINES & HABITS (FIREBASE)
 // ==========================================
@@ -1115,8 +1182,10 @@ window.deleteFood = deleteFood; window.analyzeFoodAI = analyzeFoodAI; window.sho
 window.saveWallet = saveWallet; window.deleteWallet = deleteWallet; window.setMonthlyBudget = setMonthlyBudget;
 window.addIncome = addIncome; window.addExpense = addExpense; window.addTransfer = addTransfer; window.saveTransaction = saveTransaction;
 window.closeBudgetModals = closeBudgetModals; window.deleteUtang = deleteUtang; window.deleteTask = deleteTask; window.deleteHabit = deleteHabit;
+window.openPayFullUtang = openPayFullUtang;
 window.openHistoryModal = openHistoryModal;
 window.deleteTransaction = deleteTransaction; window.openDailySummary = openDailySummary; window.forceUpdateApp = forceUpdateApp;
+window.togglePaidFolder = togglePaidFolder;
 window.setUtangView = setUtangView; window.toggleTheme = toggleTheme; window.setCustomUsername = setCustomUsername;
 window.refreshFoodSummary = refreshFoodSummary; window.toggleVisibility = toggleVisibility; window.updateQuickGlance = updateQuickGlance;
 window.setReceiptFilter = setReceiptFilter; window.playSound = playSound; window.exportUtangToCSV = exportUtangToCSV;
