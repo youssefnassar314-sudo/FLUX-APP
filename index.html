@@ -192,9 +192,15 @@
                 <button onclick="playSound('click'); changeMonth(1)"><i class="ph-bold ph-caret-right"></i></button>
             </div>
 
-            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+<div style="display: flex; gap: 10px; margin-bottom: 15px;">
                 <button id="btnViewDate" onclick="playSound('click'); setUtangView('date')" class="secondary-btn" style="flex:1; margin-bottom: 0;"><i class="ph-bold ph-calendar"></i> Dates</button>
                 <button id="btnViewApp" onclick="playSound('click'); setUtangView('app')" class="secondary-btn" style="flex:1; margin-bottom: 0;"><i class="ph-bold ph-device-mobile"></i> Apps</button>
+            </div>
+
+            <!-- BAGONG SEARCH BAR -->
+            <div style="margin-bottom: 15px; position: relative;">
+                <i class="ph-bold ph-magnifying-glass" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 16px;"></i>
+                <input type="text" id="searchUtangId" placeholder="Search Utang ID..." oninput="renderUtangList()" style="width: 100%; padding: 12px 14px 12px 40px; margin: 0; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 12px; color: var(--text-main); font-size: 13px;">
             </div>
 
             <div id="utangListContainer"></div>
