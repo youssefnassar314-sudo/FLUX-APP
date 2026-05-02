@@ -256,14 +256,23 @@ function renderUtangList() {
     let viewMonthName = currentDateView.toLocaleString('default', { month: 'long', year: 'numeric' });
     document.getElementById('currentMonthLabel').innerText = viewMonthName;
 
-    let filteredUtang = utangDatabase.filter(utang => utang.dueDate.getMonth() === currentDateView.getMonth() && utang.dueDate.getFullYear() === currentDateView.getFullYear());
-    filteredUtang.sort((a, b) => a.isPaid - b.isPaid || a.dueDate - b.dueDate);
+    // Kukunin yung value sa search bar
+    let searchInput = document.getElementById('searchUtangId');
+    let searchVal = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
+    let filteredUtang = utangDatabase.filter(utang => utang.dueDate.getMonth() === currentDateView.getMonth() && utang.dueDate.getFullYear() === currentDateView.getFullYear());
+    
+    // Compute total utang BEFORE filtering para hindi bumaba yung display sa stat boxes
     let monthUtang = 0; let monthBayad = 0;
     filteredUtang.forEach(u => { if (u.isPaid) monthBayad += u.amount; else monthUtang += u.amount; });
-    
     document.getElementById('displayMonthUtang').innerText = monthUtang.toFixed(2);
     document.getElementById('displayMonthBayad').innerText = monthBayad.toFixed(2);
+
+    // Apply Search Filter for Date View
+    if (searchVal) {
+        filteredUtang = filteredUtang.filter(u => u.utangId.toLowerCase().includes(searchVal));
+    }
+    filteredUtang.sort((a, b) => a.isPaid - b.isPaid || a.dueDate - b.dueDate);
 
 if (currentUtangView === 'date') {
         if (filteredUtang.length === 0) { container.innerHTML = `<p style="text-align: center; color: var(--text-muted); font-style: italic; margin-top: 30px;">Walang due para sa buwang ito.</p>`; return; }
@@ -304,9 +313,13 @@ if (currentUtangView === 'date') {
                 ${paidHTML}
             </div>`;
         }
-    } else {
-        if (utangDatabase.length === 0) { container.innerHTML = `<p style="text-align: center; color: var(--text-muted); font-style: italic; margin-top: 30px;">Wala kang na-log na utang.</p>`; return; }
-        let apps = {}; let allUtangSorted = [...utangDatabase].sort((a, b) => a.dueDate - b.dueDate);
+} else {
+        // Apply Search Filter for App View
+        let baseData = searchVal ? utangDatabase.filter(u => u.utangId.toLowerCase().includes(searchVal)) : utangDatabase;
+        
+        if (baseData.length === 0) { container.innerHTML = `<p style="text-align: center; color: var(--text-muted); font-style: italic; margin-top: 30px;">Walang nahanap na Utang ID.</p>`; return; }
+        
+        let apps = {}; let allUtangSorted = [...baseData].sort((a, b) => a.dueDate - b.dueDate);
         allUtangSorted.forEach(u => {
             let appName = u.appName && u.appName !== "N/A" ? u.appName : "Other Utang"; let baseId = u.utangId.split(' (Due')[0]; 
             if(!apps[appName]) apps[appName] = {};
