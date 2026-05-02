@@ -333,12 +333,17 @@ if (currentUtangView === 'date') {
                         <div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 13px; color: var(--text-main);">₱${u.amount.toFixed(2)}</span>${controls}</div>
                     </div>`;
                 }).join('');
+let payAllBtn = !allPaid ? `<button onclick="playSound('click'); openPayFullUtang('${id}')" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); color: var(--success); padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: bold; cursor: pointer; text-transform: uppercase; letter-spacing: 1px;"><i class="ph-bold ph-check-circle"></i> Pay Full Bal</button>` : '';
+
                 container.innerHTML += `<div class="utang-card" style="${cardStyle} margin-bottom: 12px; padding: 15px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
                         <span style="font-size: 10px; font-weight: 700; background: var(--glass-bg); padding: 3px 8px; border-radius: 5px; text-transform: uppercase;">ID: ${id}</span>
                         <span style="font-size: 11px; color: ${allPaid ? 'var(--success)' : 'var(--danger)'};">Balance: ₱${(group.totalAmount - group.totalPaid).toFixed(2)}</span>
                     </div>
-                    <h4 style="margin: 5px 0 0 0; font-size: 16px; color: var(--text-main);">Total: ₱${group.totalAmount.toFixed(2)}</h4>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin: 5px 0 0 0;">
+                        <h4 style="margin: 0; font-size: 16px; color: var(--text-main);">Total: ₱${group.totalAmount.toFixed(2)}</h4>
+                        ${payAllBtn}
+                    </div>
                     ${duesHTML}
                 </div>`;
             }
