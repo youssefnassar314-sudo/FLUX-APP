@@ -56,6 +56,24 @@
             </div>
         </div>
 
+        <!-- BAGONG PIN SCREEN -->
+        <div id="pinScreen" class="screen">
+            <div class="login-box" style="text-align: center; padding: 30px 20px; background: var(--card-bg); border: 1px solid var(--glass-border); border-radius: 24px;">
+                <i class="ph-duotone ph-lock-key icon-svg" style="font-size: 64px; color: var(--primary); margin-bottom: 10px;"></i>
+                <h2 id="pinTitle" style="margin: 0 0 5px 0; font-weight: 800; letter-spacing: 1px; font-size: 22px; color: var(--text-main);">Enter PIN</h2>
+                <p id="pinSubtitle" style="color: var(--text-muted); font-size: 13px; margin-bottom: 25px;">Secure your FLUX OS.</p>
+                
+                <input type="password" id="pinInput" placeholder="••••" maxlength="4" style="text-align: center; font-size: 24px; letter-spacing: 8px; font-weight: bold; margin-bottom: 15px;">
+                
+                <button class="save-btn" onclick="playSound('click'); verifyPin()" style="margin-bottom: 0;">
+                    <i class="ph-bold ph-check"></i> Submit
+                </button>
+                <button onclick="playSound('click'); handleLogout()" style="width: 100%; background: none; border: none; color: var(--danger); font-size: 12px; margin-top: 15px; cursor: pointer;">
+                    Sign Out
+                </button>
+            </div>
+        </div>
+
         <div id="dashboardScreen" class="screen">
 <div class="quick-glance-wrapper">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 0 5px;">
