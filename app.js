@@ -1345,6 +1345,32 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ==========================================
+// 🎮 MODULE 11: ARCADE GAME SYSTEM
+// ==========================================
+function openGame(url, title) {
+    let modal = document.getElementById('playGameModal');
+    let iframe = document.getElementById('gameIframe');
+    let titleEl = document.getElementById('gameModalTitle');
+    
+    if (modal && iframe && titleEl) {
+        titleEl.innerHTML = `<i class="ph-duotone ph-game-controller"></i> ${title}`;
+        iframe.src = url;
+        modal.style.display = 'flex';
+    }
+}
+
+function closeGame() {
+    let modal = document.getElementById('playGameModal');
+    let iframe = document.getElementById('gameIframe');
+    
+    if (modal && iframe) {
+        // Clear the iframe src to stop game audio/processing in the background
+        iframe.src = "";
+        modal.style.display = 'none';
+    }
+}
+
+// ==========================================
 // 🌍 GLOBAL EXPORTS 
 // ==========================================
 window.switchScreen = switchScreen; window.showAddForm = showAddForm; window.addDueRow = addDueRow; window.saveUtang = saveUtang;
@@ -1364,3 +1390,4 @@ window.refreshFoodSummary = refreshFoodSummary; window.toggleVisibility = toggle
 window.setReceiptFilter = setReceiptFilter; window.playSound = playSound; window.exportUtangToCSV = exportUtangToCSV;
 window.verifyPin = verifyPin;
 window.clearAllUtang = clearAllUtang; window.clearAllTasks = clearAllTasks; window.clearAllFood = clearAllFood; window.clearAllTransactions = clearAllTransactions;
+window.openGame = openGame; window.closeGame = closeGame;
