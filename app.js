@@ -124,9 +124,10 @@ async function saveUtang() {
     try {
         for (let i = 0; i < amounts.length; i++) {
             let amt = parseFloat(amounts[i].value);
-            let dateVal = dates[i].value;
+            // I-check kung disabled ang date picker (meaning 'Flexible' naka-check)
+            let dateVal = dates[i].disabled ? "Flexible" : dates[i].value;
 
-            if (!isNaN(amt) && dateVal) {
+            if (!isNaN(amt) && (dateVal !== "" && dateVal !== undefined)) {
     // 1. Kunin muna yung reference ng bagong document para makuha yung ID
     let docRef = await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "utang"), {
         userId: window.currentUid,
@@ -1289,6 +1290,53 @@ async function clearAllTransactions() {
         } catch(e) { console.error(e); }
     }
 }
+
+// ==========================================
+// 🏷️ MODULE 10: AUTO-ID & FORM TOGGLES
+// ==========================================
+function toggleWhoInput() {
+    let cat = document.getElementById('utangCategory').value;
+    document.getElementById('whoContainer').style.display = (cat === 'Other Person') ? 'block' : 'none';
+}
+
+function generateUtangID() {
+    let cat = document.getElementById('utangCategory').value;
+    let who = document.getElementById('whoName') ? document.getElementById('whoName').value.trim().toUpperCase() : '';
+    let app = document.getElementById('appName') ? document.getElementById('appName').value.trim().toUpperCase() : '';
+    let dateVal = document.getElementById('dateBorrowed') ? document.getElementById('dateBorrowed').value : '';
+
+    let prefix = (cat === 'My App') ? 'MY' : (who.length >= 2 ? who.substring(0, 2) : 'XX');
+    let appCode = app.length >= 4 ? app.substring(0, 4) : (app.length > 0 ? app : 'XXXX');
+    
+    let dateCode = '000000';
+    if (dateVal) {
+        let d = new Date(dateVal);
+        let mm = String(d.getMonth() + 1).padStart(2, '0');
+        let dd = String(d.getDate()).padStart(2, '0');
+        let yy = String(d.getFullYear()).slice(-2);
+        dateCode = `${mm}${dd}${yy}`;
+    }
+    
+    let idField = document.getElementById('utangId');
+    if(idField) idField.value = `${prefix}${appCode}${dateCode}`;
+}
+
+function toggleNoDueDate() {
+    let isChecked = document.getElementById('noDueDateCb').checked;
+    let dates = document.querySelectorAll('.dynamic-date');
+    dates.forEach(d => {
+        d.disabled = isChecked;
+        if (isChecked) d.value = '';
+    });
+    document.getElementById('addDueBtn').style.display = isChecked ? 'none' : 'block';
+}
+
+// Para automatic today ang Date Borrowed pagka-open
+document.addEventListener("DOMContentLoaded", () => {
+    let today = new Date().toLocaleDateString('en-CA');
+    let dbInput = document.getElementById('dateBorrowed');
+    if(dbInput) { dbInput.value = today; generateUtangID(); }
+});
 
 // ==========================================
 // 🌍 GLOBAL EXPORTS 
