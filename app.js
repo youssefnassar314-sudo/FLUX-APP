@@ -1095,8 +1095,9 @@ function startApp() {
                     let subtitle = document.getElementById('greetingSubtitle');
                     if (subtitle) { subtitle.innerHTML = `Welcome back, <span style="color: var(--primary); font-weight: bold;">${window.currentUserName}</span> <i class="ph-bold ph-pencil-simple" style="font-size: 11px; opacity: 0.5;"></i>`; }
                 });
-                switchScreen('dashboardScreen');
-                if (!isAppInitialized) { initRealtimeUtang(); initRealtimeTasks(); initRealtimeFood(); initRealtimeBudget(); initRealtimeTransactions(); initRealtimeBudgetConfig(); initRealtimeAiAnalyses(); initRealtimeFoodSummary(); isAppInitialized = true; }
+                
+                // DITO PUMASOK YUNG LOCK SCREEN LOGIC NATIN:
+                checkPinStatus();
             } else {
                 document.getElementById('logoutBtn').style.display = 'none'; switchScreen('loginScreen');
             }
@@ -1188,6 +1189,62 @@ function exportUtangToCSV() {
     link.click();
     document.body.removeChild(link);
 }
+// ==========================================
+// 🔒 MODULE 8: PIN LOCK SYSTEM
+// ==========================================
+let savedPin = localStorage.getItem('flux_pin');
+
+function checkPinStatus() {
+    savedPin = localStorage.getItem('flux_pin');
+    let pinTitle = document.getElementById('pinTitle');
+    let pinSubtitle = document.getElementById('pinSubtitle');
+    let pinInput = document.getElementById('pinInput');
+    
+    if (pinInput) pinInput.value = ''; // clear input
+
+    if (!savedPin) {
+        if(pinTitle) pinTitle.innerText = "Set a PIN";
+        if(pinSubtitle) pinSubtitle.innerText = "Create a 4-digit PIN for this device.";
+    } else {
+        if(pinTitle) pinTitle.innerText = "Enter PIN";
+        if(pinSubtitle) pinSubtitle.innerText = "Unlock FLUX OS.";
+    }
+    switchScreen('pinScreen');
+}
+
+function verifyPin() {
+    let input = document.getElementById('pinInput').value;
+    if (input.length < 4) { alert("Dapat 4 digits ang PIN!"); return; }
+    
+    if (!savedPin) {
+        // First time setup
+        localStorage.setItem('flux_pin', input);
+        savedPin = input;
+        playSound('success');
+        document.getElementById('pinInput').value = '';
+        proceedToApp();
+    } else {
+        // Verify existing
+        if (input === savedPin) {
+            playSound('success');
+            document.getElementById('pinInput').value = '';
+            proceedToApp();
+        } else {
+            alert("Mali ang PIN! Try again.");
+            document.getElementById('pinInput').value = '';
+        }
+    }
+}
+
+function proceedToApp() {
+    switchScreen('dashboardScreen');
+    if (!isAppInitialized) { 
+        initRealtimeUtang(); initRealtimeTasks(); initRealtimeFood(); initRealtimeBudget(); 
+        initRealtimeTransactions(); initRealtimeBudgetConfig(); initRealtimeAiAnalyses(); 
+        initRealtimeFoodSummary(); 
+        isAppInitialized = true; 
+    }
+}
 
 // ==========================================
 // 🌍 GLOBAL EXPORTS 
@@ -1207,3 +1264,4 @@ window.togglePaidFolder = togglePaidFolder;
 window.setUtangView = setUtangView; window.toggleTheme = toggleTheme; window.setCustomUsername = setCustomUsername;
 window.refreshFoodSummary = refreshFoodSummary; window.toggleVisibility = toggleVisibility; window.updateQuickGlance = updateQuickGlance;
 window.setReceiptFilter = setReceiptFilter; window.playSound = playSound; window.exportUtangToCSV = exportUtangToCSV;
+window.verifyPin = verifyPin;
