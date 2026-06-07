@@ -48,7 +48,16 @@
             </div>
         </div>
 
-        <div id="loginScreen" class="screen active-screen">
+        <div id="loadingScreen" class="screen active-screen">
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh;">
+                <h1 class="logo" style="font-size: 42px; text-shadow: 0 0 30px var(--primary-glow);">FLUX.</h1>
+                <div style="width: 40px; height: 40px; border: 3px solid var(--glass-border); border-top-color: var(--primary); border-radius: 50%; margin-top: 20px; animation: spin 1s linear infinite;"></div>
+                <p style="color: var(--primary); font-family: var(--font-mono); font-size: 11px; letter-spacing: 4px; margin-top: 20px; text-transform: uppercase;">Initializing OS...</p>
+                <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
+            </div>
+        </div>
+
+        <div id="loginScreen" class="screen">
             <div class="login-box" style="text-align: center; padding: 30px 20px; background: var(--card-bg); border: 1px solid var(--glass-border); border-radius: 24px;">
                 <i class="ph-duotone ph-fingerprint icon-svg" style="font-size: 64px; color: var(--primary); margin-bottom: 10px;"></i>
                 <h2 style="margin: 0 0 5px 0; font-weight: 800; letter-spacing: 1px; font-size: 22px; color: var(--text-main);">System Online.</h2>
@@ -87,17 +96,17 @@
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                <div class="cosmic-grid" onclick="playSound('click'); openGame('https://gabrielecirulli.github.io/2048/', '2048 Puzzle')" style="padding: 30px 10px !important;">
-                    <i class="ph-duotone ph-squares-four icon-svg" style="color: #fbbf24; font-size: 36px;"></i>
-                    <p>2048 Puzzle</p>
+                <div class="cosmic-grid" onclick="playSound('click'); openGame('https://playtictactoe.org/', 'Tic Tac Toe')" style="padding: 30px 10px !important;">
+                    <i class="ph-duotone ph-x-circle icon-svg" style="color: #fbbf24; font-size: 36px;"></i>
+                    <p>Tic Tac Toe</p>
                 </div>
                 <div class="cosmic-grid" onclick="playSound('click'); openGame('https://hextris.io/', 'Hextris')" style="padding: 30px 10px !important;">
                     <i class="ph-duotone ph-hexagon icon-svg" style="color: var(--secondary); font-size: 36px;"></i>
                     <p>Hextris</p>
                 </div>
-                <div class="cosmic-grid" onclick="playSound('click'); openGame('https://www.google.com/logos/2010/pacman10-i.html', 'Pac-Man')" style="padding: 30px 10px !important;">
-                    <i class="ph-duotone ph-ghost icon-svg" style="color: var(--danger); font-size: 36px;"></i>
-                    <p>Pac-Man</p>
+                <div class="cosmic-grid" onclick="playSound('click'); openGame('https://chromedino.com/', 'Chrome Dino')" style="padding: 30px 10px !important;">
+                    <i class="ph-duotone ph-linux-logo icon-svg" style="color: var(--danger); font-size: 36px;"></i>
+                    <p>Dino Run</p>
                 </div>
                 <div class="cosmic-grid" onclick="playSound('click'); openGame('https://flappybird.io/', 'Flappy Bird')" style="padding: 30px 10px !important;">
                     <i class="ph-duotone ph-bird icon-svg" style="color: var(--success); font-size: 36px;"></i>
