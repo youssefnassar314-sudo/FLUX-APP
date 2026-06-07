@@ -1247,6 +1247,50 @@ function proceedToApp() {
 }
 
 // ==========================================
+// 🧹 MODULE 9: CLEAR ALL (RESET) FUNCTIONS
+// ==========================================
+async function clearAllUtang() {
+    if (utangDatabase.length === 0) return alert("Wala namang utang na buburahin!");
+    if (confirm("🚨 WARNING: Sigurado ka bang gusto mong burahin LAHAT ng Utang records? Permanente ito!")) {
+        try {
+            for (let u of utangDatabase) { await window.dbMethods.deleteDoc(window.dbMethods.doc(window.db, "utang", u.id)); }
+            playSound('click'); alert("Lahat ng utang ay nabura na.");
+        } catch(e) { console.error(e); alert("May error sa pagbura."); }
+    }
+}
+
+async function clearAllTasks() {
+    if (taskDatabase.length === 0 && habitDatabase.length === 0) return alert("Walang tasks o habits na buburahin!");
+    if (confirm("🚨 WARNING: Burahin LAHAT ng Tasks at Habits? Permanente ito!")) {
+        try {
+            for (let t of taskDatabase) await window.dbMethods.deleteDoc(window.dbMethods.doc(window.db, "tasks", t.id));
+            for (let h of habitDatabase) await window.dbMethods.deleteDoc(window.dbMethods.doc(window.db, "habits", h.id));
+            playSound('click'); alert("Lahat ng tasks at habits ay nabura na.");
+        } catch(e) { console.error(e); }
+    }
+}
+
+async function clearAllFood() {
+    if (foodDatabase.length === 0) return alert("Walang food logs na buburahin!");
+    if (confirm("🚨 WARNING: Burahin LAHAT ng Food Logs? Permanente ito!")) {
+        try {
+            for (let f of foodDatabase) await window.dbMethods.deleteDoc(window.dbMethods.doc(window.db, "foodLogs", f.id));
+            playSound('click'); alert("Lahat ng food logs ay nabura na.");
+        } catch(e) { console.error(e); }
+    }
+}
+
+async function clearAllTransactions() {
+    if (transactionDatabase.length === 0) return alert("Walang transactions na buburahin!");
+    if (confirm("🚨 WARNING: Burahin LAHAT ng Transaction History? (Hindi gagalawin ang Wallet Balances dito, history lang). Permanente ito!")) {
+        try {
+            for (let t of transactionDatabase) await window.dbMethods.deleteDoc(window.dbMethods.doc(window.db, "transactions", t.id));
+            playSound('click'); alert("Lahat ng transaction history ay nabura na.");
+        } catch(e) { console.error(e); }
+    }
+}
+
+// ==========================================
 // 🌍 GLOBAL EXPORTS 
 // ==========================================
 window.switchScreen = switchScreen; window.showAddForm = showAddForm; window.addDueRow = addDueRow; window.saveUtang = saveUtang;
@@ -1265,3 +1309,4 @@ window.setUtangView = setUtangView; window.toggleTheme = toggleTheme; window.set
 window.refreshFoodSummary = refreshFoodSummary; window.toggleVisibility = toggleVisibility; window.updateQuickGlance = updateQuickGlance;
 window.setReceiptFilter = setReceiptFilter; window.playSound = playSound; window.exportUtangToCSV = exportUtangToCSV;
 window.verifyPin = verifyPin;
+window.clearAllUtang = clearAllUtang; window.clearAllTasks = clearAllTasks; window.clearAllFood = clearAllFood; window.clearAllTransactions = clearAllTransactions;
