@@ -1091,16 +1091,22 @@ function startApp() {
                 window.currentUid = user.uid; document.getElementById('logoutBtn').style.display = 'block';
                 let fallbackName = user.displayName ? user.displayName.split(' ')[0].toUpperCase() : "USER"; window.currentUserName = fallbackName; 
                 const qProfile = window.dbMethods.query(window.dbMethods.collection(window.db, "userProfiles"), window.dbMethods.where("userId", "==", window.currentUid));
-                window.dbMethods.onSnapshot(qProfile, (snapshot) => {
+window.dbMethods.onSnapshot(qProfile, (snapshot) => {
                     if (!snapshot.empty) { window.currentUserName = snapshot.docs[0].data().username.toUpperCase(); }
                     let subtitle = document.getElementById('greetingSubtitle');
                     if (subtitle) { subtitle.innerHTML = `Welcome back, <span style="color: var(--primary); font-weight: bold;">${window.currentUserName}</span> <i class="ph-bold ph-pencil-simple" style="font-size: 11px; opacity: 0.5;"></i>`; }
                 });
                 
-                // DITO PUMASOK YUNG LOCK SCREEN LOGIC NATIN:
-                checkPinStatus();
+                // I-SHOW YUNG SECRET BUTTON
+                document.getElementById('secretLockBtn').style.display = 'flex';
+                
+                // REKTA SA FAKE GAME SCREEN PAGKA-LOGIN
+                switchScreen('gameScreen');
             } else {
-                document.getElementById('logoutBtn').style.display = 'none'; switchScreen('loginScreen');
+                document.getElementById('logoutBtn').style.display = 'none'; 
+                let secretBtn = document.getElementById('secretLockBtn');
+                if (secretBtn) secretBtn.style.display = 'none';
+                switchScreen('loginScreen');
             }
         });
         document.getElementById('googleLoginBtn').addEventListener('click', handleLogin); document.getElementById('logoutBtn').addEventListener('click', handleLogout);
