@@ -30,6 +30,10 @@
                 <div id="liveClock" class="header-clock">-- | --<br>--:--:--</div>
 
                 <div class="action-group-right">
+                    <!-- SECRET BUTTON PARA SA DASHBOARD -->
+                    <button id="secretLockBtn" onclick="playSound('click'); checkPinStatus()" class="header-icon-btn" style="display: none; color: var(--glass-border); transition: 0.3s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--glass-border)'" title="Unlock OS">
+                        <i class="ph-bold ph-lock-key"></i>
+                    </button>
                     <button id="logoutBtn" onclick="playSound('click')" class="header-icon-btn logout-btn" style="display: none;">
                         <i class="ph-bold ph-power"></i>
                     </button>
@@ -71,6 +75,34 @@
                 <button onclick="playSound('click'); handleLogout()" style="width: 100%; background: none; border: none; color: var(--danger); font-size: 12px; margin-top: 15px; cursor: pointer;">
                     Sign Out
                 </button>
+            </div>
+        </div>
+
+        <!-- FAKE GAME HUB SCREEN (DECOY) -->
+        <div id="gameScreen" class="screen">
+            <div class="utang-card" style="text-align: center; padding: 25px; background: linear-gradient(135deg, var(--bg-dark), var(--card-bg)); margin-bottom: 20px;">
+                <i class="ph-duotone ph-game-controller" style="font-size: 56px; color: var(--primary); margin-bottom: 10px;"></i>
+                <h2 style="margin: 0; color: var(--text-main); letter-spacing: 2px;">FLUX ARCADE</h2>
+                <p style="font-size: 11px; color: var(--text-muted); margin-top: 5px;">Select a game to play</p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="cosmic-grid" onclick="playSound('click'); alert('Game under maintenance!')" style="padding: 30px 10px !important;">
+                    <i class="ph-duotone ph-gitlab-logo-simple icon-svg" style="color: var(--success); font-size: 36px;"></i>
+                    <p>Snake Retro</p>
+                </div>
+                <div class="cosmic-grid" onclick="playSound('click'); alert('Game under maintenance!')" style="padding: 30px 10px !important;">
+                    <i class="ph-duotone ph-squares-four icon-svg" style="color: #fbbf24; font-size: 36px;"></i>
+                    <p>2048 Puzzle</p>
+                </div>
+                <div class="cosmic-grid" onclick="playSound('click'); alert('Game under maintenance!')" style="padding: 30px 10px !important;">
+                    <i class="ph-duotone ph-wall icon-svg" style="color: var(--secondary); font-size: 36px;"></i>
+                    <p>Block Drop</p>
+                </div>
+                <div class="cosmic-grid" onclick="playSound('click'); alert('Game under maintenance!')" style="padding: 30px 10px !important;">
+                    <i class="ph-duotone ph-bomb icon-svg" style="color: var(--danger); font-size: 36px;"></i>
+                    <p>Minesweeper</p>
+                </div>
             </div>
         </div>
 
