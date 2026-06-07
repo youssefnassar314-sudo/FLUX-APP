@@ -81,9 +81,14 @@
                 <button class="save-btn" onclick="playSound('click'); verifyPin()" style="margin-bottom: 0;">
                     <i class="ph-bold ph-check"></i> Submit
                 </button>
-                <button onclick="playSound('click'); handleLogout()" style="width: 100%; background: none; border: none; color: var(--danger); font-size: 12px; margin-top: 15px; cursor: pointer;">
-                    Sign Out
-                </button>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding: 0 10px;">
+                    <button onclick="playSound('click'); forgotPin()" style="background: none; border: none; color: var(--text-muted); font-size: 12px; cursor: pointer; text-decoration: underline;">
+                        Forgot PIN?
+                    </button>
+                    <button onclick="playSound('click'); handleLogout()" style="background: none; border: none; color: var(--danger); font-size: 12px; cursor: pointer; font-weight: bold;">
+                        Sign Out <i class="ph-bold ph-sign-out"></i>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -95,9 +100,10 @@
                 <p style="font-size: 11px; color: var(--text-muted); margin-top: 5px;">Select a game to play</p>
             </div>
 
-            <div class="cosmic-grid" onclick="playSound('click'); openGame('https://tbot.xyz/tower/', 'Tower Builder')" style="padding: 30px 10px !important;">
-                    <i class="ph-duotone ph-buildings icon-svg" style="color: #fbbf24; font-size: 36px;"></i>
-                    <p>Tower Builder</p>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="cosmic-grid" onclick="playSound('click'); openGame('https://www.retrogames.cc/embed/40238-super-mario-bros-3-usa.html', 'Super Mario 3')" style="padding: 30px 10px !important;">
+                    <i class="ph-duotone ph-star icon-svg" style="color: #fbbf24; font-size: 36px;"></i>
+                    <p>Super Mario</p>
                 </div>
                 <div class="cosmic-grid" onclick="playSound('click'); openGame('https://hextris.io/', 'Hextris')" style="padding: 30px 10px !important;">
                     <i class="ph-duotone ph-hexagon icon-svg" style="color: var(--secondary); font-size: 36px;"></i>
