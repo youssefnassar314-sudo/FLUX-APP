@@ -152,9 +152,14 @@
             <button class="back-btn" onclick="playSound('click'); switchScreen('dashboardScreen')">
                 <i class="ph-bold ph-caret-left"></i> Dashboard
             </button>
-            <button class="secondary-btn" onclick="playSound('click'); exportUtangToCSV()" style="margin-bottom: 15px;">
-    <i class="ph-bold ph-download-simple"></i> Export Utang to CSV
-</button>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <button class="secondary-btn" onclick="playSound('click'); exportUtangToCSV()" style="flex: 2; margin-bottom: 0;">
+                    <i class="ph-bold ph-download-simple"></i> Export CSV
+                </button>
+                <button class="secondary-btn" onclick="playSound('click'); clearAllUtang()" style="flex: 1; margin-bottom: 0; color: var(--danger) !important; border-color: rgba(244, 63, 94, 0.3) !important;">
+                    <i class="ph-bold ph-trash"></i> Reset All
+                </button>
+            </div>
 
             <div class="summary-box" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 25px;">
                 <div class="stat-col" style="background: var(--glass-bg); border-color: var(--glass-border); padding: 12px;">
@@ -249,9 +254,14 @@
             <div class="hidden-form" style="display: block; margin-bottom: 20px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                     <h3 style="color: var(--secondary); margin: 0; font-size: 16px; display: flex; align-items: center; gap: 8px;"><i class="ph-duotone ph-calendar"></i> Schedule & Deadlines</h3>
-                    <button class="badge badge-secondary" onclick="playSound('click'); switchScreen('kanbanScreen')" style="cursor: pointer;">
-                        <i class="ph-bold ph-columns"></i> Kanban View
-                    </button>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="badge badge-secondary" onclick="playSound('click'); switchScreen('kanbanScreen')" style="cursor: pointer; border: none;">
+                            <i class="ph-bold ph-columns"></i> Kanban
+                        </button>
+                        <button class="badge" onclick="playSound('click'); clearAllTasks()" style="cursor: pointer; background: rgba(244, 63, 94, 0.1); color: var(--danger); border: 1px solid rgba(244, 63, 94, 0.3);">
+                            <i class="ph-bold ph-trash"></i> Reset All
+                        </button>
+                    </div>
                 </div>
                 <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                     <input type="text" id="manualTaskTitle" placeholder="Ex: Finish HTML layout" style="margin-bottom: 0; flex: 2;">
@@ -331,9 +341,14 @@
             </div>
 
             <div class="hidden-form" style="display: block; margin-bottom: 20px;">
-                <h3 style="color: var(--danger); margin-top: 0; margin-bottom: 15px; font-size: 16px; display: flex; align-items: center; gap: 8px;">
-                    <i class="ph-duotone ph-sparkle"></i> Quick Food Log
-                </h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="color: var(--danger); margin: 0; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+                        <i class="ph-duotone ph-sparkle"></i> Quick Food Log
+                    </h3>
+                    <button class="badge" onclick="playSound('click'); clearAllFood()" style="cursor: pointer; background: rgba(244, 63, 94, 0.1); color: var(--danger); border: 1px solid rgba(244, 63, 94, 0.3);">
+                        <i class="ph-bold ph-trash"></i> Reset All
+                    </button>
+                </div>
                 <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                     <select id="mealType" class="glass-select" style="margin-bottom: 0; flex: 1;">
                         <option value="Breakfast">Breakfast</option>
@@ -412,7 +427,10 @@
 
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; margin-bottom: 10px;">
                 <h3 style="font-size: 13px; color: var(--text-muted); margin: 0; text-transform: uppercase; letter-spacing: 1px;"><i class="ph-bold ph-clock-counter-clockwise"></i> Recent</h3>
-                <button onclick="playSound('click'); openHistoryModal()" style="background: none; border: none; color: var(--primary); font-size: 12px; font-weight: 700; cursor: pointer;">View All Folder <i class="ph-bold ph-folder-open"></i></button>
+                <div style="display: flex; gap: 15px;">
+                    <button onclick="playSound('click'); clearAllTransactions()" style="background: none; border: none; color: var(--danger); font-size: 12px; font-weight: 700; cursor: pointer;"><i class="ph-bold ph-trash"></i> Reset</button>
+                    <button onclick="playSound('click'); openHistoryModal()" style="background: none; border: none; color: var(--primary); font-size: 12px; font-weight: 700; cursor: pointer;">View All <i class="ph-bold ph-folder-open"></i></button>
+                </div>
             </div>
 
             <div id="transactionListContainer"></div>
