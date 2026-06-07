@@ -1242,6 +1242,15 @@ function verifyPin() {
         }
     }
 }
+function forgotPin() {
+    if (confirm("Nakalimutan mo ba talaga ang PIN mo, Engineer? Ire-reset natin ito pero kailangan mong mag-login ulit gamit ang Google account mo para makagawa ng bago.")) {
+        localStorage.removeItem('flux_pin');
+        savedPin = null;
+        playSound('click');
+        alert("PIN has been reset. Please sign in again.");
+        handleLogout();
+    }
+}
 
 function proceedToApp() {
     switchScreen('dashboardScreen');
@@ -1388,6 +1397,6 @@ window.togglePaidFolder = togglePaidFolder;
 window.setUtangView = setUtangView; window.toggleTheme = toggleTheme; window.setCustomUsername = setCustomUsername;
 window.refreshFoodSummary = refreshFoodSummary; window.toggleVisibility = toggleVisibility; window.updateQuickGlance = updateQuickGlance;
 window.setReceiptFilter = setReceiptFilter; window.playSound = playSound; window.exportUtangToCSV = exportUtangToCSV;
-window.verifyPin = verifyPin;
+window.verifyPin = verifyPin; window.forgotPin = forgotPin;
 window.clearAllUtang = clearAllUtang; window.clearAllTasks = clearAllTasks; window.clearAllFood = clearAllFood; window.clearAllTransactions = clearAllTransactions;
 window.openGame = openGame; window.closeGame = closeGame;
