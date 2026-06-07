@@ -184,17 +184,30 @@
 
             <div id="addUtangForm" class="hidden-form">
                 <label>Category</label>
-                <select id="utangCategory" class="glass-select">
+                <select id="utangCategory" class="glass-select" onchange="toggleWhoInput(); generateUtangID()">
                     <option value="My App">My Account / App</option>
                     <option value="Other Person">Other Person's Account</option>
                 </select>
 
-                <label>App Used</label>
-                <input type="text" id="appName" placeholder="e.g., SPayLater, GCash, Maya">
+                <div id="whoContainer" style="display: none;">
+                    <label>Sino 'to? (Pangalan)</label>
+                    <input type="text" id="whoName" placeholder="e.g., Kat, Bert" oninput="generateUtangID()">
+                </div>
 
-                <label>Utang ID (MMDDYY)</label>
-                <input type="number" id="utangId" placeholder="e.g., 033026" oninput="if(this.value.length > 6) this.value = this.value.slice(0,6);">
+                <label>App Used</label>
+                <input type="text" id="appName" placeholder="e.g., SPayLater, GCash" oninput="generateUtangID()">
+
+                <label>Date Borrowed</label>
+                <input type="date" id="dateBorrowed" onchange="generateUtangID()" style="color: var(--text-muted);">
+
+                <label>Auto-Generated Utang ID</label>
+                <input type="text" id="utangId" placeholder="MYXXXX000000" readonly style="background: rgba(0,0,0,0.2); color: var(--primary); font-family: monospace; font-weight: bold; letter-spacing: 1px;">
                 
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px; background: var(--glass-bg); padding: 10px; border-radius: 8px;">
+                    <input type="checkbox" id="noDueDateCb" onchange="toggleNoDueDate()" style="width: 16px; height: 16px; accent-color: var(--primary);">
+                    <label for="noDueDateCb" style="margin: 0; font-size: 11px; color: var(--text-main); text-transform: none;">Walang eksaktong Due Date (Flexible)</label>
+                </div>
+
                 <div id="duesContainer">
                     <div class="due-row">
                         <label style="font-size: 11px; color: var(--primary); font-weight: 700; display: block; margin-bottom: 8px; text-transform: uppercase;">Due 1:</label>
@@ -205,10 +218,9 @@
                     </div>
                 </div>
 
-                <button class="secondary-btn" type="button" onclick="playSound('click'); addDueRow()" style="padding: 10px; font-size: 12px;"><i class="ph-bold ph-plus"></i> Add Another Due</button>
+                <button id="addDueBtn" class="secondary-btn" type="button" onclick="playSound('click'); addDueRow()" style="padding: 10px; font-size: 12px;"><i class="ph-bold ph-plus"></i> Add Another Due</button>
                 <button class="save-btn" onclick="playSound('click'); saveUtang()"><i class="ph-bold ph-floppy-disk"></i> Save & Sync</button>
             </div>
-
             <div class="month-nav" style="padding: 10px 20px;">
                 <button onclick="playSound('click'); changeMonth(-1)"><i class="ph-bold ph-caret-left"></i></button>
                 <h3 id="currentMonthLabel" style="font-size: 13px; text-transform: uppercase; letter-spacing: 2px; color: var(--primary);">Month Year</h3>
@@ -500,6 +512,48 @@
                 <button onclick="playSound('click'); closeBudgetModals()" style="background:none; border:none; color:var(--danger); font-size: 18px; cursor: pointer;"><i class="ph-bold ph-x"></i></button>
             </div>
             <div id="fullHistoryContainer" style="overflow-y: auto; flex: 1; padding-right: 5px;"></div>
+        </div>
+    </div>
+
+    <!-- MODAL PARA SA RESTRUCTURE / EXTEND UTANG -->
+    <div id="extendUtangModal" style="display: none;" class="modal-overlay">
+        <div class="utang-card modal-content" style="max-height: 85vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="color: var(--primary); margin: 0;"><i class="ph-bold ph-arrows-clockwise"></i> Restructure Utang</h3>
+                <button onclick="playSound('click'); closeBudgetModals()" style="background:none; border:none; color:var(--danger); font-size: 18px; cursor: pointer;"><i class="ph-bold ph-x"></i></button>
+            </div>
+            <p id="extendUtangLabel" style="font-size: 11px; color: var(--text-muted); margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px;"></p>
+            
+            <input type="hidden" id="extendTargetId">
+            <input type="hidden" id="extendOriginalAmount">
+
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px; padding: 10px; background: var(--glass-bg); border-radius: 8px;">
+                <input type="checkbox" id="sameAmountCb" checked onchange="toggleExtendMode()" style="width: 16px; height: 16px; accent-color: var(--primary);">
+                <label for="sameAmountCb" style="margin: 0; font-size: 12px; color: var(--text-main);">Same amounts for all new dues?</label>
+            </div>
+
+            <!-- Single Amount Input (Kung naka-check ang same amount) -->
+            <div id="extendSingleAmountContainer" style="margin-bottom: 15px;">
+                <label style="font-size: 11px; color: var(--primary); font-weight: bold; text-transform: uppercase;">Amount per Due (₱)</label>
+                <input type="number" id="extendSharedAmount" placeholder="e.g., 500" oninput="updateRestructureTotal()" style="margin-top: 5px;">
+            </div>
+
+            <!-- Dues Container (Dito dadami ang dates o inputs) -->
+            <div id="extendDuesContainer">
+                <div class="extend-due-row" style="display: flex; gap: 8px; margin-bottom: 10px; align-items: center;">
+                    <input type="number" class="extend-dynamic-amt" placeholder="Amount" style="flex: 1.5; margin-bottom: 0; display: none;" oninput="updateRestructureTotal()">
+                    <input type="date" class="extend-dynamic-date" style="flex: 1; margin-bottom: 0;">
+                </div>
+            </div>
+
+            <button class="secondary-btn" type="button" onclick="playSound('click'); addExtendDueRow()" style="padding: 10px; font-size: 12px; margin-bottom: 15px;"><i class="ph-bold ph-plus"></i> Add Date</button>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-top: 1px dashed var(--glass-border); padding-top: 10px;">
+                <span style="font-size: 12px; color: var(--text-muted);">New Total:</span>
+                <span id="extendTotalDisplay" style="font-size: 16px; font-weight: bold; color: var(--danger);">₱0.00</span>
+            </div>
+
+            <button onclick="playSound('click'); confirmRestructure()" class="save-btn" style="margin-bottom: 0; background: linear-gradient(135deg, var(--danger), var(--primary));">Confirm Restructure</button>
         </div>
     </div>
 
