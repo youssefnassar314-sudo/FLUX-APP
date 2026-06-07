@@ -93,29 +93,32 @@
         </div>
 
         <!-- FAKE GAME HUB SCREEN (DECOY) -->
+        <!-- CALCULATOR DECOY SCREEN -->
         <div id="gameScreen" class="screen">
-            <div class="utang-card" style="text-align: center; padding: 25px; background: linear-gradient(135deg, var(--bg-dark), var(--card-bg)); margin-bottom: 20px;">
-                <i class="ph-duotone ph-game-controller" style="font-size: 56px; color: var(--primary); margin-bottom: 10px;"></i>
-                <h2 style="margin: 0; color: var(--text-main); letter-spacing: 2px;">FLUX ARCADE</h2>
-                <p style="font-size: 11px; color: var(--text-muted); margin-top: 5px;">Select a game to play</p>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-            <div class="cosmic-grid" onclick="playSound('click'); openGame('https://www.retrogames.cc/embed/40238-super-mario-bros-3-usa.html', 'Super Mario 3')" style="padding: 30px 10px !important;">
-                    <i class="ph-duotone ph-star icon-svg" style="color: #fbbf24; font-size: 36px;"></i>
-                    <p>Super Mario</p>
-                </div>
-                <div class="cosmic-grid" onclick="playSound('click'); openGame('https://hextris.io/', 'Hextris')" style="padding: 30px 10px !important;">
-                    <i class="ph-duotone ph-hexagon icon-svg" style="color: var(--secondary); font-size: 36px;"></i>
-                    <p>Hextris</p>
-                </div>
-                <div class="cosmic-grid" onclick="playSound('click'); openGame('https://chromedino.com/', 'Chrome Dino')" style="padding: 30px 10px !important;">
-                    <i class="ph-duotone ph-linux-logo icon-svg" style="color: var(--danger); font-size: 36px;"></i>
-                    <p>Dino Run</p>
-                </div>
-                <div class="cosmic-grid" onclick="playSound('click'); openGame('https://flappybird.io/', 'Flappy Bird')" style="padding: 30px 10px !important;">
-                    <i class="ph-duotone ph-bird icon-svg" style="color: var(--success); font-size: 36px;"></i>
-                    <p>Flappy Bird</p>
+            <div class="calculator-box" style="background: var(--card-bg); padding: 20px; border-radius: 20px; border: 1px solid var(--glass-border);">
+                <input type="text" id="calcDisplay" readonly style="width: 100%; font-size: 32px; text-align: right; margin-bottom: 20px; background: transparent; color: var(--text-main); border: none; font-family: var(--font-mono);">
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+                    <button onclick="calcClear()" class="kb-btn" style="padding: 20px; font-size: 18px; color: var(--danger);">C</button>
+                    <button onclick="calcAdd('/')" class="kb-btn" style="padding: 20px; font-size: 18px;">/</button>
+                    <button onclick="calcAdd('*')" class="kb-btn" style="padding: 20px; font-size: 18px;">*</button>
+                    <button onclick="calcAdd('-')" class="kb-btn" style="padding: 20px; font-size: 18px;">-</button>
+                    
+                    <button onclick="calcAdd('7')" class="kb-btn" style="padding: 20px; font-size: 18px;">7</button>
+                    <button onclick="calcAdd('8')" class="kb-btn" style="padding: 20px; font-size: 18px;">8</button>
+                    <button onclick="calcAdd('9')" class="kb-btn" style="padding: 20px; font-size: 18px;">9</button>
+                    <button onclick="calcAdd('+')" class="kb-btn" style="padding: 20px; font-size: 18px;">+</button>
+                    
+                    <button onclick="calcAdd('4')" class="kb-btn" style="padding: 20px; font-size: 18px;">4</button>
+                    <button onclick="calcAdd('5')" class="kb-btn" style="padding: 20px; font-size: 18px;">5</button>
+                    <button onclick="calcAdd('6')" class="kb-btn" style="padding: 20px; font-size: 18px;">6</button>
+                    <button onclick="calcEqual()" class="kb-btn" style="padding: 20px; font-size: 18px; background: var(--primary); color: #fff; grid-row: span 2;">=</button>
+                    
+                    <button onclick="calcAdd('1')" class="kb-btn" style="padding: 20px; font-size: 18px;">1</button>
+                    <button onclick="calcAdd('2')" class="kb-btn" style="padding: 20px; font-size: 18px;">2</button>
+                    <button onclick="calcAdd('3')" class="kb-btn" style="padding: 20px; font-size: 18px;">3</button>
+                    
+                    <button onclick="calcAdd('0')" class="kb-btn" style="padding: 20px; font-size: 18px; grid-column: span 2;">0</button>
+                    <button onclick="calcAdd('.')" class="kb-btn" style="padding: 20px; font-size: 18px;">.</button>
                 </div>
             </div>
         </div>
