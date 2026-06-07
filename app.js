@@ -1390,27 +1390,25 @@ function calcClear() {
 }
 function calcEqual() {
     let display = document.getElementById('calcDisplay');
-    
-    // Check: Kung ang tinype mo ay tumugma sa PIN
-    if (display.value === savedPin) {
-        // I-set yung display sa isang "Secret Letter" bago mag-redirect
-        display.value = "G"; // Halimbawa, 'G' para sa Gillian
-        
-        // Mag-wait ng konti para makita yung letter bago mag-transition
+    let input = display.value;
+
+    // 1. VAULT TRIGGER: Kung ang tinype mo ay tumugma sa PIN
+    if (input === savedPin) {
+        display.value = "G"; // Letter G for Gillian
         setTimeout(() => {
             playSound('success');
             proceedToApp();
         }, 800);
-        
-    } else {
-        // Normal Calculator Logic
-        try {
-            let result = eval(display.value);
-            display.value = result;
-        } catch (e) {
-            display.value = "WRONG"; // Maglalabas ng WRONG kung mali ang pin
-        }
+        return;
     }
+
+    // 2. PRANK MODE: Kung hindi PIN ang tinype, mag-generate ng random letter
+    // Mga letters na pagpipilian
+    const randomLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const randomChar = randomLetters.charAt(Math.floor(Math.random() * randomLetters.length));
+    
+    // Gawin nating mukhang "Error" o "Sira" yung response
+    display.value = randomChar; 
 }
 
 // ==========================================
