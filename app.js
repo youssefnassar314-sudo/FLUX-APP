@@ -1380,6 +1380,40 @@ function closeGame() {
 }
 
 // ==========================================
+// 🧮 MODULE 12: CALCULATOR VAULT
+// ==========================================
+function calcAdd(val) {
+    document.getElementById('calcDisplay').value += val;
+}
+function calcClear() {
+    document.getElementById('calcDisplay').value = '';
+}
+function calcEqual() {
+    let display = document.getElementById('calcDisplay');
+    
+    // Check: Kung ang tinype mo ay tumugma sa PIN
+    if (display.value === savedPin) {
+        // I-set yung display sa isang "Secret Letter" bago mag-redirect
+        display.value = "G"; // Halimbawa, 'G' para sa Gillian
+        
+        // Mag-wait ng konti para makita yung letter bago mag-transition
+        setTimeout(() => {
+            playSound('success');
+            proceedToApp();
+        }, 800);
+        
+    } else {
+        // Normal Calculator Logic
+        try {
+            let result = eval(display.value);
+            display.value = result;
+        } catch (e) {
+            display.value = "WRONG"; // Maglalabas ng WRONG kung mali ang pin
+        }
+    }
+}
+
+// ==========================================
 // 🌍 GLOBAL EXPORTS 
 // ==========================================
 window.switchScreen = switchScreen; window.showAddForm = showAddForm; window.addDueRow = addDueRow; window.saveUtang = saveUtang;
@@ -1400,3 +1434,4 @@ window.setReceiptFilter = setReceiptFilter; window.playSound = playSound; window
 window.verifyPin = verifyPin; window.forgotPin = forgotPin;
 window.clearAllUtang = clearAllUtang; window.clearAllTasks = clearAllTasks; window.clearAllFood = clearAllFood; window.clearAllTransactions = clearAllTransactions;
 window.openGame = openGame; window.closeGame = closeGame;
+window.calcAdd = calcAdd; window.calcClear = calcClear; window.calcEqual = calcEqual;
