@@ -329,9 +329,9 @@ if (currentUtangView === 'date') {
         let paidHTML = '';
         
         filteredUtang.forEach(utang => {
-            let isFlexible = isNaN(utang.dueDate);
-            let day = isFlexible ? '' : utang.dueDate.getDate(); 
-            let shortMonth = isFlexible ? 'Flexible' : utang.dueDate.toLocaleString('default', { month: 'short' });
+            let isFlex = isNaN(utang.dueDate);
+            let dateDisplay = isFlex ? 'Flexible' : `${utang.dueDate.toLocaleString('default', { month: 'short' })} ${utang.dueDate.getDate()}`;
+            
             let cardStyle = utang.isPaid ? 'opacity: 0.5; background-color: var(--glass-bg);' : 'background: var(--glass-bg); border-left: 3px solid var(--primary);';
             let badgeHTML = utang.category === 'My App' ? `<span class="badge badge-primary"><i class="ph-bold ph-device-mobile"></i> My App: ${utang.appName}</span>` : `<span class="badge badge-secondary"><i class="ph-bold ph-user"></i> Under their: ${utang.appName}</span>`;
             
@@ -339,7 +339,7 @@ if (currentUtangView === 'date') {
                 <button onclick="playSound('click'); deleteUtang('${utang.id}')" style="position: absolute; top: 12px; right: 12px; background: none; border: none; color: var(--danger); cursor: pointer; font-size: 16px; padding: 0;"><i class="ph-bold ph-x"></i></button>
                 <div style="margin-bottom: 10px; padding-right: 20px;">${badgeHTML}</div>
                 <h4><span style="font-family: monospace; letter-spacing: 1px; color: var(--primary);">ID: ${utang.utangId}</span> <span>₱${utang.amount.toFixed(2)}</span></h4>
-                <p style="color: var(--danger); font-weight: bold;"><i class="ph-bold ph-calendar-x"></i> Due On: ${shortMonth} ${day}</p>
+                <p style="color: var(--danger); font-weight: bold;"><i class="ph-bold ph-calendar-x"></i> Due On: ${dateDisplay}</p>
                 <button class="paid-btn" onclick="openPayUtangModal('${utang.id}', ${utang.amount}, '${utang.utangId}')" ${utang.isPaid ? 'disabled' : ''}>${utang.isPaid ? '<i class="ph-bold ph-check"></i> Paid' : 'Pay via Wallet'}</button>
             </div>`;
 
@@ -385,16 +385,14 @@ if (currentUtangView === 'date') {
                 let cardStyle = allPaid ? 'opacity: 0.5; background-color: var(--glass-bg); border-left: 4px solid var(--success);' : 'background: var(--card-bg); border-left: 4px solid var(--secondary);';
                 let duesHTML = group.items.map(u => {
                     let isFlex = isNaN(u.dueDate);
-                    let shortMonth = isFlex ? 'Flexible' : u.dueDate.toLocaleString('default', { month: 'short' }); 
-                    let day = isFlex ? '' : u.dueDate.getDate(); 
-                    let currentYear = new Date().getFullYear();
-                    let dueYear = (!isFlex && u.dueDate.getFullYear() !== currentYear) ? ` '${u.dueDate.getFullYear().toString().slice(-2)}` : '';
+                    let dateDisplay = isFlex ? 'Flexible' : `${u.dueDate.toLocaleString('default', { month: 'short' })} ${u.dueDate.getDate()}${u.dueDate.getFullYear() !== new Date().getFullYear() ? ` '${u.dueDate.getFullYear().toString().slice(-2)}` : ''}`;
+                    
                     let dueLabel = u.utangId.includes('(Due') ? u.utangId.split('(')[1].replace(')', '') : 'Full';
                     let controls = u.isPaid ? `<span style="color: var(--success); font-size: 11px; font-weight: bold;"><i class="ph-bold ph-check"></i> Paid</span>` : `<button onclick="openPayUtangModal('${u.id}', ${u.amount}, '${u.utangId}')" style="background:none; border:1px solid var(--primary); color:var(--primary); padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer;">Pay</button>`;
                     return `<div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed var(--glass-border); padding-top: 10px; margin-top: 10px;">
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <button onclick="playSound('click'); deleteUtang('${u.id}')" style="background:none; border:none; color:var(--danger); font-size:14px; cursor:pointer; padding:0;"><i class="ph-bold ph-x"></i></button>
-                            <span style="font-size: 11px; color: var(--text-muted);"><strong style="color:var(--text-main);">${dueLabel}</strong> • ${shortMonth} ${day}${dueYear}</span>
+                            <span style="font-size: 11px; color: var(--text-muted);"><strong style="color:var(--text-main);">${dueLabel}</strong> • ${dateDisplay}</span>
                         </div>
                         <div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 13px; color: var(--text-main);">₱${u.amount.toFixed(2)}</span>${controls}</div>
                     </div>`;
