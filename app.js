@@ -170,8 +170,11 @@ function openPayUtangModal(id, amount, utangIdLabel) {
     if (myWallets.length === 0) return alert("Gumawa ka muna ng wallet sa Budget tab!");
     playSound('click');
     document.getElementById('payUtangId').value = id;
-    document.getElementById('payUtangAmount').value = amount;
-    document.getElementById('payUtangDetails').innerText = `Babayaran: ID ${utangIdLabel} (₱${amount.toLocaleString()})`;
+    document.getElementById('payUtangAmount').value = amount; // Ito yung reference natin sa buong balanse
+    document.getElementById('payUtangDetails').innerText = `Balanse: ID ${utangIdLabel} (₱${amount.toLocaleString()})`;
+    
+    let payInput = document.getElementById('payUtangAmountInput');
+    if(payInput) payInput.value = amount; // Default ay full payment
 
     let select = document.getElementById('payUtangWallet');
     select.innerHTML = '<option value="">Saan kukunin ang pera?</option>';
@@ -184,38 +187,57 @@ function openPayUtangModal(id, amount, utangIdLabel) {
 }
 
 async function confirmPayUtang() {
-    // Kukunin natin as array ang mga ID (kung isa o marami)
     let utangIds = document.getElementById('payUtangId').value.split(','); 
-    let baseAmount = parseFloat(document.getElementById('payUtangAmount').value);
-    let interestAmount = parseFloat(document.getElementById('payUtangInterest').value) || 0;
-    let totalAmountToPay = baseAmount + interestAmount;
+    let baseAmount = parseFloat(document.getElementById('payUtangAmount').value); // Original balance
+    let inputAmount = parseFloat(document.getElementById('payUtangAmountInput').value); // Magkano ibabayad
+    
+    // Kunin yung interest input kung meron man na nilagay (mula sa previous update natin)
+    let interestInput = document.getElementById('payUtangInterest');
+    let interestAmount = interestInput ? (parseFloat(interestInput.value) || 0) : 0;
+    
+    if (isNaN(inputAmount) || inputAmount <= 0) return alert("Pakilagay ng tamang amount na ibabayad.");
+    if (inputAmount > baseAmount) return alert("Sobra yung ibabayad mo sa mismong utang balance!");
 
+    let isPartial = inputAmount < baseAmount;
+    if (isPartial && utangIds.length > 1) {
+        return alert("Oops! Kapag 'Pay Full Bal' (maraming dues), hindi pwede ang partial. Pakibayaran nang isahan kung partial ang ipapasok mo.");
+    }
+
+    let totalAmountToPay = inputAmount + interestAmount;
     let walletId = document.getElementById('payUtangWallet').value;
     let utangLabel = document.getElementById('payUtangDetails').innerText;
 
     if (!walletId) return alert("Pumili ng wallet!");
     let walletObj = myWallets.find(w => w.id === walletId);
-    if (!walletObj || parseFloat(walletObj.balance) < totalAmountToPay) return alert("Kulang ang pondo para sa utang + interest!");
+    if (!walletObj || parseFloat(walletObj.balance) < totalAmountToPay) return alert("Kulang ang pondo mo para sa utang (at interest)!");
 
     try {
-        // Bawas sa wallet ng isahan (kasama na yung interest)
+        // Bawas sa wallet ng total amount (kasama interest)
         await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletId), { balance: parseFloat(walletObj.balance) - totalAmountToPay });
         
-        // Update Firebase & Google Sheets ng sabay-sabay for each due
+        // Update Firebase
         for (let id of utangIds) {
             if (id) {
-                await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "utang", id), { isPaid: true });
-                syncToSheets({ action: 'payUtang', firebaseId: id });
+                if (isPartial) {
+                    // Update lang yung natitirang amount, hindi pa isPaid
+                    let remainingBalance = baseAmount - inputAmount;
+                    await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "utang", id), { amount: remainingBalance });
+                } else {
+                    // Full payment para dito
+                    await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "utang", id), { isPaid: true });
+                    syncToSheets({ action: 'payUtang', firebaseId: id });
+                }
             }
         }
 
-        // Kung may interest, ihiwalay sa receipt note para malinaw
-        let cleanUtangLabel = utangLabel.split('(')[0].replace('Babayaran: ', '').trim();
+        // Transaction Note Styling
+        let cleanUtangLabel = utangLabel.split('(')[0].replace('Balanse: ', '').trim();
+        let paymentType = isPartial ? "Partial Pay" : "Bayad Utang";
         let transactionNote = interestAmount > 0 
-            ? `Bayad Utang: ${cleanUtangLabel} (+₱${interestAmount} Interest)` 
-            : `Bayad Utang: ${cleanUtangLabel}`;
+            ? `${paymentType}: ${cleanUtangLabel} (+₱${interestAmount} Interest)` 
+            : `${paymentType}: ${cleanUtangLabel}`;
 
-        // I-save ang transaction record
+        // Save sa Transactions History
         await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "transactions"), {
             userId: window.currentUid, type: 'expense', walletId: walletId, amount: totalAmountToPay,
             note: transactionNote, category: "Debt Payment", paidFromWallet: walletObj.name, createdAt: Date.now()
@@ -241,7 +263,10 @@ function openPayFullUtang(baseId) {
     
     document.getElementById('payUtangId').value = ids; // Naka-store dito lahat ng IDs
     document.getElementById('payUtangAmount').value = totalAmount;
-    document.getElementById('payUtangDetails').innerText = `Babayaran: FULL BALANCE ID ${baseId} (₱${totalAmount.toLocaleString()})`;
+    document.getElementById('payUtangDetails').innerText = `Balanse: FULL BALANCE ID ${baseId} (₱${totalAmount.toLocaleString()})`;
+    
+    let payInput = document.getElementById('payUtangAmountInput');
+    if(payInput) payInput.value = totalAmount; // Default ay full payment
 
     let select = document.getElementById('payUtangWallet');
     select.innerHTML = '<option value="">Saan kukunin ang pera?</option>';
@@ -278,7 +303,12 @@ function renderUtangList() {
     let searchInput = document.getElementById('searchUtangId');
     let searchVal = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
-    let filteredUtang = utangDatabase.filter(utang => utang.dueDate.getMonth() === currentDateView.getMonth() && utang.dueDate.getFullYear() === currentDateView.getFullYear());
+    let filteredUtang = utangDatabase.filter(utang => {
+        // Kapag "Flexible", isama palagi sa display kahit anong buwan
+        if (isNaN(utang.dueDate)) return true;
+        // Kapag may date, i-check kung tugma sa current view
+        return utang.dueDate.getMonth() === currentDateView.getMonth() && utang.dueDate.getFullYear() === currentDateView.getFullYear();
+    });
     
     // Compute total utang BEFORE filtering para hindi bumaba yung display sa stat boxes
     let monthUtang = 0; let monthBayad = 0;
@@ -299,7 +329,9 @@ if (currentUtangView === 'date') {
         let paidHTML = '';
         
         filteredUtang.forEach(utang => {
-            let day = utang.dueDate.getDate(); let shortMonth = utang.dueDate.toLocaleString('default', { month: 'short' });
+            let isFlexible = isNaN(utang.dueDate);
+            let day = isFlexible ? '' : utang.dueDate.getDate(); 
+            let shortMonth = isFlexible ? 'Flexible' : utang.dueDate.toLocaleString('default', { month: 'short' });
             let cardStyle = utang.isPaid ? 'opacity: 0.5; background-color: var(--glass-bg);' : 'background: var(--glass-bg); border-left: 3px solid var(--primary);';
             let badgeHTML = utang.category === 'My App' ? `<span class="badge badge-primary"><i class="ph-bold ph-device-mobile"></i> My App: ${utang.appName}</span>` : `<span class="badge badge-secondary"><i class="ph-bold ph-user"></i> Under their: ${utang.appName}</span>`;
             
@@ -352,8 +384,11 @@ if (currentUtangView === 'date') {
                 let group = apps[app][id]; let allPaid = group.items.every(u => u.isPaid);
                 let cardStyle = allPaid ? 'opacity: 0.5; background-color: var(--glass-bg); border-left: 4px solid var(--success);' : 'background: var(--card-bg); border-left: 4px solid var(--secondary);';
                 let duesHTML = group.items.map(u => {
-                    let shortMonth = u.dueDate.toLocaleString('default', { month: 'short' }); let day = u.dueDate.getDate(); let currentYear = new Date().getFullYear();
-                    let dueYear = u.dueDate.getFullYear() !== currentYear ? ` '${u.dueDate.getFullYear().toString().slice(-2)}` : '';
+                    let isFlex = isNaN(u.dueDate);
+                    let shortMonth = isFlex ? 'Flexible' : u.dueDate.toLocaleString('default', { month: 'short' }); 
+                    let day = isFlex ? '' : u.dueDate.getDate(); 
+                    let currentYear = new Date().getFullYear();
+                    let dueYear = (!isFlex && u.dueDate.getFullYear() !== currentYear) ? ` '${u.dueDate.getFullYear().toString().slice(-2)}` : '';
                     let dueLabel = u.utangId.includes('(Due') ? u.utangId.split('(')[1].replace(')', '') : 'Full';
                     let controls = u.isPaid ? `<span style="color: var(--success); font-size: 11px; font-weight: bold;"><i class="ph-bold ph-check"></i> Paid</span>` : `<button onclick="openPayUtangModal('${u.id}', ${u.amount}, '${u.utangId}')" style="background:none; border:1px solid var(--primary); color:var(--primary); padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer;">Pay</button>`;
                     return `<div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed var(--glass-border); padding-top: 10px; margin-top: 10px;">
