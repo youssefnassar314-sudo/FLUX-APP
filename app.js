@@ -219,9 +219,24 @@ async function confirmPayUtang() {
         for (let id of utangIds) {
             if (id) {
                 if (isPartial) {
-                    // Update lang yung natitirang amount, hindi pa isPaid
+                    // Update lang yung natitirang amount at i-save ang partial record
                     let remainingBalance = baseAmount - inputAmount;
-                    await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "utang", id), { amount: remainingBalance });
+                    let currentUtang = utangDatabase.find(u => u.id === id);
+                    let existingPartials = currentUtang.partials || [];
+                    
+                    let newPartial = {
+                        id: 'P_' + Date.now().toString(),
+                        amount: inputAmount,
+                        date: Date.now(),
+                        walletId: walletId,
+                        walletName: walletObj.name
+                    };
+                    existingPartials.push(newPartial);
+
+                    await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "utang", id), { 
+                        amount: remainingBalance,
+                        partials: existingPartials
+                    });
                 } else {
                     // Full payment para dito
                     await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "utang", id), { isPaid: true });
@@ -340,6 +355,17 @@ if (currentUtangView === 'date') {
                 <div style="margin-bottom: 10px; padding-right: 20px;">${badgeHTML}</div>
                 <h4><span style="font-family: monospace; letter-spacing: 1px; color: var(--primary);">ID: ${utang.utangId}</span> <span>₱${utang.amount.toFixed(2)}</span></h4>
                 <p style="color: var(--danger); font-weight: bold;"><i class="ph-bold ph-calendar-x"></i> Due On: ${dateDisplay}</p>
+                ${(utang.partials && utang.partials.length > 0) ? `
+                <div style="margin: 10px 0; border-top: 1px dashed var(--glass-border); padding-top: 10px;">
+                    <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">↳ Partial Payments:</span>
+                    ${utang.partials.map(p => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px; font-size: 11px;">
+                            <span style="color: var(--text-main);">₱${p.amount.toFixed(2)} <span style="color: var(--text-muted);">(${new Date(p.date).toLocaleDateString('default', { month: 'short', day: 'numeric' })} - ${p.walletName})</span></span>
+                            <button onclick="playSound('click'); undoPartialPayment('${utang.id}', '${p.id}')" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size: 14px; padding: 0;"><i class="ph-bold ph-x"></i></button>
+                        </div>
+                    `).join('')}
+                </div>
+                ` : ''}
                 <button class="paid-btn" onclick="openPayUtangModal('${utang.id}', ${utang.amount}, '${utang.utangId}')" ${utang.isPaid ? 'disabled' : ''}>${utang.isPaid ? '<i class="ph-bold ph-check"></i> Paid' : 'Pay via Wallet'}</button>
             </div>`;
 
@@ -395,7 +421,17 @@ if (currentUtangView === 'date') {
                             <span style="font-size: 11px; color: var(--text-muted);"><strong style="color:var(--text-main);">${dueLabel}</strong> • ${dateDisplay}</span>
                         </div>
                         <div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 13px; color: var(--text-main);">₱${u.amount.toFixed(2)}</span>${controls}</div>
-                    </div>`;
+                    </div>
+                    ${(u.partials && u.partials.length > 0) ? `
+                    <div style="margin-top: 5px; padding-left: 15px; border-left: 2px solid var(--glass-border);">
+                        ${u.partials.map(p => `
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px; font-size: 10px;">
+                                <span style="color: var(--text-muted);">↳ Partial: <strong style="color: var(--text-main);">₱${p.amount.toFixed(2)}</strong> via ${p.walletName}</span>
+                                <button onclick="playSound('click'); undoPartialPayment('${u.id}', '${p.id}')" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size: 12px; padding: 0;"><i class="ph-bold ph-x"></i></button>
+                            </div>
+                        `).join('')}
+                    </div>
+                    ` : ''}`;
                 }).join('');
 let payAllBtn = !allPaid ? `<button onclick="playSound('click'); openPayFullUtang('${id}')" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); color: var(--success); padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: bold; cursor: pointer; text-transform: uppercase; letter-spacing: 1px;"><i class="ph-bold ph-check-circle"></i> Pay Full Bal</button>` : '';
 
@@ -1460,6 +1496,50 @@ function calcEqual() {
     // Gawin nating mukhang "Error" o "Sira" yung response
     display.value = randomChar; 
 }
+
+async function undoPartialPayment(utangFirebaseId, partialId) {
+    if (!confirm("I-undo ang partial payment na ito? Ibabalik nito ang pera sa wallet mo at tataas ulit ang balance ng utang.")) return;
+    
+    let utang = utangDatabase.find(u => u.id === utangFirebaseId);
+    if (!utang || !utang.partials) return alert("Hindi mahanap ang record ng utang na ito.");
+
+    let partialRecord = utang.partials.find(p => p.id === partialId);
+    if (!partialRecord) return alert("Hindi mahanap ang partial payment na ito.");
+
+    let walletObj = myWallets.find(w => w.id === partialRecord.walletId);
+    if (!walletObj) return alert("Hindi mahanap ang wallet na ginamit (baka nabura na). Hindi ma-refund ang pera, pero maibabalik natin ang balance sa utang.");
+
+    try {
+        // 1. Ibalik ang pera sa wallet (kung nag-eexist pa yung wallet)
+        if (walletObj) {
+            let newWalletBal = parseFloat(walletObj.balance) + partialRecord.amount;
+            await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletObj.id), { balance: newWalletBal });
+        }
+
+        // 2. Ibalik ang amount sa utang at tanggalin sa partials array
+        let newUtangAmount = utang.amount + partialRecord.amount;
+        let updatedPartials = utang.partials.filter(p => p.id !== partialId);
+        await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "utang", utangFirebaseId), { 
+            amount: newUtangAmount,
+            partials: updatedPartials
+        });
+
+        // 3. I-log sa transactions as "Refund" (Kung nahanap yung wallet)
+        if (walletObj) {
+            await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "transactions"), {
+                userId: window.currentUid, type: 'income', walletId: walletObj.id, amount: partialRecord.amount,
+                note: `Refund: Partial Pay Undo (ID ${utang.utangId.split(' (')[0]})`, category: "Refund", createdAt: Date.now()
+            });
+        }
+
+        playSound('success');
+    } catch (e) {
+        console.error(e);
+        alert("May error sa pag-undo.");
+    }
+}
+
+window.undoPartialPayment = undoPartialPayment;
 
 // ==========================================
 // 🌍 GLOBAL EXPORTS 
