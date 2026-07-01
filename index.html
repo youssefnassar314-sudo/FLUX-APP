@@ -548,6 +548,12 @@
             <input type="hidden" id="payUtangId">
             <input type="hidden" id="payUtangAmount">
             <select id="payUtangWallet" class="glass-select" style="margin-bottom: 15px;"></select>
+            
+            <div style="margin-bottom: 15px; text-align: left;">
+                <label style="font-size: 11px; color: var(--primary); font-weight: 700; display: block; margin-bottom: 5px; text-transform: uppercase;">Dagdag Interest (Optional)</label>
+                <input type="number" id="payUtangInterest" placeholder="Halaga ng interest (₱)" style="margin-bottom: 0;">
+            </div>
+
             <button onclick="playSound('click'); confirmPayUtang()" class="save-btn" style="margin-bottom: 10px; background: var(--success);">Confirm Payment</button>
             <button onclick="playSound('click'); closeBudgetModals()" style="width:100%; background:none; border:none; color:var(--text-muted);">Cancel</button>
         </div>
