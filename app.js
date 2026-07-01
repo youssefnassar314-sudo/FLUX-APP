@@ -176,23 +176,30 @@ function openPayUtangModal(id, amount, utangIdLabel) {
     let select = document.getElementById('payUtangWallet');
     select.innerHTML = '<option value="">Saan kukunin ang pera?</option>';
     myWallets.forEach(w => { select.innerHTML += `<option value="${w.id}">${w.name} (Bal: ₱${parseFloat(w.balance).toLocaleString()})</option>`; });
+    
+    let interestInput = document.getElementById('payUtangInterest');
+    if(interestInput) interestInput.value = '';
+    
     document.getElementById('payUtangModal').style.display = 'flex';
 }
 
 async function confirmPayUtang() {
     // Kukunin natin as array ang mga ID (kung isa o marami)
     let utangIds = document.getElementById('payUtangId').value.split(','); 
-    let amount = parseFloat(document.getElementById('payUtangAmount').value);
+    let baseAmount = parseFloat(document.getElementById('payUtangAmount').value);
+    let interestAmount = parseFloat(document.getElementById('payUtangInterest').value) || 0;
+    let totalAmountToPay = baseAmount + interestAmount;
+
     let walletId = document.getElementById('payUtangWallet').value;
     let utangLabel = document.getElementById('payUtangDetails').innerText;
 
     if (!walletId) return alert("Pumili ng wallet!");
     let walletObj = myWallets.find(w => w.id === walletId);
-    if (!walletObj || parseFloat(walletObj.balance) < amount) return alert("Kulang ang pondo!");
+    if (!walletObj || parseFloat(walletObj.balance) < totalAmountToPay) return alert("Kulang ang pondo para sa utang + interest!");
 
     try {
-        // Bawas sa wallet ng isahan
-        await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletId), { balance: parseFloat(walletObj.balance) - amount });
+        // Bawas sa wallet ng isahan (kasama na yung interest)
+        await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletId), { balance: parseFloat(walletObj.balance) - totalAmountToPay });
         
         // Update Firebase & Google Sheets ng sabay-sabay for each due
         for (let id of utangIds) {
@@ -202,10 +209,16 @@ async function confirmPayUtang() {
             }
         }
 
-        // I-save ang transaction record (inalis lang yung "Babayaran: " para mas malinis sa receipt)
+        // Kung may interest, ihiwalay sa receipt note para malinaw
+        let cleanUtangLabel = utangLabel.split('(')[0].replace('Babayaran: ', '').trim();
+        let transactionNote = interestAmount > 0 
+            ? `Bayad Utang: ${cleanUtangLabel} (+₱${interestAmount} Interest)` 
+            : `Bayad Utang: ${cleanUtangLabel}`;
+
+        // I-save ang transaction record
         await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "transactions"), {
-            userId: window.currentUid, type: 'expense', walletId: walletId, amount: amount,
-            note: `Bayad Utang: ${utangLabel.split('(')[0].replace('Babayaran: ', '').trim()}`, category: "Debt Payment", paidFromWallet: walletObj.name, createdAt: Date.now()
+            userId: window.currentUid, type: 'expense', walletId: walletId, amount: totalAmountToPay,
+            note: transactionNote, category: "Debt Payment", paidFromWallet: walletObj.name, createdAt: Date.now()
         });
         playSound('success'); 
         closeBudgetModals();
@@ -233,6 +246,10 @@ function openPayFullUtang(baseId) {
     let select = document.getElementById('payUtangWallet');
     select.innerHTML = '<option value="">Saan kukunin ang pera?</option>';
     myWallets.forEach(w => { select.innerHTML += `<option value="${w.id}">${w.name} (Bal: ₱${parseFloat(w.balance).toLocaleString()})</option>`; });
+    
+    let interestInput = document.getElementById('payUtangInterest');
+    if(interestInput) interestInput.value = '';
+
     document.getElementById('payUtangModal').style.display = 'flex';
 }
 
