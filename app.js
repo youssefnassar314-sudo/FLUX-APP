@@ -118,7 +118,7 @@ function addDueRow() {
         <div style="display: flex; gap: 5px; margin-bottom: 10px;">
             <input type="number" class="dynamic-amt" placeholder="Amount" style="flex: 1;">
             <input type="date" class="dynamic-date" style="flex: 1;">
-            <button type="button" onclick="playSound('click'); this.closest('.due-row').remove()" style="background: rgba(244, 63, 94, 0.1); color: var(--danger); border: 1px solid rgba(244, 63, 94, 0.2); padding: 0 10px; border-radius: 5px; cursor: pointer; font-size: 16px;"><i class="ph-bold ph-trash"></i></button>
+            <button type="button" onclick="playSound('click'); this.closest('.due-row').remove()" style="background: rgba(194, 86, 79, 0.1); color: var(--danger); border: 1px solid rgba(194, 86, 79, 0.2); padding: 0 10px; border-radius: 5px; cursor: pointer; font-size: 16px;"><i class="ph-bold ph-trash"></i></button>
         </div>
     `;
     container.appendChild(newRow);
@@ -394,7 +394,7 @@ if (currentUtangView === 'date') {
         if (paidHTML !== '') {
             container.innerHTML += `
             <div class="date-section">
-                <button onclick="playSound('click'); togglePaidFolder()" style="width: 100%; background: none; border: none; color: var(--success); border-bottom: 2px solid rgba(16, 185, 129, 0.2); padding-bottom: 10px; font-size: 14px; margin-top: 25px; text-align: left; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 700;">
+                <button onclick="playSound('click'); togglePaidFolder()" style="width: 100%; background: none; border: none; color: var(--success); border-bottom: 2px solid rgba(78, 154, 107, 0.2); padding-bottom: 10px; font-size: 14px; margin-top: 25px; text-align: left; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 700;">
                     <span><i class="ph-bold ph-check-circle"></i> Paid This Month</span>
                     <i id="paidFolderIcon" class="ph-bold ph-caret-down"></i>
                 </button>
@@ -419,7 +419,7 @@ if (currentUtangView === 'date') {
         });
 
         for (let app in apps) {
-            container.innerHTML += `<div class="date-section"><h3 style="color: var(--secondary); border-bottom: 2px solid rgba(192, 132, 252, 0.2); padding-bottom: 5px; font-size: 14px; margin-top: 25px; text-transform: uppercase; letter-spacing: 1px;"><i class="ph-bold ph-device-mobile"></i> ${app}</h3></div>`;
+            container.innerHTML += `<div class="date-section"><h3 style="color: var(--secondary); border-bottom: 2px solid rgba(108, 79, 148, 0.2); padding-bottom: 5px; font-size: 14px; margin-top: 25px; text-transform: uppercase; letter-spacing: 1px;"><i class="ph-bold ph-device-mobile"></i> ${app}</h3></div>`;
             for (let id in apps[app]) {
                 let group = apps[app][id]; let allPaid = group.items.every(u => u.isPaid);
                 let cardStyle = allPaid ? 'opacity: 0.5; background-color: var(--glass-bg); border-left: 4px solid var(--success);' : 'background: var(--card-bg); border-left: 4px solid var(--secondary);';
@@ -447,7 +447,7 @@ if (currentUtangView === 'date') {
                     </div>
                     ` : ''}`;
                 }).join('');
-let payAllBtn = !allPaid ? `<button onclick="playSound('click'); openPayFullUtang('${id}')" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); color: var(--success); padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: bold; cursor: pointer; text-transform: uppercase; letter-spacing: 1px;"><i class="ph-bold ph-check-circle"></i> Pay Full Bal</button>` : '';
+let payAllBtn = !allPaid ? `<button onclick="playSound('click'); openPayFullUtang('${id}')" style="background: rgba(78, 154, 107, 0.1); border: 1px solid rgba(78, 154, 107, 0.3); color: var(--success); padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: bold; cursor: pointer; text-transform: uppercase; letter-spacing: 1px;"><i class="ph-bold ph-check-circle"></i> Pay Full Bal</button>` : '';
 
                 container.innerHTML += `<div class="utang-card" style="${cardStyle} margin-bottom: 12px; padding: 15px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
@@ -557,7 +557,7 @@ function renderTasks() {
     if(!taskContainer || !habitContainer) return; 
     taskContainer.innerHTML = `<h3 style="color: var(--text-main); margin-top: 30px; font-size: 14px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px;"><i class="ph-duotone ph-list-checks"></i> PENDING TASKS</h3>`;
     habitContainer.innerHTML = `<h3 style="color: var(--success); margin-top: 30px; font-size: 14px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px;"><i class="ph-duotone ph-arrows-clockwise"></i> DAILY HABITS</h3>`;
-    if (schedContainer) { schedContainer.innerHTML = `<h3 style="color: #fbbf24; margin-top: 30px; font-size: 14px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px;"><i class="ph-duotone ph-calendar-blank"></i> UPCOMING SCHED</h3>`; }
+    if (schedContainer) { schedContainer.innerHTML = `<h3 style="color: var(--pastel-amber-fg); margin-top: 30px; font-size: 14px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px;"><i class="ph-duotone ph-calendar-blank"></i> UPCOMING SCHED</h3>`; }
 
     let todayDateStr = new Date().toLocaleDateString('en-CA');
     let normalTasks = taskDatabase.filter(t => t.category !== 'Sched'); let schedTasks = taskDatabase.filter(t => t.category === 'Sched');
@@ -565,14 +565,14 @@ function renderTasks() {
     if (normalTasks.length === 0) { taskContainer.innerHTML += '<p style="color: var(--text-muted); font-size: 12px; font-style: italic;">No pending tasks.</p>'; } else {
         normalTasks.forEach(task => {
             let isDone = task.status === 'done'; let isDoing = task.status === 'doing';
-            let badgeColor = task.category === 'Work' ? '#38bdf8' : task.category === 'School' ? '#c084fc' : '#10b981';
+            let badgeColor = task.category === 'Work' ? 'var(--pastel-blue-fg)' : task.category === 'School' ? 'var(--pastel-purple-fg)' : 'var(--success)';
             let totalSpent = task.timeSpent || 0; let est = task.estMins || 0;
             let runningText = isDoing ? `<span style="color: var(--primary); animation: pulse 1.5s infinite;"> • ⏱️ Running...</span>` : '';
             let timeText = `<span style="font-size: 11px; color: var(--text-muted);"><i class="ph-bold ph-clock"></i> Spent: ${totalSpent}m / Est: ${est}m ${runningText}</span>`;
             let controlsHTML = '';
             if (isDone) { controlsHTML = `<span style="color: var(--success); font-weight: bold; font-size: 12px;"><i class="ph-bold ph-check-circle"></i> Completed (${totalSpent}m spent)</span>`; } else {
-                let playPauseBtn = isDoing ? `<button style="background: rgba(244, 63, 94, 0.1); color: var(--danger); border: 1px solid var(--danger); padding: 6px 12px; border-radius: 8px; cursor: pointer;" onclick="moveTaskStatus('${task.id}', 'paused')"><i class="ph-bold ph-pause"></i> Pause</button>` : `<button style="background: var(--glass-bg); color: var(--primary); border: 1px solid var(--primary); padding: 6px 12px; border-radius: 8px; cursor: pointer;" onclick="moveTaskStatus('${task.id}', 'doing')"><i class="ph-bold ph-play"></i> Play</button>`;
-                controlsHTML = `<div style="display: flex; gap: 8px; margin-top: 10px;">${playPauseBtn}<button style="background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid var(--success); padding: 6px 12px; border-radius: 8px; cursor: pointer; flex: 1;" onclick="moveTaskStatus('${task.id}', 'done')"><i class="ph-bold ph-check"></i> Finish Task</button></div>`;
+                let playPauseBtn = isDoing ? `<button style="background: rgba(194, 86, 79, 0.1); color: var(--danger); border: 1px solid var(--danger); padding: 6px 12px; border-radius: 8px; cursor: pointer;" onclick="moveTaskStatus('${task.id}', 'paused')"><i class="ph-bold ph-pause"></i> Pause</button>` : `<button style="background: var(--glass-bg); color: var(--primary); border: 1px solid var(--primary); padding: 6px 12px; border-radius: 8px; cursor: pointer;" onclick="moveTaskStatus('${task.id}', 'doing')"><i class="ph-bold ph-play"></i> Play</button>`;
+                controlsHTML = `<div style="display: flex; gap: 8px; margin-top: 10px;">${playPauseBtn}<button style="background: rgba(78, 154, 107, 0.1); color: var(--success); border: 1px solid var(--success); padding: 6px 12px; border-radius: 8px; cursor: pointer; flex: 1;" onclick="moveTaskStatus('${task.id}', 'done')"><i class="ph-bold ph-check"></i> Finish Task</button></div>`;
             }
             taskContainer.innerHTML += `<div class="utang-card" style="position: relative; ${isDone ? 'opacity: 0.5; background: var(--glass-bg);' : 'background: var(--card-bg); border-left: 4px solid var(--secondary);'} margin-bottom: 10px; padding: 15px;">
                 <button onclick="deleteTask('${task.id}')" style="position: absolute; top: 12px; right: 12px; background: none; border: none; color: var(--danger); cursor: pointer; font-size: 16px; padding: 0;"><i class="ph-bold ph-x"></i></button>
@@ -601,10 +601,10 @@ function renderTasks() {
             schedTasks.forEach(task => {
                 let isDone = task.status === 'done'; let dateObj = new Date(task.dueDate);
                 let dateFormatted = isNaN(dateObj) ? "Date not set" : dateObj.toLocaleDateString('default', { month: 'short', day: 'numeric', year: 'numeric' });
-                let controlsHTML = isDone ? `<span style="color: var(--success); font-weight: bold; font-size: 12px;"><i class="ph-bold ph-check-circle"></i> Event Completed</span>` : `<button class="paid-btn" style="border-color: #fbbf24; color: #fbbf24; padding: 6px; margin-top: 10px;" onclick="moveTaskStatus('${task.id}', 'done')"><i class="ph-bold ph-check"></i> Mark Done</button>`;
-                schedContainer.innerHTML += `<div class="utang-card" style="position: relative; ${isDone ? 'opacity: 0.5; background: var(--glass-bg);' : 'background: var(--card-bg); border-left: 4px solid #fbbf24;'} margin-bottom: 10px; padding: 15px;">
+                let controlsHTML = isDone ? `<span style="color: var(--success); font-weight: bold; font-size: 12px;"><i class="ph-bold ph-check-circle"></i> Event Completed</span>` : `<button class="paid-btn" style="border-color: var(--pastel-amber-fg); color: var(--pastel-amber-fg); padding: 6px; margin-top: 10px;" onclick="moveTaskStatus('${task.id}', 'done')"><i class="ph-bold ph-check"></i> Mark Done</button>`;
+                schedContainer.innerHTML += `<div class="utang-card" style="position: relative; ${isDone ? 'opacity: 0.5; background: var(--glass-bg);' : 'background: var(--card-bg); border-left: 4px solid var(--pastel-amber-fg);'} margin-bottom: 10px; padding: 15px;">
                     <button onclick="deleteTask('${task.id}')" style="position: absolute; top: 12px; right: 12px; background: none; border: none; color: var(--danger); cursor: pointer; font-size: 16px; padding: 0;"><i class="ph-bold ph-x"></i></button>
-                    <span style="font-size: 10px; font-weight: 700; background: var(--glass-bg); color: #fbbf24; padding: 3px 8px; border-radius: 5px; text-transform: uppercase;">WHOLE DAY</span>
+                    <span style="font-size: 10px; font-weight: 700; background: var(--glass-bg); color: var(--pastel-amber-fg); padding: 3px 8px; border-radius: 5px; text-transform: uppercase;">WHOLE DAY</span>
                     <h4 style="margin: 8px 0 2px 0; font-size: 15px; color: var(--text-main); padding-right: 25px;">${task.title}</h4>
                     <span style="font-size: 11px; color: var(--text-muted);"><i class="ph-bold ph-calendar"></i> ${dateFormatted}</span>
                     <div style="margin-top: 10px;">${controlsHTML}</div>
@@ -687,10 +687,10 @@ function initRealtimeFood() {
 function getFoodGradeColor(grade) {
     if (!grade || grade === '--' || grade === 'N/A') return { bg: 'var(--glass-bg)', border: 'var(--glass-border)', text: 'var(--text-muted)' };
     const g = grade.toUpperCase();
-    if (g.startsWith('A')) return { bg: 'rgba(16,185,129,0.12)', border: 'rgba(16,185,129,0.4)', text: '#10b981' };
-    if (g.startsWith('B')) return { bg: 'rgba(56,189,248,0.12)', border: 'rgba(56,189,248,0.4)', text: '#38bdf8' };
-    if (g.startsWith('C')) return { bg: 'rgba(251,191,36,0.12)', border: 'rgba(251,191,36,0.4)', text: '#fbbf24' };
-    return { bg: 'rgba(244,63,94,0.12)', border: 'rgba(244,63,94,0.4)', text: '#f43f5e' };
+    if (g.startsWith('A')) return { bg: 'rgba(78, 154, 107,0.12)', border: 'rgba(78, 154, 107,0.4)', text: 'var(--success)' };
+    if (g.startsWith('B')) return { bg: 'rgba(76, 95, 160,0.12)', border: 'rgba(76, 95, 160,0.4)', text: 'var(--pastel-blue-fg)' };
+    if (g.startsWith('C')) return { bg: 'rgba(156, 122, 46,0.12)', border: 'rgba(156, 122, 46,0.4)', text: 'var(--pastel-amber-fg)' };
+    return { bg: 'rgba(194, 86, 79,0.12)', border: 'rgba(194, 86, 79,0.4)', text: 'var(--danger)' };
 }
 
 function applyFoodSummaryUI(result) {
@@ -742,7 +742,7 @@ function renderFoodList() {
     let todayFood = foodDatabase.filter(food => { return new Date(food.createdAt).toLocaleDateString('en-CA') === today; });
     if (todayFood.length === 0) { container.innerHTML += '<p style="color: var(--text-muted); font-size: 12px; font-style: italic;">Wala ka pang kinakain today.</p>'; return; }
     todayFood.forEach(food => {
-        let badgeColor = food.meal === 'Breakfast' ? '#fbbf24' : food.meal === 'Lunch' ? '#38bdf8' : food.meal === 'Dinner' ? '#c084fc' : '#f43f5e';
+        let badgeColor = food.meal === 'Breakfast' ? 'var(--pastel-amber-fg)' : food.meal === 'Lunch' ? 'var(--pastel-blue-fg)' : food.meal === 'Dinner' ? 'var(--pastel-purple-fg)' : 'var(--danger)';
         let picIcon = food.image64 ? ' <i class="ph-bold ph-image"></i>' : ''; let priceTag = food.cost > 0 ? ` - ₱${food.cost}` : '';
         container.innerHTML += `<div class="utang-card" style="background: var(--card-bg); margin-bottom: 10px; padding: 15px;">
             <span style="font-size: 9px; font-weight: 700; background: var(--glass-bg); color: ${badgeColor}; padding: 3px 8px; border-radius: 5px; text-transform: uppercase;">${food.meal} • ${food.source}</span>
@@ -902,7 +902,7 @@ function renderTransactions() {
         let dateStr = new Date(t.createdAt).toLocaleDateString('default', { month: 'short', day: 'numeric' });
         let displayNote = t.note && t.note !== "N/A" ? t.note : t.category;
         let categoryTag = '';
-        if (t.category === 'Debt Payment') { categoryTag = `<span style="font-size: 9px; font-weight: 700; background: rgba(244,63,94,0.1); color: var(--danger); padding: 2px 6px; border-radius: 4px; margin-left: 4px;">UTANG • ${walletName}</span>`; } else if (t.category === 'Food & Drinks') { categoryTag = `<span style="font-size: 9px; font-weight: 700; background: rgba(251,191,36,0.1); color: #fbbf24; padding: 2px 6px; border-radius: 4px; margin-left: 4px;">FOOD & DRINKS</span>`; }
+        if (t.category === 'Debt Payment') { categoryTag = `<span style="font-size: 9px; font-weight: 700; background: rgba(194, 86, 79,0.1); color: var(--danger); padding: 2px 6px; border-radius: 4px; margin-left: 4px;">UTANG • ${walletName}</span>`; } else if (t.category === 'Food & Drinks') { categoryTag = `<span style="font-size: 9px; font-weight: 700; background: rgba(156, 122, 46,0.1); color: var(--pastel-amber-fg); padding: 2px 6px; border-radius: 4px; margin-left: 4px;">FOOD & DRINKS</span>`; }
         let targetWalletId = t.walletToId || '';
         container.innerHTML += `<div class="utang-card" style="padding: 12px 15px; margin-bottom: 10px; background: var(--card-bg); display: flex; justify-content: space-between; align-items: center; border-left-color: ${color}; position: relative;">
             <div style="display: flex; gap: 12px; align-items: center; overflow: hidden;"><div style="background: var(--glass-bg); padding: 8px; border-radius: 8px; color: ${color};"><i class="ph-bold ${icon}" style="font-size: 16px;"></i></div>
