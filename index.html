@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FLUX | Personal OS</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0f172a">
+    <meta name="theme-color" content="#F7F2E7">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=DM+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -17,21 +17,11 @@
 
         <div class="app-header-v2">
             <div class="header-action-bar">
-                <div class="action-group-left">
+                <div class="action-group-right">
                     <button onclick="playSound('click'); forceUpdateApp()" class="header-icon-btn" title="Force Refresh">
                         <i class="ph-bold ph-arrows-clockwise"></i>
                     </button>
-                    
-                    <button onclick="playSound('click'); toggleTheme()" class="header-icon-btn" title="Change Theme">
-                        <i class="ph-bold ph-palette"></i>
-                    </button>
-                </div>
-
-                <div id="liveClock" class="header-clock">-- | --<br>--:--:--</div>
-
-                <div class="action-group-right">
-                    <!-- SECRET BUTTON PARA SA DASHBOARD -->
-                    <button id="secretLockBtn" onclick="playSound('click'); checkPinStatus()" class="header-icon-btn" style="display: none; color: var(--glass-border); transition: 0.3s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--glass-border)'" title="Unlock OS">
+                    <button id="secretLockBtn" onclick="playSound('click'); checkPinStatus()" class="header-icon-btn" style="display: none;" title="Unlock OS">
                         <i class="ph-bold ph-lock-key"></i>
                     </button>
                     <button id="logoutBtn" onclick="playSound('click')" class="header-icon-btn logout-btn" style="display: none;">
@@ -39,7 +29,7 @@
                     </button>
                 </div>
             </div>
-
+            <div id="liveClock" class="header-clock">-- | --<br>--:--:--</div>
             <div class="header-branding">
                 <h1 class="logo">FLUX.</h1>
                 <p id="greetingSubtitle" class="subtitle" onclick="setCustomUsername()" style="cursor: pointer;" title="Click to change username">
@@ -124,77 +114,85 @@
         </div>
 
         <div id="dashboardScreen" class="screen">
-<div class="quick-glance-wrapper">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 0 5px;">
-                    <h3 style="margin: 0; font-size: 13px; color: var(--text-main); text-transform: uppercase; letter-spacing: 3px; font-weight: 700;">
-                        <i class="ph-duotone ph-scan"></i> QUICK GLANCE
-                    </h3>
+            <div class="greeting-header">
+                <div>
+                    <p id="greetingEyebrow" class="greeting-eyebrow">Good day</p>
+                    <h1 id="greetingName" class="greeting-name">Hi, Engineer</h1>
+                </div>
+                <button class="bell-btn" onclick="playSound('click'); openNotifications()" title="Notifications">
+                    <i class="ph-bold ph-bell"></i>
+                </button>
+            </div>
+
+            <div class="quick-glance-wrapper">
+                <div class="glance-card cosmic-card networth-card">
+                    <div class="glance-header">
+                        <span><i class="ph-duotone ph-wallet"></i> NET WORTH</span>
+                        <button onclick="playSound('click'); toggleVisibility('wallet')" class="eye-btn"><i id="eye-wallet" class="ph-bold ph-eye"></i></button>
+                    </div>
+                    <h3 id="glance-wallet" class="glance-value" data-value="0.00">₱0.00</h3>
+                    <span class="networth-pill"><i class="ph-bold ph-trend-up"></i> Active today</span>
                 </div>
 
                 <div class="glance-grid">
-                    <div class="glance-card cosmic-card" style="border-top: 2px solid var(--primary); border-left: 2px solid var(--success);">
-                        <div class="glance-header">
-                            <span><i class="ph-duotone ph-wallet"></i> NET WORTH</span>
-                            <button onclick="playSound('click'); toggleVisibility('wallet')" class="eye-btn"><i id="eye-wallet" class="ph-bold ph-eye"></i></button>
-                        </div>
-                        <h3 id="glance-wallet" class="glance-value" data-value="0.00">₱0.00</h3>
-                        <p class="glance-subtext"><span style="color: var(--success);"><i class="ph-bold ph-caret-up"></i> Active</span> Today</p>
-                    </div>
-
-                    <div class="glance-card cosmic-card" style="border-top: 2px solid var(--danger); border-right: 2px solid #fbbf24;">
+                    <div class="glance-card cosmic-card tone-peach">
                         <div class="glance-header">
                             <span><i class="ph-duotone ph-hand-coins"></i> DUE TODAY</span>
                             <button onclick="playSound('click'); toggleVisibility('utang')" class="eye-btn"><i id="eye-utang" class="ph-bold ph-eye"></i></button>
                         </div>
                         <h3 id="glance-utang" class="glance-value" data-value="0.00">₱0.00</h3>
-                        <p class="glance-subtext" style="color: var(--text-muted);">Pending obligations</p>
+                        <p class="glance-subtext">Pending obligations</p>
                     </div>
 
-                    <div class="glance-card cosmic-card" style="border-bottom: 2px solid #fbbf24; border-left: 2px solid var(--danger);">
-                        <div class="glance-header">
-                            <span><i class="ph-duotone ph-fork-knife"></i> DIET GRADE</span>
-                        </div>
-                        <h1 id="glance-food-grade" style="margin: 5px 0; font-size: 26px; color: #fbbf24; font-weight: 800; line-height: 1;">--</h1>
-                        <p class="glance-subtext" style="color: var(--text-muted);">Daily Health Rank</p>
-                    </div>
-
-                    <div class="glance-card cosmic-card" style="border-bottom: 2px solid var(--primary); border-right: 2px solid var(--secondary);">
+                    <div class="glance-card cosmic-card tone-green">
                         <div class="glance-header">
                             <span><i class="ph-duotone ph-push-pin"></i> TASKS LEFT</span>
                         </div>
-                        <h1 id="glance-streak" style="margin: 5px 0; font-size: 24px; color: var(--primary); font-weight: 800; line-height: 1;">0</h1>
-                        <p class="glance-subtext" style="color: var(--text-muted);">Keep pushing <span style="color: var(--primary);"><i class="ph-bold ph-arrow-up"></i></span></p>
+                        <h1 id="glance-streak" style="margin: 5px 0; font-size: 22px; font-weight: 800; line-height: 1;">0</h1>
+                        <p class="glance-subtext">Keep pushing</p>
+                    </div>
+
+                    <div class="glance-card cosmic-card tone-pink">
+                        <div class="glance-header">
+                            <span><i class="ph-duotone ph-fork-knife"></i> DIET GRADE</span>
+                        </div>
+                        <h1 id="glance-food-grade" style="margin: 5px 0; font-size: 24px; font-weight: 800; line-height: 1;">--</h1>
+                        <p class="glance-subtext">Daily health rank</p>
+                    </div>
+
+                    <div class="glance-card cosmic-card tone-blue" onclick="playSound('click'); openDailySummary()">
+                        <div class="glance-header">
+                            <span><i class="ph-duotone ph-scroll"></i> THIS MONTH</span>
+                        </div>
+                        <h1 style="margin: 5px 0; font-size: 18px; font-weight: 800; line-height: 1;">Receipt</h1>
+                        <p class="glance-subtext">Tap to view</p>
                     </div>
                 </div>
             </div>
 
-            
-            <div class="dashboard-grid">
-                <div class="grid-item active cosmic-grid" onclick="playSound('click'); switchScreen('utangScreen')">
-                    <i class="ph-duotone ph-hand-coins icon-svg"></i>
-                    <p>Utang Summary</p>
-                    <span class="grid-sub">View Debts</span>
-                </div>
-                <div class="grid-item active cosmic-grid" onclick="playSound('click'); switchScreen('foodScreen')">
-                    <i class="ph-duotone ph-hamburger icon-svg"></i>
-                    <p>Food Log</p>
-                    <span class="grid-sub">Track Your Meals</span>
-                </div>
-                <div class="grid-item active cosmic-grid" onclick="playSound('click'); switchScreen('taskScreen')">
-                    <i class="ph-duotone ph-calendar-check icon-svg"></i>
-                    <p>Tasks & Events</p>
-                    <span class="grid-sub">Manage To-Do</span>
-                </div>
-                <div class="grid-item active cosmic-grid" onclick="playSound('click'); switchScreen('budgetScreen')">
-                    <i class="ph-duotone ph-chart-pie-slice icon-svg"></i>
-                    <p>Track Budget</p>
-                    <span class="grid-sub">Manage Wallet</span>
-                </div>
+            <p class="quick-access-label">Quick Access</p>
+
+            <div class="quick-access-row" onclick="playSound('click'); switchScreen('utangScreen')">
+                <div class="quick-access-icon tone-peach"><i class="ph-duotone ph-hand-coins"></i></div>
+                <span class="quick-access-text">Utang summary</span>
+                <i class="ph-bold ph-caret-right"></i>
+            </div>
+            <div class="quick-access-row" onclick="playSound('click'); switchScreen('foodScreen')">
+                <div class="quick-access-icon tone-pink"><i class="ph-duotone ph-hamburger"></i></div>
+                <span class="quick-access-text">Food log</span>
+                <i class="ph-bold ph-caret-right"></i>
+            </div>
+            <div class="quick-access-row" onclick="playSound('click'); switchScreen('taskScreen')">
+                <div class="quick-access-icon tone-green"><i class="ph-duotone ph-calendar-check"></i></div>
+                <span class="quick-access-text">Tasks and events</span>
+                <i class="ph-bold ph-caret-right"></i>
+            </div>
+            <div class="quick-access-row" onclick="playSound('click'); switchScreen('budgetScreen')">
+                <div class="quick-access-icon tone-blue"><i class="ph-duotone ph-chart-pie-slice"></i></div>
+                <span class="quick-access-text">Track budget</span>
+                <i class="ph-bold ph-caret-right"></i>
             </div>
 
-            <button class="receipt-btn cosmic-btn" onclick="playSound('click'); openDailySummary()">
-                <i class="ph-bold ph-scroll"></i> View Monthly Receipt
-            </button>
         </div>
 
         <div id="utangScreen" class="screen">
@@ -250,7 +248,7 @@
                 <input type="date" id="dateBorrowed" onchange="generateUtangID()" style="color: var(--text-muted);">
 
                 <label>Auto-Generated Utang ID</label>
-                <input type="text" id="utangId" placeholder="MYXXXX000000" readonly style="background: rgba(0,0,0,0.2); color: var(--primary); font-family: monospace; font-weight: bold; letter-spacing: 1px;">
+                <input type="text" id="utangId" placeholder="MYXXXX000000" readonly style="background: var(--glass-bg); color: var(--primary); font-family: monospace; font-weight: bold; letter-spacing: 1px;">
                 
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px; background: var(--glass-bg); padding: 10px; border-radius: 8px;">
                     <input type="checkbox" id="noDueDateCb" onchange="toggleNoDueDate()" style="width: 16px; height: 16px; accent-color: var(--primary);">
@@ -504,7 +502,67 @@
             <div id="summaryContent"></div>
         </div>
 
+        <!-- BOTTOM NAV -->
+        <div id="bottomNav" class="bottom-nav" style="display: none;">
+            <button class="nav-btn" data-nav="dashboardScreen" onclick="playSound('click'); switchScreen('dashboardScreen')" title="Home">
+                <i class="ph-bold ph-house"></i>
+            </button>
+            <button class="nav-btn" data-nav="budgetScreen" onclick="playSound('click'); switchScreen('budgetScreen')" title="Budget">
+                <i class="ph-bold ph-chart-pie-slice"></i>
+            </button>
+            <button class="nav-btn-center" onclick="playSound('click'); openQuickAdd()" title="Quick Add">
+                <i class="ph-bold ph-plus"></i>
+            </button>
+            <button class="nav-btn" data-nav="summaryScreen" onclick="playSound('click'); openDailySummary()" title="Receipt">
+                <i class="ph-bold ph-receipt"></i>
+            </button>
+            <button class="nav-btn" data-nav="profile" onclick="playSound('click'); openProfileSheet()" title="Profile">
+                <i class="ph-bold ph-user-circle"></i>
+            </button>
+        </div>
+
     </div> <!-- Dito na natatapos ang app-container -->
+
+    <!-- QUICK ADD ACTION SHEET -->
+    <div id="quickAddModal" style="display: none;" class="modal-overlay" onclick="if(event.target===this) closeQuickAdd()">
+        <div class="utang-card modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="color: var(--primary); margin: 0;"><i class="ph-bold ph-plus-circle"></i> Quick Add</h3>
+                <button onclick="playSound('click'); closeQuickAdd()" style="background:none; border:none; color:var(--danger); font-size: 18px; cursor: pointer;"><i class="ph-bold ph-x"></i></button>
+            </div>
+            <button class="quickadd-option" onclick="playSound('click'); closeQuickAdd(); switchScreen('utangScreen'); showAddForm();">
+                <i class="ph-duotone ph-hand-coins"></i> Add Utang
+            </button>
+            <button class="quickadd-option" onclick="playSound('click'); closeQuickAdd(); switchScreen('taskScreen');">
+                <i class="ph-duotone ph-calendar-check"></i> Add Task
+            </button>
+            <button class="quickadd-option" onclick="playSound('click'); closeQuickAdd(); switchScreen('foodScreen');">
+                <i class="ph-duotone ph-hamburger"></i> Log Food
+            </button>
+        </div>
+    </div>
+
+    <!-- PROFILE SHEET -->
+    <div id="profileModal" style="display: none;" class="modal-overlay" onclick="if(event.target===this) closeProfileSheet()">
+        <div class="utang-card modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="color: var(--primary); margin: 0;"><i class="ph-bold ph-user-circle"></i> Profile</h3>
+                <button onclick="playSound('click'); closeProfileSheet()" style="background:none; border:none; color:var(--danger); font-size: 18px; cursor: pointer;"><i class="ph-bold ph-x"></i></button>
+            </div>
+            <button class="quickadd-option" onclick="playSound('click'); setCustomUsername()">
+                <i class="ph-duotone ph-pencil-simple"></i> Change Username
+            </button>
+            <button class="quickadd-option" onclick="playSound('click'); closeProfileSheet(); checkPinStatus();">
+                <i class="ph-duotone ph-lock-key"></i> PIN Lock Settings
+            </button>
+            <button class="quickadd-option" onclick="playSound('click'); forceUpdateApp()">
+                <i class="ph-duotone ph-arrows-clockwise"></i> Force Refresh App
+            </button>
+            <button class="quickadd-option" style="color: var(--danger);" onclick="playSound('click'); closeProfileSheet(); handleLogout();">
+                <i class="ph-duotone ph-sign-out" style="color: var(--danger);"></i> Sign Out
+            </button>
+        </div>
+    </div>
 
     <!-- INILABAS NA NATIN YUNG MGA MODALS DITO -->
     <div id="walletModal" style="display: none;" class="modal-overlay">
