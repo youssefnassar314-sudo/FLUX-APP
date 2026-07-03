@@ -319,6 +319,19 @@ function initRealtimeUtang() {
     });
 }
 
+function getUtangStatusInfo(utang, isFlex) {
+    if (utang.isPaid) return { label: 'Paid', tone: 'tone-green' };
+    if (isFlex) return { label: 'Flexible', tone: 'tone-blue' };
+    let today = new Date(); today.setHours(0,0,0,0);
+    let due = new Date(utang.dueDate); due.setHours(0,0,0,0);
+    let diffDays = Math.round((due - today) / (1000 * 60 * 60 * 24));
+    if (diffDays < 0) return { label: 'Overdue', tone: 'tone-pink' };
+    if (diffDays === 0) return { label: 'Due today', tone: 'tone-pink' };
+    if (diffDays === 1) return { label: 'Due tomorrow', tone: 'tone-amber' };
+    if (diffDays <= 3) return { label: `${diffDays} days left`, tone: 'tone-amber' };
+    return { label: `${diffDays} days left`, tone: 'tone-green' };
+}
+
 function renderUtangList() {
     let container = document.getElementById('utangListContainer'); container.innerHTML = ''; 
     let viewMonthName = currentDateView.toLocaleString('default', { month: 'long', year: 'numeric' });
@@ -355,27 +368,23 @@ if (currentUtangView === 'date') {
         
         filteredUtang.forEach(utang => {
             let isFlex = isNaN(utang.dueDate);
-            let dateDisplay = isFlex ? 'Flexible' : `${utang.dueDate.toLocaleString('default', { month: 'short' })} ${utang.dueDate.getDate()}`;
             let isMyApp = utang.category === 'My App';
             let avatarTone = isMyApp ? 'tone-peach' : 'tone-blue';
             let avatarIcon = isMyApp ? 'ph-device-mobile' : 'ph-user';
-            let ownerLabel = isMyApp ? 'My Account' : "Under their account";
+            let status = getUtangStatusInfo(utang, isFlex);
 
             let cardContent = `<div class="utang-card list-card" style="${utang.isPaid ? 'opacity: 0.55;' : ''}">
                 <button onclick="playSound('click'); deleteUtang('${utang.id}')" class="list-card-close"><i class="ph-bold ph-x"></i></button>
-                <div class="list-card-row">
+                <div class="list-card-row" style="margin-bottom: 12px;">
                     <div class="list-card-avatar ${avatarTone}"><i class="ph-duotone ${avatarIcon}"></i></div>
                     <div class="list-card-main">
                         <p class="list-card-title">${utang.appName}</p>
-                        <p class="list-card-meta">${ownerLabel} • <span style="font-family: monospace;">${utang.utangId}</span></p>
+                        <p class="list-card-meta" style="font-family: monospace;">${utang.utangId}</p>
                     </div>
-                    <div class="list-card-amount">₱${utang.amount.toFixed(2)}</div>
-                </div>
-                <div class="list-card-footer">
-                    <span class="pill-badge ${utang.isPaid ? 'tone-green' : 'tone-pink'}"><i class="ph-bold ${utang.isPaid ? 'ph-check-circle' : 'ph-calendar-x'}"></i> ${utang.isPaid ? 'Paid' : 'Due ' + dateDisplay}</span>
+                    <span class="pill-badge ${status.tone}">${status.label}</span>
                 </div>
                 ${(utang.partials && utang.partials.length > 0) ? `
-                <div style="margin: 10px 0 0; border-top: 1px dashed var(--glass-border); padding-top: 10px;">
+                <div style="margin: 0 0 10px; border-top: 1px dashed var(--glass-border); padding-top: 10px;">
                     <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">↳ Partial Payments:</span>
                     ${utang.partials.map(p => `
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px; font-size: 11px;">
@@ -385,7 +394,10 @@ if (currentUtangView === 'date') {
                     `).join('')}
                 </div>
                 ` : ''}
-                <button class="paid-btn" onclick="openPayUtangModal('${utang.id}', ${utang.amount}, '${utang.utangId}')" ${utang.isPaid ? 'disabled' : ''}>${utang.isPaid ? '<i class="ph-bold ph-check"></i> Paid' : 'Pay via Wallet'}</button>
+                <div class="list-card-action-row">
+                    <div class="list-card-amount" style="font-size: 19px;">₱${utang.amount.toFixed(2)}</div>
+                    <button class="pay-pill-btn" onclick="openPayUtangModal('${utang.id}', ${utang.amount}, '${utang.utangId}')" ${utang.isPaid ? 'disabled' : ''}>${utang.isPaid ? '<i class="ph-bold ph-check"></i> Paid' : 'Pay'}</button>
+                </div>
             </div>`;
 
             if (utang.isPaid) paidHTML += cardContent;
@@ -393,7 +405,7 @@ if (currentUtangView === 'date') {
         });
 
         // Ilalabas muna lahat ng unpaid
-        container.innerHTML += unpaidHTML;
+        container.innerHTML += unpaidHTML ? `<p class="section-label tone-pink">Active</p>${unpaidHTML}` : '';
 
         // Kung may bayad na, gagawan natin ng clickable folder sa ibaba
         if (paidHTML !== '') {
