@@ -15,34 +15,24 @@
 
     <div class="app-container">
 
-        <div class="app-header-v2">
-            <div class="header-action-bar">
-                <div class="action-group-left">
-                    <button onclick="playSound('click'); forceUpdateApp()" class="header-icon-btn" title="Force Refresh">
-                        <i class="ph-bold ph-arrows-clockwise"></i>
-                    </button>
-                    <button onclick="playSound('click'); toggleTheme()" class="header-icon-btn" title="Change Theme">
-                        <i class="ph-bold ph-palette"></i>
-                    </button>
-                </div>
-
-                <div id="liveClock" class="header-clock">-- | --<br>--:--:--</div>
-
-                <div class="action-group-right">
-                    <button id="secretLockBtn" onclick="playSound('click'); checkPinStatus()" class="header-icon-btn" style="display: none;" title="Unlock OS">
-                        <i class="ph-bold ph-lock-key"></i>
-                    </button>
-                    <button id="logoutBtn" onclick="playSound('click')" class="header-icon-btn logout-btn" style="display: none;">
-                        <i class="ph-bold ph-power"></i>
-                    </button>
-                </div>
-            </div>
-
-            <div class="header-branding">
+        <!-- SYSTEM TOP BAR & NAVIGATION CONTROLS -->
+        <div class="app-header-v2" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px;">
+            
+            <div class="header-branding" style="margin-top: 0;">
                 <span class="greeting-prefix">Good evening</span>
-                <h1 id="greetingSubtitle" class="logo-greeting" onclick="setCustomUsername()" title="Click to change username">
+                <h1 id="greetingSubtitle" class="logo-greeting" onclick="playSound('click'); setCustomUsername()" title="Click to change username">
                     System Booting...
                 </h1>
+            </div>
+
+            <div class="action-group-right" style="display: flex; gap: 8px;">
+                <!-- HIDDEN: Para hindi mag-crash ang app.js mo kapag hinanap niya ang mga buttons na ito -->
+                <button id="secretLockBtn" style="display: none;"></button>
+                <button id="logoutBtn" style="display: none;"></button>
+                
+                <button class="header-icon-btn" onclick="playSound('click'); forceUpdateApp()" title="Force Refresh / Notifications">
+                    <i class="ph-bold ph-bell"></i>
+                </button>
             </div>
         </div>
 
@@ -502,21 +492,28 @@
             <div id="summaryContent"></div>
         </div>
 
+        <!-- STICKY BOTTOM NAVIGATION DOCK (The dynamic OS navigation pill) -->
         <div class="bottom-nav-dock">
             <button onclick="playSound('click'); switchScreen('dashboardScreen')" class="nav-dock-btn" title="Home">
-                <i class="ph-bold ph-house"></i>
+                <i class="ph-bold ph-house-simple"></i>
             </button>
+            
             <button onclick="playSound('click'); switchScreen('budgetScreen')" class="nav-dock-btn" title="Wallets">
-                <i class="ph-bold ph-chart-pie"></i>
+                <i class="ph-bold ph-chart-pie-slice"></i>
             </button>
+            
+            <!-- Highlighted Center Trigger for quick ledger entry -->
             <button onclick="playSound('click'); openTransactionModal('expense')" class="nav-dock-btn center-add" title="Quick Add">
                 <i class="ph-bold ph-plus"></i>
             </button>
-            <button onclick="playSound('click'); switchScreen('taskScreen')" class="nav-dock-btn" title="Tasks">
-                <i class="ph-bold ph-check-square"></i>
+            
+            <button onclick="playSound('click'); openDailySummary()" class="nav-dock-btn" title="Receipt">
+                <i class="ph-bold ph-receipt"></i>
             </button>
-            <button onclick="playSound('click'); switchScreen('utangScreen')" class="nav-dock-btn" title="Debts">
-                <i class="ph-bold ph-hand-coins"></i>
+            
+            <!-- User Icon (Naka-link sa Logout confirmation) -->
+            <button onclick="playSound('click'); handleLogout()" class="nav-dock-btn" title="Profile / Logout">
+                <i class="ph-bold ph-user"></i>
             </button>
         </div>
 
