@@ -15,29 +15,6 @@
 
     <div class="app-container">
 
-        <div class="app-header-v2">
-            <div class="header-action-bar">
-                <div class="action-group-right">
-                    <button onclick="playSound('click'); forceUpdateApp()" class="header-icon-btn" title="Force Refresh">
-                        <i class="ph-bold ph-arrows-clockwise"></i>
-                    </button>
-                    <button id="secretLockBtn" onclick="playSound('click'); checkPinStatus()" class="header-icon-btn" style="display: none;" title="Unlock OS">
-                        <i class="ph-bold ph-lock-key"></i>
-                    </button>
-                    <button id="logoutBtn" onclick="playSound('click')" class="header-icon-btn logout-btn" style="display: none;">
-                        <i class="ph-bold ph-power"></i>
-                    </button>
-                </div>
-            </div>
-            <div id="liveClock" class="header-clock">-- | --<br>--:--:--</div>
-            <div class="header-branding">
-                <h1 class="logo">FLUX.</h1>
-                <p id="greetingSubtitle" class="subtitle" onclick="setCustomUsername()" style="cursor: pointer;" title="Click to change username">
-                    System Booting...
-                </p>
-            </div>
-        </div>
-
         <div id="loadingScreen" class="screen active-screen">
             <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh;">
                 <h1 class="logo" style="font-size: 42px; text-shadow: 0 0 30px var(--primary-glow);">FLUX.</h1>
@@ -59,57 +36,52 @@
             </div>
         </div>
 
-        <!-- BAGONG PIN SCREEN -->
-        <div id="pinScreen" class="screen">
-            <div class="login-box" style="text-align: center; padding: 30px 20px; background: var(--card-bg); border: none; box-shadow: 0 6px 24px rgba(43,35,26,0.07); border-radius: 24px;">
-                <i class="ph-duotone ph-lock-key icon-svg" style="font-size: 64px; color: var(--primary); margin-bottom: 10px;"></i>
-                <h2 id="pinTitle" style="margin: 0 0 5px 0; font-weight: 800; letter-spacing: 1px; font-size: 22px; color: var(--text-main);">Enter PIN</h2>
-                <p id="pinSubtitle" style="color: var(--text-muted); font-size: 13px; margin-bottom: 25px;">Secure your FLUX OS.</p>
-                
-                <input type="password" id="pinInput" placeholder="••••" maxlength="4" style="text-align: center; font-size: 28px; letter-spacing: 12px; font-weight: bold; margin: 0 auto 20px auto; display: block; width: 160px; padding: 15px; border-radius: 16px; background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--primary); outline: none;">
-                
-                <button class="save-btn" onclick="playSound('click'); verifyPin()" style="margin-bottom: 0;">
-                    <i class="ph-bold ph-check"></i> Submit
-                </button>
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding: 0 10px;">
-                    <button onclick="playSound('click'); forgotPin()" style="background: none; border: none; color: var(--text-muted); font-size: 12px; cursor: pointer; text-decoration: underline;">
-                        Forgot PIN?
-                    </button>
-                    <button onclick="playSound('click'); handleLogout()" style="background: none; border: none; color: var(--danger); font-size: 12px; cursor: pointer; font-weight: bold;">
-                        Sign Out <i class="ph-bold ph-sign-out"></i>
-                    </button>
-                </div>
+        <!-- WELCOME + SWIPE UP SCREEN -->
+        <div id="welcomeScreen" class="screen lock-screen" onclick="handleSwipeTap()">
+            <div class="lock-top">
+                <div class="welcome-orb"><i class="ph-duotone ph-planet"></i></div>
+                <p class="welcome-eyebrow">Welcome to</p>
+                <h1 class="welcome-title">Flux.</h1>
+                <p id="welcomeName" class="welcome-name">Hi, Engineer</p>
+            </div>
+            <div id="swipeUpHandle" class="swipe-up-indicator">
+                <i class="ph-bold ph-caret-up"></i>
+                <span>Swipe up to continue</span>
             </div>
         </div>
 
-        <!-- FAKE GAME HUB SCREEN (DECOY) -->
-        <!-- CALCULATOR DECOY SCREEN -->
-        <div id="gameScreen" class="screen">
-            <div class="calculator-box" style="background: var(--card-bg); padding: 20px; border-radius: 20px; border: none; box-shadow: 0 6px 24px rgba(43,35,26,0.07);">
-                <input type="text" id="calcDisplay" readonly style="width: 100%; font-size: 32px; text-align: right; margin-bottom: 20px; background: transparent; color: var(--text-main); border: none; font-family: var(--font-mono);">
-                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
-                    <button onclick="calcClear()" class="kb-btn" style="padding: 20px; font-size: 18px; color: var(--danger);">C</button>
-                    <button onclick="calcAdd('/')" class="kb-btn" style="padding: 20px; font-size: 18px;">/</button>
-                    <button onclick="calcAdd('*')" class="kb-btn" style="padding: 20px; font-size: 18px;">*</button>
-                    <button onclick="calcAdd('-')" class="kb-btn" style="padding: 20px; font-size: 18px;">-</button>
-                    
-                    <button onclick="calcAdd('7')" class="kb-btn" style="padding: 20px; font-size: 18px;">7</button>
-                    <button onclick="calcAdd('8')" class="kb-btn" style="padding: 20px; font-size: 18px;">8</button>
-                    <button onclick="calcAdd('9')" class="kb-btn" style="padding: 20px; font-size: 18px;">9</button>
-                    <button onclick="calcAdd('+')" class="kb-btn" style="padding: 20px; font-size: 18px;">+</button>
-                    
-                    <button onclick="calcAdd('4')" class="kb-btn" style="padding: 20px; font-size: 18px;">4</button>
-                    <button onclick="calcAdd('5')" class="kb-btn" style="padding: 20px; font-size: 18px;">5</button>
-                    <button onclick="calcAdd('6')" class="kb-btn" style="padding: 20px; font-size: 18px;">6</button>
-                    <button onclick="calcEqual()" class="kb-btn" style="padding: 20px; font-size: 18px; background: var(--primary); color: #fff; grid-row: span 2;">=</button>
-                    
-                    <button onclick="calcAdd('1')" class="kb-btn" style="padding: 20px; font-size: 18px;">1</button>
-                    <button onclick="calcAdd('2')" class="kb-btn" style="padding: 20px; font-size: 18px;">2</button>
-                    <button onclick="calcAdd('3')" class="kb-btn" style="padding: 20px; font-size: 18px;">3</button>
-                    
-                    <button onclick="calcAdd('0')" class="kb-btn" style="padding: 20px; font-size: 18px; grid-column: span 2;">0</button>
-                    <button onclick="calcAdd('.')" class="kb-btn" style="padding: 20px; font-size: 18px;">.</button>
+        <!-- PIN / PHONE-UNLOCK SCREEN -->
+        <div id="pinScreen" class="screen lock-screen">
+            <div class="lock-top">
+                <i class="ph-duotone ph-lock-key lock-icon"></i>
+                <h2 id="pinTitle" class="lock-title">Enter PIN</h2>
+                <p id="pinSubtitle" class="lock-subtitle">Unlock FLUX OS.</p>
+                <div id="pinDots" class="pin-dots">
+                    <span class="pin-dot"></span>
+                    <span class="pin-dot"></span>
+                    <span class="pin-dot"></span>
+                    <span class="pin-dot"></span>
                 </div>
+            </div>
+
+            <div class="numpad">
+                <button class="numpad-btn" onclick="playSound('click'); numpadPress('1')">1</button>
+                <button class="numpad-btn" onclick="playSound('click'); numpadPress('2')">2</button>
+                <button class="numpad-btn" onclick="playSound('click'); numpadPress('3')">3</button>
+                <button class="numpad-btn" onclick="playSound('click'); numpadPress('4')">4</button>
+                <button class="numpad-btn" onclick="playSound('click'); numpadPress('5')">5</button>
+                <button class="numpad-btn" onclick="playSound('click'); numpadPress('6')">6</button>
+                <button class="numpad-btn" onclick="playSound('click'); numpadPress('7')">7</button>
+                <button class="numpad-btn" onclick="playSound('click'); numpadPress('8')">8</button>
+                <button class="numpad-btn" onclick="playSound('click'); numpadPress('9')">9</button>
+                <div></div>
+                <button class="numpad-btn" onclick="playSound('click'); numpadPress('0')">0</button>
+                <button class="numpad-btn numpad-backspace" onclick="playSound('click'); numpadBackspace()"><i class="ph-bold ph-backspace"></i></button>
+            </div>
+
+            <div class="lock-footer">
+                <button onclick="playSound('click'); forgotPin()" class="lock-link">Forgot PIN?</button>
+                <button onclick="playSound('click'); handleLogout()" class="lock-link lock-link-danger">Sign Out</button>
             </div>
         </div>
 
@@ -200,10 +172,10 @@
                 <i class="ph-bold ph-caret-left"></i> Dashboard
             </button>
             <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                <button class="secondary-btn" onclick="playSound('click'); exportUtangToCSV()" style="flex: 2; margin-bottom: 0;">
+                <button class="icon-action-btn" onclick="playSound('click'); exportUtangToCSV()">
                     <i class="ph-bold ph-download-simple"></i> Export CSV
                 </button>
-                <button class="secondary-btn" onclick="playSound('click'); clearAllUtang()" style="flex: 1; margin-bottom: 0; color: var(--danger) !important; border-color: rgba(194, 86, 79, 0.3) !important;">
+                <button class="icon-action-btn tone-danger" onclick="playSound('click'); clearAllUtang()">
                     <i class="ph-bold ph-trash"></i> Reset All
                 </button>
             </div>
@@ -274,9 +246,9 @@
                 <button onclick="playSound('click'); changeMonth(1)"><i class="ph-bold ph-caret-right"></i></button>
             </div>
 
-<div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                <button id="btnViewDate" onclick="playSound('click'); setUtangView('date')" class="secondary-btn" style="flex:1; margin-bottom: 0;"><i class="ph-bold ph-calendar"></i> Dates</button>
-                <button id="btnViewApp" onclick="playSound('click'); setUtangView('app')" class="secondary-btn" style="flex:1; margin-bottom: 0;"><i class="ph-bold ph-device-mobile"></i> Apps</button>
+            <div class="segmented-control" style="margin-bottom: 15px;">
+                <button id="btnViewDate" onclick="playSound('click'); setUtangView('date')" class="segmented-btn active"><i class="ph-bold ph-calendar"></i> Dates</button>
+                <button id="btnViewApp" onclick="playSound('click'); setUtangView('app')" class="segmented-btn"><i class="ph-bold ph-device-mobile"></i> Apps</button>
             </div>
 
             <!-- BAGONG SEARCH BAR -->
@@ -293,7 +265,10 @@
             </button>
             
             <div class="hidden-form" style="display: block; margin-bottom: 20px;">
-                <h3 style="color: var(--primary); margin-top: 0; margin-bottom: 15px; font-size: 16px; display: flex; align-items: center; gap: 8px;"><i class="ph-duotone ph-cpu"></i> AI Task Estimator</h3>
+                <div class="form-header">
+                    <div class="list-card-avatar tone-blue"><i class="ph-duotone ph-cpu"></i></div>
+                    <h3>AI Task Estimator</h3>
+                </div>
                 <input type="text" id="aiTaskTitle" placeholder="Task Title (Ex: Review Integral Calculus)">
                 <textarea id="aiTaskDetails" placeholder="Give details to get a better estimate (Ex: I need to solve 50 practice problems...)"></textarea>
                 <div style="display: flex; gap: 10px; margin-bottom: 15px;">
@@ -312,13 +287,16 @@
 
             <div class="hidden-form" style="display: block; margin-bottom: 20px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h3 style="color: var(--secondary); margin: 0; font-size: 16px; display: flex; align-items: center; gap: 8px;"><i class="ph-duotone ph-calendar"></i> Schedule & Deadlines</h3>
+                    <div class="form-header" style="margin-bottom: 0;">
+                        <div class="list-card-avatar tone-purple"><i class="ph-duotone ph-calendar"></i></div>
+                        <h3>Schedule & Deadlines</h3>
+                    </div>
                     <div style="display: flex; gap: 8px;">
-                        <button class="badge badge-secondary" onclick="playSound('click'); switchScreen('kanbanScreen')" style="cursor: pointer; border: none;">
-                            <i class="ph-bold ph-columns"></i> Kanban
+                        <button class="icon-chip-btn tone-purple" onclick="playSound('click'); switchScreen('kanbanScreen')" title="Kanban">
+                            <i class="ph-bold ph-columns"></i>
                         </button>
-                        <button class="badge" onclick="playSound('click'); clearAllTasks()" style="cursor: pointer; background: rgba(194, 86, 79, 0.1); color: var(--danger); border: 1px solid rgba(194, 86, 79, 0.3);">
-                            <i class="ph-bold ph-trash"></i> Reset All
+                        <button class="icon-chip-btn tone-danger" onclick="playSound('click'); clearAllTasks()" title="Reset All">
+                            <i class="ph-bold ph-trash"></i>
                         </button>
                     </div>
                 </div>
@@ -341,7 +319,10 @@
             </div>
 
             <div class="hidden-form" style="display: block;">
-                <h3 style="color: var(--success); margin-top: 0; margin-bottom: 15px; font-size: 16px; display: flex; align-items: center; gap: 8px;"><i class="ph-duotone ph-arrows-clockwise"></i> Daily Habits</h3>
+                <div class="form-header">
+                    <div class="list-card-avatar tone-green"><i class="ph-duotone ph-arrows-clockwise"></i></div>
+                    <h3>Daily Habits</h3>
+                </div>
                 <div style="display: flex; gap: 10px; margin-bottom: 15px; align-items: center;">
                     <input type="text" id="habitName" placeholder="Ex: Inom Vitamins" style="margin-bottom: 0; flex: 2;">
                     <input type="time" id="habitTime" style="margin-bottom: 0; flex: 1; padding: 10px; font-size: 12px; color: var(--text-muted);">
@@ -360,7 +341,10 @@
             <button class="back-btn" onclick="playSound('click'); switchScreen('taskScreen')">
                 <i class="ph-bold ph-caret-left"></i> Back to Tasks
             </button>
-            <h2 style="color: var(--primary); margin-top: 0; margin-bottom: 20px; font-weight: 800; letter-spacing: 1px;"><i class="ph-duotone ph-columns"></i> Kanban Board</h2>
+            <div class="form-header" style="margin-bottom: 20px;">
+                <div class="list-card-avatar tone-purple"><i class="ph-duotone ph-columns"></i></div>
+                <h3>Kanban Board</h3>
+            </div>
 
             <div class="kanban-board">
                 <div class="kanban-col">
@@ -384,12 +368,15 @@
             </button>
 
             <div class="utang-card" style="margin-bottom: 20px;">
-                <div style="display: flex; justify-content: space-between;">
-                    <h3 style="margin: 0; font-size: 13px; color: var(--pastel-amber-fg);"><i class="ph-duotone ph-fork-knife"></i> Today's Grade</h3>
-                    <button onclick="playSound('click'); refreshFoodSummary()" style="background:none; border:none; color:var(--text-muted); cursor:pointer;"><i class="ph-bold ph-arrows-clockwise"></i></button>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div class="form-header" style="margin-bottom: 0;">
+                        <div class="list-card-avatar tone-amber"><i class="ph-duotone ph-fork-knife"></i></div>
+                        <h3>Today's Grade</h3>
+                    </div>
+                    <button onclick="playSound('click'); refreshFoodSummary()" class="icon-chip-btn tone-blue"><i class="ph-bold ph-arrows-clockwise"></i></button>
                 </div>
-                <div style="display: flex; align-items: center; gap: 15px; margin-top: 10px;">
-                    <div id="foodGradeDisplay" style="width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 2px solid var(--glass-border);">
+                <div style="display: flex; align-items: center; gap: 15px; margin-top: 12px;">
+                    <div id="foodGradeDisplay" style="width: 50px; height: 50px; border-radius: 14px; display: flex; align-items: center; justify-content: center; background: var(--glass-bg);">
                         <span id="foodGradeText" style="font-weight: 800; font-size: 20px;">--</span>
                     </div>
                     <div>
@@ -401,11 +388,12 @@
 
             <div class="hidden-form" style="display: block; margin-bottom: 20px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h3 style="color: var(--danger); margin: 0; font-size: 16px; display: flex; align-items: center; gap: 8px;">
-                        <i class="ph-duotone ph-sparkle"></i> Quick Food Log
-                    </h3>
-                    <button class="badge" onclick="playSound('click'); clearAllFood()" style="cursor: pointer; background: rgba(194, 86, 79, 0.1); color: var(--danger); border: 1px solid rgba(194, 86, 79, 0.3);">
-                        <i class="ph-bold ph-trash"></i> Reset All
+                    <div class="form-header" style="margin-bottom: 0;">
+                        <div class="list-card-avatar tone-pink"><i class="ph-duotone ph-sparkle"></i></div>
+                        <h3>Quick Food Log</h3>
+                    </div>
+                    <button class="icon-chip-btn tone-danger" onclick="playSound('click'); clearAllFood()" title="Reset All">
+                        <i class="ph-bold ph-trash"></i>
                     </button>
                 </div>
                 <div style="display: flex; gap: 10px; margin-bottom: 15px;">
@@ -444,9 +432,12 @@
 
             <div id="foodListContainer"></div>
 
-            <div id="aiFoodResult" style="display: none; background: var(--glass-bg); border: 1px solid var(--primary); border-radius: 16px; padding: 20px; margin-bottom: 20px; text-align: center;">
-                <h3 style="color: var(--primary); margin: 0 0 10px 0;"><i class="ph-duotone ph-brain"></i> AI Verdict</h3>
-                <p id="aiVerdictText" style="font-size: 13px; font-style: italic; line-height: 1.5; color: var(--text-main);"></p>
+            <div id="aiFoodResult" class="ai-verdict-box" style="display: none;">
+                <div class="form-header" style="justify-content: center; margin-bottom: 8px;">
+                    <div class="list-card-avatar tone-blue"><i class="ph-duotone ph-brain"></i></div>
+                    <h3>AI Verdict</h3>
+                </div>
+                <p id="aiVerdictText" style="font-size: 13px; font-style: italic; line-height: 1.5; color: var(--text-main); text-align: center;"></p>
             </div>
 
             <button class="add-btn" onclick="playSound('click'); analyzeFoodAI()" style="width:100%;">
@@ -459,33 +450,33 @@
                 <i class="ph-bold ph-caret-left"></i> Dashboard
             </button>
 
-            <div class="utang-card" style="text-align: center; padding: 25px; background: linear-gradient(135deg, var(--glass-bg), var(--card-bg));">
-                <p style="font-size: 11px; text-transform: uppercase; color: var(--text-muted);">Net Liquidity</p>
-                <h1 id="totalNetWorth" style="font-size: 32px; color: var(--primary); margin: 10px 0;">₱0.00</h1>
-                <button onclick="playSound('click'); showAddWalletModal()" style="background: var(--glass-bg); border: 1px solid var(--glass-border); padding: 8px 15px; border-radius: 20px; color: var(--text-main); font-size: 12px;">+ Add Wallet</button>
+            <div class="networth-card" style="text-align: center; padding: 26px 20px;">
+                <p style="font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: rgba(245,239,227,0.6); margin-bottom: 8px;">Net Liquidity</p>
+                <h1 id="totalNetWorth" style="font-size: 32px; margin: 0 0 14px;">₱0.00</h1>
+                <button onclick="playSound('click'); showAddWalletModal()" style="background: rgba(245,239,227,0.12); border: none; padding: 9px 18px; border-radius: 20px; color: var(--dark-card-fg); font-size: 12px; font-weight: 600; cursor: pointer;"><i class="ph-bold ph-plus"></i> Add Wallet</button>
             </div>
 
             <div id="walletsContainer" style="display: flex; gap: 10px; overflow-x: auto; padding: 15px 0;"></div>
 
-            <div class="utang-card" style="padding: 15px;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <div class="utang-card" style="padding: 18px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
                     <span style="font-size: 12px; color: var(--text-main);">Spent: <strong id="monthlySpent" style="color:var(--danger);">₱0</strong></span>
                     <span style="font-size: 12px; color: var(--text-main);">Goal: <strong id="monthlyTarget">₱0</strong></span>
                 </div>
                 <div style="height: 8px; background: var(--glass-bg); border-radius: 10px; overflow: hidden;">
                     <div id="budgetProgressBar" style="width: 0%; height: 100%; background: var(--success); transition: 0.4s;"></div>
                 </div>
-                <button onclick="playSound('click'); setMonthlyBudget()" style="width:100%; margin-top: 10px; background:none; border:1px dashed var(--glass-border); color:var(--text-muted); font-size: 11px; padding: 5px;">Set Monthly Budget Limit</button>
+                <button onclick="playSound('click'); setMonthlyBudget()" style="width:100%; margin-top: 12px; background:none; border:1px dashed var(--glass-border); color:var(--text-muted); font-size: 11px; padding: 8px; border-radius: 8px; cursor: pointer;">Set Monthly Budget Limit</button>
             </div>
 
-           <div style="display: flex; gap: 10px; margin-top: 15px;">
-                <button onclick="playSound('click'); addIncome()" class="save-btn" style="flex: 1; background: var(--glass-bg); color: var(--success); border: 1px solid var(--success);"><i class="ph-bold ph-trend-up"></i></button>
-                <button onclick="playSound('click'); addExpense()" class="save-btn" style="flex: 1; background: var(--glass-bg); color: var(--danger); border: 1px solid var(--danger);"><i class="ph-bold ph-trend-down"></i></button>
-                <button onclick="playSound('click'); addTransfer()" class="save-btn" style="flex: 1; background: var(--glass-bg); color: var(--secondary); border: 1px solid var(--secondary);"><i class="ph-bold ph-arrows-left-right"></i></button>
+            <div style="display: flex; gap: 12px; margin-top: 16px; margin-bottom: 6px;">
+                <button onclick="playSound('click'); addIncome()" class="budget-action-btn tone-green"><i class="ph-bold ph-trend-up"></i><span>Income</span></button>
+                <button onclick="playSound('click'); addExpense()" class="budget-action-btn tone-pink"><i class="ph-bold ph-trend-down"></i><span>Expense</span></button>
+                <button onclick="playSound('click'); addTransfer()" class="budget-action-btn tone-blue"><i class="ph-bold ph-arrows-left-right"></i><span>Transfer</span></button>
             </div>
 
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; margin-bottom: 10px;">
-                <h3 style="font-size: 13px; color: var(--text-muted); margin: 0; text-transform: uppercase; letter-spacing: 1px;"><i class="ph-bold ph-clock-counter-clockwise"></i> Recent</h3>
+                <p class="section-label" style="margin: 0;"><i class="ph-bold ph-clock-counter-clockwise"></i> Recent</p>
                 <div style="display: flex; gap: 15px;">
                     <button onclick="playSound('click'); clearAllTransactions()" style="background: none; border: none; color: var(--danger); font-size: 12px; font-weight: 700; cursor: pointer;"><i class="ph-bold ph-trash"></i> Reset</button>
                     <button onclick="playSound('click'); openHistoryModal()" style="background: none; border: none; color: var(--primary); font-size: 12px; font-weight: 700; cursor: pointer;">View All <i class="ph-bold ph-folder-open"></i></button>
