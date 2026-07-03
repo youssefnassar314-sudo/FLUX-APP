@@ -505,3 +505,89 @@ textarea { resize: vertical; min-height: 80px; }
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #e0dbd5; border-radius: 10px; }
+
+/* ============================================================
+   PHASE 3: DYNAMIC CONTENT & JS OVERRIDES
+   Pumipigil sa lumang "cosmic" inline styles ng app.js 
+   para sumunod sa bagong minimalist/pastel theme.
+   ============================================================ */
+
+/* 1. Override para sa lahat ng list items (Utang, Tasks, Food, Transactions) */
+#utangListContainer .utang-card, 
+#taskListContainer .utang-card,
+#habitListContainer .utang-card,
+#foodListContainer .utang-card,
+#transactionListContainer .utang-card,
+#paidUtangFolder .utang-card {
+    background: var(--white) !important;
+    border: 1px solid var(--border-light) !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.02) !important;
+    border-radius: 18px !important;
+    padding: 16px !important;
+    opacity: 1 !important; /* Tanggalin ang paglabo ng mga completed tasks/paid utang */
+}
+
+/* 2. Gawing pastel ang mga left borders depende sa category */
+#utangListContainer .utang-card { border-left: 5px solid var(--accent-gold) !important; }
+#taskListContainer .utang-card { border-left: 5px solid var(--quad-green) !important; }
+#foodListContainer .utang-card { border-left: 5px solid var(--quad-pink) !important; }
+#transactionListContainer .utang-card { border-left: 5px solid var(--quad-blue) !important; }
+
+/* 3. Linisin ang mga kulay ng text na galing sa JS */
+h4[style*="color: var(--text-main)"], 
+span[style*="color: var(--text-main)"],
+span[style*="color: var(--primary)"], 
+span[style*="color: var(--secondary)"] {
+    color: var(--text-dark) !important;
+}
+
+/* 4. Linisin ang mga buttons sa loob ng lists (ex. "Pay via Wallet", "Mark Done") */
+.paid-btn, 
+button[style*="background: var(--glass-bg)"] {
+    background: var(--bg-main) !important;
+    color: var(--text-dark) !important;
+    border: 1px solid #e0dbd5 !important;
+    border-radius: 12px !important;
+    font-weight: 600 !important;
+    box-shadow: none !important;
+    padding: 10px 14px !important;
+}
+.paid-btn:disabled, 
+.paid-btn[disabled] {
+    background: transparent !important;
+    color: var(--text-muted) !important;
+    border-color: transparent !important;
+}
+
+/* 5. Linisin ang mga Modals (Pop-ups para sa Add Wallet, Pay Utang, etc.) */
+.modal-overlay {
+    background: rgba(251, 249, 244, 0.85) !important; /* Creamy blur sa background */
+    backdrop-filter: blur(5px) !important;
+}
+.modal-content {
+    background: var(--white) !important;
+    border: 1px solid var(--border-light) !important;
+    border-radius: 28px !important;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.06) !important;
+    padding: 24px !important;
+}
+.modal-content h3 {
+    color: var(--text-dark) !important;
+    font-family: var(--font-serif) !important; /* Gamitin ang Playfair font sa titles */
+    font-size: 22px !important;
+    margin-bottom: 20px !important;
+    border-bottom: none !important;
+}
+
+/* 6. Dynamic Badges (Mga maliliit na tags sa taas ng cards) */
+.badge-primary, 
+.badge-secondary, 
+span[style*="background: var(--glass-bg)"] {
+    background: var(--bg-main) !important;
+    color: var(--text-muted) !important;
+    border: 1px solid #e0dbd5 !important;
+    padding: 4px 10px !important;
+    border-radius: 8px !important;
+    font-family: var(--font-sans) !important;
+    font-weight: 600 !important;
+}
