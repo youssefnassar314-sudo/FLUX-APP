@@ -48,7 +48,7 @@
         </div>
 
         <div id="loginScreen" class="screen">
-            <div class="login-box" style="text-align: center; padding: 30px 20px; background: var(--card-bg); border: 1px solid var(--glass-border); border-radius: 24px;">
+            <div class="login-box" style="text-align: center; padding: 30px 20px; background: var(--card-bg); border: none; box-shadow: 0 6px 24px rgba(43,35,26,0.07); border-radius: 24px;">
                 <i class="ph-duotone ph-fingerprint icon-svg" style="font-size: 64px; color: var(--primary); margin-bottom: 10px;"></i>
                 <h2 style="margin: 0 0 5px 0; font-weight: 800; letter-spacing: 1px; font-size: 22px; color: var(--text-main);">System Online.</h2>
                 <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 25px;">Welcome to your central hub, Engineer.</p>
@@ -61,7 +61,7 @@
 
         <!-- BAGONG PIN SCREEN -->
         <div id="pinScreen" class="screen">
-            <div class="login-box" style="text-align: center; padding: 30px 20px; background: var(--card-bg); border: 1px solid var(--glass-border); border-radius: 24px;">
+            <div class="login-box" style="text-align: center; padding: 30px 20px; background: var(--card-bg); border: none; box-shadow: 0 6px 24px rgba(43,35,26,0.07); border-radius: 24px;">
                 <i class="ph-duotone ph-lock-key icon-svg" style="font-size: 64px; color: var(--primary); margin-bottom: 10px;"></i>
                 <h2 id="pinTitle" style="margin: 0 0 5px 0; font-weight: 800; letter-spacing: 1px; font-size: 22px; color: var(--text-main);">Enter PIN</h2>
                 <p id="pinSubtitle" style="color: var(--text-muted); font-size: 13px; margin-bottom: 25px;">Secure your FLUX OS.</p>
@@ -85,7 +85,7 @@
         <!-- FAKE GAME HUB SCREEN (DECOY) -->
         <!-- CALCULATOR DECOY SCREEN -->
         <div id="gameScreen" class="screen">
-            <div class="calculator-box" style="background: var(--card-bg); padding: 20px; border-radius: 20px; border: 1px solid var(--glass-border);">
+            <div class="calculator-box" style="background: var(--card-bg); padding: 20px; border-radius: 20px; border: none; box-shadow: 0 6px 24px rgba(43,35,26,0.07);">
                 <input type="text" id="calcDisplay" readonly style="width: 100%; font-size: 32px; text-align: right; margin-bottom: 20px; background: transparent; color: var(--text-main); border: none; font-family: var(--font-mono);">
                 <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
                     <button onclick="calcClear()" class="kb-btn" style="padding: 20px; font-size: 18px; color: var(--danger);">C</button>
@@ -203,27 +203,27 @@
                 <button class="secondary-btn" onclick="playSound('click'); exportUtangToCSV()" style="flex: 2; margin-bottom: 0;">
                     <i class="ph-bold ph-download-simple"></i> Export CSV
                 </button>
-                <button class="secondary-btn" onclick="playSound('click'); clearAllUtang()" style="flex: 1; margin-bottom: 0; color: var(--danger) !important; border-color: rgba(244, 63, 94, 0.3) !important;">
+                <button class="secondary-btn" onclick="playSound('click'); clearAllUtang()" style="flex: 1; margin-bottom: 0; color: var(--danger) !important; border-color: rgba(194, 86, 79, 0.3) !important;">
                     <i class="ph-bold ph-trash"></i> Reset All
                 </button>
             </div>
 
             <div class="summary-box" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 25px;">
-                <div class="stat-col" style="background: var(--glass-bg); border-color: var(--glass-border); padding: 12px;">
-                    <p style="color: var(--primary); font-size: 10px;">Due This Month</p>
-                    <h3 class="text-danger" style="font-size: 16px;">₱<span id="displayMonthUtang">0.00</span></h3>
+                <div class="stat-col tone-peach">
+                    <p>Due This Month</p>
+                    <h3>₱<span id="displayMonthUtang">0.00</span></h3>
                 </div>
-                <div class="stat-col" style="background: var(--glass-bg); border-color: var(--glass-border); padding: 12px;">
-                    <p style="color: var(--success); font-size: 10px;">Paid This Month</p>
-                    <h3 class="text-success" style="font-size: 16px;">₱<span id="displayMonthBayad">0.00</span></h3>
+                <div class="stat-col tone-green">
+                    <p>Paid This Month</p>
+                    <h3>₱<span id="displayMonthBayad">0.00</span></h3>
                 </div>
-                <div class="stat-col" style="background: var(--glass-bg); border-color: var(--glass-border); padding: 12px;">
-                    <p style="font-size: 10px;">Overall Utang</p>
-                    <h3 class="text-danger" style="font-size: 16px;">₱<span id="displayTotalUtang">0.00</span></h3>
+                <div class="stat-col tone-pink">
+                    <p>Overall Utang</p>
+                    <h3>₱<span id="displayTotalUtang">0.00</span></h3>
                 </div>
-                <div class="stat-col" style="background: var(--glass-bg); border-color: var(--glass-border); padding: 12px;">
-                    <p style="font-size: 10px;">Overall Paid</p>
-                    <h3 class="text-success" style="font-size: 16px;">₱<span id="displayTotalBayad">0.00</span></h3>
+                <div class="stat-col tone-blue">
+                    <p>Overall Paid</p>
+                    <h3>₱<span id="displayTotalBayad">0.00</span></h3>
                 </div>
             </div>
 
@@ -317,7 +317,7 @@
                         <button class="badge badge-secondary" onclick="playSound('click'); switchScreen('kanbanScreen')" style="cursor: pointer; border: none;">
                             <i class="ph-bold ph-columns"></i> Kanban
                         </button>
-                        <button class="badge" onclick="playSound('click'); clearAllTasks()" style="cursor: pointer; background: rgba(244, 63, 94, 0.1); color: var(--danger); border: 1px solid rgba(244, 63, 94, 0.3);">
+                        <button class="badge" onclick="playSound('click'); clearAllTasks()" style="cursor: pointer; background: rgba(194, 86, 79, 0.1); color: var(--danger); border: 1px solid rgba(194, 86, 79, 0.3);">
                             <i class="ph-bold ph-trash"></i> Reset All
                         </button>
                     </div>
@@ -335,7 +335,7 @@
                     <input type="date" id="manualTaskDate" style="margin-bottom: 0; flex: 1.5; padding: 10px; font-size: 12px; color: var(--text-muted);">
                     <input type="number" id="manualTaskMins" placeholder="Est. Mins" style="margin-bottom: 0; flex: 1;">
                 </div>
-                <button class="save-btn" onclick="playSound('click'); saveManualTask()" style="margin-bottom: 0; background: linear-gradient(135deg, var(--secondary), #7e22ce);">
+                <button class="save-btn" onclick="playSound('click'); saveManualTask()" style="margin-bottom: 0; background: linear-gradient(135deg, var(--secondary), var(--pastel-purple-fg));">
                     Add Manual Task
                 </button>
             </div>
@@ -346,7 +346,7 @@
                     <input type="text" id="habitName" placeholder="Ex: Inom Vitamins" style="margin-bottom: 0; flex: 2;">
                     <input type="time" id="habitTime" style="margin-bottom: 0; flex: 1; padding: 10px; font-size: 12px; color: var(--text-muted);">
                 </div>
-                <button class="save-btn" onclick="playSound('click'); saveHabit()" style="margin-bottom: 0; background: linear-gradient(135deg, var(--success), #059669);">
+                <button class="save-btn" onclick="playSound('click'); saveHabit()" style="margin-bottom: 0; background: linear-gradient(135deg, var(--success), var(--success));">
                     <i class="ph-bold ph-plus"></i> Add Daily Habit
                 </button>
             </div>
@@ -364,15 +364,15 @@
 
             <div class="kanban-board">
                 <div class="kanban-col">
-                    <h4 style="color: var(--danger);"><i class="ph-bold ph-push-pin"></i> TO DO</h4>
+                    <h4 class="kanban-col-title tone-pink"><i class="ph-bold ph-push-pin"></i> TO DO</h4>
                     <div id="kb-todo" class="kanban-list"></div>
                 </div>
                 <div class="kanban-col">
-                    <h4 style="color: var(--primary);"><i class="ph-bold ph-rocket"></i> DOING</h4>
+                    <h4 class="kanban-col-title tone-blue"><i class="ph-bold ph-rocket"></i> DOING</h4>
                     <div id="kb-doing" class="kanban-list"></div>
                 </div>
                 <div class="kanban-col">
-                    <h4 style="color: var(--success);"><i class="ph-bold ph-check-circle"></i> DONE</h4>
+                    <h4 class="kanban-col-title tone-green"><i class="ph-bold ph-check-circle"></i> DONE</h4>
                     <div id="kb-done" class="kanban-list"></div>
                 </div>
             </div>
@@ -385,7 +385,7 @@
 
             <div class="utang-card" style="margin-bottom: 20px;">
                 <div style="display: flex; justify-content: space-between;">
-                    <h3 style="margin: 0; font-size: 13px; color: #fbbf24;"><i class="ph-duotone ph-fork-knife"></i> Today's Grade</h3>
+                    <h3 style="margin: 0; font-size: 13px; color: var(--pastel-amber-fg);"><i class="ph-duotone ph-fork-knife"></i> Today's Grade</h3>
                     <button onclick="playSound('click'); refreshFoodSummary()" style="background:none; border:none; color:var(--text-muted); cursor:pointer;"><i class="ph-bold ph-arrows-clockwise"></i></button>
                 </div>
                 <div style="display: flex; align-items: center; gap: 15px; margin-top: 10px;">
@@ -404,7 +404,7 @@
                     <h3 style="color: var(--danger); margin: 0; font-size: 16px; display: flex; align-items: center; gap: 8px;">
                         <i class="ph-duotone ph-sparkle"></i> Quick Food Log
                     </h3>
-                    <button class="badge" onclick="playSound('click'); clearAllFood()" style="cursor: pointer; background: rgba(244, 63, 94, 0.1); color: var(--danger); border: 1px solid rgba(244, 63, 94, 0.3);">
+                    <button class="badge" onclick="playSound('click'); clearAllFood()" style="cursor: pointer; background: rgba(194, 86, 79, 0.1); color: var(--danger); border: 1px solid rgba(194, 86, 79, 0.3);">
                         <i class="ph-bold ph-trash"></i> Reset All
                     </button>
                 </div>
@@ -437,7 +437,7 @@
                         <option value="">Saan ibabawas?</option>
                     </select>
                 </div>
-                <button class="save-btn" onclick="playSound('click'); saveFood()" style="margin-bottom: 0; background: linear-gradient(135deg, #f43f5e, #fb923c);">
+                <button class="save-btn" onclick="playSound('click'); saveFood()" style="margin-bottom: 0; background: linear-gradient(135deg, var(--danger), var(--pastel-amber-fg));">
                     <i class="ph-bold ph-plus"></i> Log Meal
                 </button>
             </div>
@@ -679,7 +679,7 @@
         <div class="modal-content" style="max-width: 100%; height: 90vh; background: #000 !important; border: 1px solid var(--primary); display: flex; flex-direction: column; overflow: hidden; padding: 0;">
             <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; background: var(--bg-dark); border-bottom: 1px solid var(--glass-border);">
                 <h3 id="gameModalTitle" style="color: var(--primary); margin: 0; font-size: 14px; text-transform: uppercase; letter-spacing: 2px;"><i class="ph-duotone ph-game-controller"></i> Playing...</h3>
-                <button onclick="playSound('click'); closeGame()" style="background: rgba(244, 63, 94, 0.2); border: none; color: var(--danger); font-size: 14px; cursor: pointer; padding: 5px 10px; border-radius: 8px; font-weight: bold;"><i class="ph-bold ph-x"></i> Close Game</button>
+                <button onclick="playSound('click'); closeGame()" style="background: rgba(194, 86, 79, 0.2); border: none; color: var(--danger); font-size: 14px; cursor: pointer; padding: 5px 10px; border-radius: 8px; font-weight: bold;"><i class="ph-bold ph-x"></i> Close Game</button>
             </div>
             <iframe id="gameIframe" src="" style="width: 100%; flex: 1; border: none; background: #000;"></iframe>
         </div>
