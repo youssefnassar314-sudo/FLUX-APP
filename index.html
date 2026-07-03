@@ -168,38 +168,30 @@
         </div>
 
         <div id="utangScreen" class="screen">
-            <button class="back-btn" onclick="playSound('click'); switchScreen('dashboardScreen')">
-                <i class="ph-bold ph-caret-left"></i> Dashboard
-            </button>
-            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                <button class="icon-action-btn" onclick="playSound('click'); exportUtangToCSV()">
-                    <i class="ph-bold ph-download-simple"></i> Export CSV
-                </button>
-                <button class="icon-action-btn tone-danger" onclick="playSound('click'); clearAllUtang()">
-                    <i class="ph-bold ph-trash"></i> Reset All
-                </button>
+            <div class="screen-header-row">
+                <button class="screen-back-chip tone-pink" onclick="playSound('click'); switchScreen('dashboardScreen')"><i class="ph-bold ph-caret-left"></i></button>
+                <h2 class="screen-header-title">Utang</h2>
+                <div style="display: flex; gap: 8px;">
+                    <button class="icon-chip-btn tone-pink" onclick="playSound('click'); exportUtangToCSV()" title="Export CSV"><i class="ph-bold ph-download-simple"></i></button>
+                    <button class="icon-chip-btn tone-danger" onclick="playSound('click'); clearAllUtang()" title="Reset All"><i class="ph-bold ph-trash"></i></button>
+                    <button class="screen-add-chip tone-pink" onclick="playSound('click'); showAddForm()" title="Add New Utang"><i class="ph-bold ph-plus"></i></button>
+                </div>
             </div>
 
-            <div class="summary-box" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 25px;">
-                <div class="stat-col tone-peach">
-                    <p>Due This Month</p>
+            <div class="hero-stat-row">
+                <div class="hero-stat-card tone-pink">
+                    <p>This Month</p>
                     <h3>₱<span id="displayMonthUtang">0.00</span></h3>
                 </div>
-                <div class="stat-col tone-green">
-                    <p>Paid This Month</p>
-                    <h3>₱<span id="displayMonthBayad">0.00</span></h3>
-                </div>
-                <div class="stat-col tone-pink">
+                <div class="hero-stat-card tone-dark">
                     <p>Overall Utang</p>
                     <h3>₱<span id="displayTotalUtang">0.00</span></h3>
                 </div>
-                <div class="stat-col tone-blue">
-                    <p>Overall Paid</p>
-                    <h3>₱<span id="displayTotalBayad">0.00</span></h3>
-                </div>
             </div>
-
-            <button class="add-btn" onclick="playSound('click'); showAddForm()"><i class="ph-bold ph-plus"></i> Add New Utang</button>
+            <div class="mini-stat-row">
+                <span><i class="ph-bold ph-check-circle"></i> Paid this month: <strong>₱<span id="displayMonthBayad">0.00</span></strong></span>
+                <span><i class="ph-bold ph-check-circle"></i> Overall paid: <strong>₱<span id="displayTotalBayad">0.00</span></strong></span>
+            </div>
 
             <div id="addUtangForm" class="hidden-form">
                 <label>Category</label>
@@ -246,23 +238,25 @@
                 <button onclick="playSound('click'); changeMonth(1)"><i class="ph-bold ph-caret-right"></i></button>
             </div>
 
-            <div class="segmented-control" style="margin-bottom: 15px;">
+            <div class="segmented-control tone-pink" style="margin-bottom: 15px;">
                 <button id="btnViewDate" onclick="playSound('click'); setUtangView('date')" class="segmented-btn active"><i class="ph-bold ph-calendar"></i> Dates</button>
                 <button id="btnViewApp" onclick="playSound('click'); setUtangView('app')" class="segmented-btn"><i class="ph-bold ph-device-mobile"></i> Apps</button>
             </div>
 
             <!-- BAGONG SEARCH BAR -->
-            <div style="margin-bottom: 15px; position: relative;">
-                <i class="ph-bold ph-magnifying-glass" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 16px;"></i>
-                <input type="text" id="searchUtangId" placeholder="Search Utang ID..." oninput="renderUtangList()" style="width: 100%; padding: 12px 14px 12px 40px; margin: 0; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 12px; color: var(--text-main); font-size: 13px;">
+            <div class="pill-search tone-pink">
+                <i class="ph-bold ph-magnifying-glass"></i>
+                <input type="text" id="searchUtangId" placeholder="Search Utang ID..." oninput="renderUtangList()">
             </div>
 
             <div id="utangListContainer"></div>
         </div>
         <div id="taskScreen" class="screen">
-            <button class="back-btn" onclick="playSound('click'); switchScreen('dashboardScreen')">
-                <i class="ph-bold ph-caret-left"></i> Dashboard
-            </button>
+            <div class="screen-header-row">
+                <button class="screen-back-chip tone-purple" onclick="playSound('click'); switchScreen('dashboardScreen')"><i class="ph-bold ph-caret-left"></i></button>
+                <h2 class="screen-header-title">Tasks</h2>
+                <button class="icon-chip-btn tone-purple" onclick="playSound('click'); switchScreen('kanbanScreen')" title="Kanban"><i class="ph-bold ph-columns"></i></button>
+            </div>
             
             <div class="hidden-form" style="display: block; margin-bottom: 20px;">
                 <div class="form-header">
@@ -338,12 +332,10 @@
         </div>
 
         <div id="kanbanScreen" class="screen">
-            <button class="back-btn" onclick="playSound('click'); switchScreen('taskScreen')">
-                <i class="ph-bold ph-caret-left"></i> Back to Tasks
-            </button>
-            <div class="form-header" style="margin-bottom: 20px;">
-                <div class="list-card-avatar tone-purple"><i class="ph-duotone ph-columns"></i></div>
-                <h3>Kanban Board</h3>
+            <div class="screen-header-row">
+                <button class="screen-back-chip tone-purple" onclick="playSound('click'); switchScreen('taskScreen')"><i class="ph-bold ph-caret-left"></i></button>
+                <h2 class="screen-header-title">Kanban Board</h2>
+                <div style="width: 38px;"></div>
             </div>
 
             <div class="kanban-board">
@@ -363,9 +355,11 @@
         </div>
 
         <div id="foodScreen" class="screen">
-            <button class="back-btn" onclick="playSound('click'); switchScreen('dashboardScreen')">
-                <i class="ph-bold ph-caret-left"></i> Dashboard
-            </button>
+            <div class="screen-header-row">
+                <button class="screen-back-chip tone-amber" onclick="playSound('click'); switchScreen('dashboardScreen')"><i class="ph-bold ph-caret-left"></i></button>
+                <h2 class="screen-header-title">Food Log</h2>
+                <button class="icon-chip-btn tone-danger" onclick="playSound('click'); clearAllFood()" title="Reset All"><i class="ph-bold ph-trash"></i></button>
+            </div>
 
             <div class="utang-card" style="margin-bottom: 20px;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -446,9 +440,11 @@
         </div>
 
         <div id="budgetScreen" class="screen">
-            <button class="back-btn" onclick="playSound('click'); switchScreen('dashboardScreen')">
-                <i class="ph-bold ph-caret-left"></i> Dashboard
-            </button>
+            <div class="screen-header-row">
+                <button class="screen-back-chip tone-blue" onclick="playSound('click'); switchScreen('dashboardScreen')"><i class="ph-bold ph-caret-left"></i></button>
+                <h2 class="screen-header-title">Budget</h2>
+                <button class="screen-add-chip tone-blue" onclick="playSound('click'); showAddWalletModal()" title="Add Wallet"><i class="ph-bold ph-plus"></i></button>
+            </div>
 
             <div class="networth-card" style="text-align: center; padding: 26px 20px;">
                 <p style="font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: rgba(245,239,227,0.6); margin-bottom: 8px;">Net Liquidity</p>
@@ -487,9 +483,11 @@
         </div>
 
 <div id="summaryScreen" class="screen" style="padding-bottom: 80px;">
-            <button class="back-btn" onclick="playSound('click'); switchScreen('dashboardScreen')">
-                <i class="ph-bold ph-caret-left"></i> Close Receipt
-            </button>
+            <div class="screen-header-row">
+                <button class="screen-back-chip tone-neutral" onclick="playSound('click'); switchScreen('dashboardScreen')"><i class="ph-bold ph-x"></i></button>
+                <h2 class="screen-header-title">Receipt</h2>
+                <div style="width: 38px;"></div>
+            </div>
             <div id="summaryContent"></div>
         </div>
 
