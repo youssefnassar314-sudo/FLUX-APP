@@ -186,6 +186,110 @@
             </div>
         </div>
 
+        <!-- PROFILE SCREEN -->
+        <div id="profileScreen" class="screen">
+            <h2 class="profile-page-title">Profile</h2>
+
+            <!-- User Info Card -->
+            <div class="profile-user-card">
+                <!-- Hardcoded initial or you can make this dynamic via JS later -->
+                <div class="profile-avatar">G</div> 
+                <div class="profile-user-details">
+                    <h3>Gillian</h3>
+                    <p>Member since Jan 2026</p>
+                </div>
+                <button class="profile-edit-btn" onclick="playSound('click'); setCustomUsername()">
+                    <i class="ph-bold ph-pencil-simple"></i>
+                </button>
+            </div>
+
+            <!-- Stats Row -->
+            <div class="profile-stats-row">
+                <div class="profile-stat-box stat-peach">
+                    <h3 id="profileStreak">14</h3>
+                    <p>DAY STREAK</p>
+                </div>
+                <div class="profile-stat-box stat-green">
+                    <h3 id="profileTasksDone">86</h3>
+                    <p>TASKS DONE</p>
+                </div>
+                <div class="profile-stat-box stat-pink">
+                    <h3 id="profileAvgDiet">B+</h3>
+                    <p>AVG DIET</p>
+                </div>
+            </div>
+
+            <!-- Account Section -->
+            <div class="quick-access-container">
+                <h3 class="section-label-text">ACCOUNT</h3>
+                <div class="profile-list-group">
+                    <div class="profile-list-item" onclick="playSound('click'); switchScreen('budgetScreen')">
+                        <div class="item-meta-left">
+                            <i class="ph-duotone ph-wallet list-icon-gold"></i>
+                            <span class="item-label-name">Manage wallets</span>
+                        </div>
+                        <i class="ph-bold ph-caret-right chevron-right-indicator"></i>
+                    </div>
+                    <div class="profile-list-item" onclick="playSound('click'); checkPinStatus()">
+                        <div class="item-meta-left">
+                            <i class="ph-duotone ph-lock-key list-icon-gold"></i>
+                            <span class="item-label-name">PIN & security</span>
+                        </div>
+                        <i class="ph-bold ph-caret-right chevron-right-indicator"></i>
+                    </div>
+                    <div class="profile-list-item" onclick="playSound('click')">
+                        <div class="item-meta-left">
+                            <i class="ph-duotone ph-cloud-arrow-up list-icon-gold"></i>
+                            <span class="item-label-name">Google Sheets sync</span>
+                        </div>
+                        <div class="item-meta-right">
+                            <span class="status-badge-green">Synced</span>
+                            <i class="ph-bold ph-caret-right chevron-right-indicator"></i>
+                        </div>
+                    </div>
+                    <div class="profile-list-item" onclick="playSound('click'); exportUtangToCSV()">
+                        <div class="item-meta-left">
+                            <i class="ph-duotone ph-export list-icon-gold"></i>
+                            <span class="item-label-name">Export data</span>
+                        </div>
+                        <i class="ph-bold ph-caret-right chevron-right-indicator"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preferences Section -->
+            <div class="quick-access-container" style="margin-top: 24px;">
+                <h3 class="section-label-text">PREFERENCES</h3>
+                <div class="profile-list-group">
+                    <div class="profile-list-item">
+                        <div class="item-meta-left">
+                            <i class="ph-duotone ph-palette list-icon-gold"></i>
+                            <span class="item-label-name">Theme</span>
+                        </div>
+                        <div class="item-meta-right">
+                            <span class="value-text">Warm</span>
+                            <i class="ph-bold ph-caret-right chevron-right-indicator"></i>
+                        </div>
+                    </div>
+                    <div class="profile-list-item">
+                        <div class="item-meta-left">
+                            <i class="ph-duotone ph-bell list-icon-gold"></i>
+                            <span class="item-label-name">Notifications</span>
+                        </div>
+                        <i class="ph-bold ph-caret-right chevron-right-indicator"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Log Out Button -->
+            <button class="profile-logout-btn" onclick="playSound('click'); handleLogout()">
+                <i class="ph-bold ph-sign-out"></i> Log out
+            </button>
+            
+            <div style="height: 20px;"></div>
+        </div>
+
+        <!-- MODULE 1: UTANG TRACKER OVERVIEW -->
         <div id="utangScreen" class="screen">
             <button class="back-btn" onclick="playSound('click'); switchScreen('dashboardScreen')">
                 <i class="ph-bold ph-caret-left"></i> Dashboard
@@ -511,8 +615,8 @@
                 <i class="ph-bold ph-receipt"></i>
             </button>
             
-            <!-- User Icon (Naka-link sa Logout confirmation) -->
-            <button onclick="playSound('click'); handleLogout()" class="nav-dock-btn" title="Profile / Logout">
+            <!-- User Icon (Naka-link sa Profile Screen) -->
+            <button onclick="playSound('click'); switchScreen('profileScreen')" class="nav-dock-btn" title="Profile">
                 <i class="ph-bold ph-user"></i>
             </button>
         </div>
