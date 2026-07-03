@@ -57,6 +57,8 @@ let transactionDatabase = [];
 let currentUtangView = 'date';
 let lastFoodSummaryCache = null; // instant restore cache 
 
+const NAV_VISIBLE_SCREENS = ['dashboardScreen', 'utangScreen', 'taskScreen', 'kanbanScreen', 'foodScreen', 'budgetScreen', 'summaryScreen'];
+
 function switchScreen(screenId) {
     playSound('transition'); 
     let screens = document.querySelectorAll('.screen');
@@ -69,6 +71,18 @@ function switchScreen(screenId) {
     if (screenId === 'budgetScreen') updateBudgetDashboard();
     if (screenId === 'kanbanScreen') renderKanban();
     if (screenId === 'dashboardScreen') updateQuickGlance();
+
+    let bottomNav = document.getElementById('bottomNav');
+    if (bottomNav) {
+        if (NAV_VISIBLE_SCREENS.includes(screenId)) {
+            bottomNav.style.display = 'flex';
+            bottomNav.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('data-nav') === screenId);
+            });
+        } else {
+            bottomNav.style.display = 'none';
+        }
+    }
 }
 
 // ==========================================
@@ -1163,6 +1177,50 @@ async function setCustomUsername() {
 // ==========================================
 let isAppInitialized = false;
 
+function getTimeGreeting() {
+    let h = new Date().getHours();
+    if (h < 12) return "Good morning";
+    if (h < 18) return "Good afternoon";
+    return "Good evening";
+}
+
+function updateGreetingHeader() {
+    let eyebrow = document.getElementById('greetingEyebrow');
+    let nameEl = document.getElementById('greetingName');
+    if (eyebrow) eyebrow.innerText = getTimeGreeting();
+    if (nameEl) {
+        let displayName = window.currentUserName ? (window.currentUserName.charAt(0) + window.currentUserName.slice(1).toLowerCase()) : "Engineer";
+        nameEl.innerText = `Hi, ${displayName}`;
+    }
+}
+setInterval(updateGreetingHeader, 60000);
+
+function openNotifications() {
+    let pendingTasks = taskDatabase.filter(t => t.status !== 'done' && t.category !== 'Sched').length;
+    if (pendingTasks > 0) {
+        alert(`You have ${pendingTasks} pending task${pendingTasks === 1 ? '' : 's'}.`);
+    } else {
+        alert("You're all caught up. No new notifications.");
+    }
+}
+
+function openQuickAdd() {
+    let m = document.getElementById('quickAddModal');
+    if (m) m.style.display = 'flex';
+}
+function closeQuickAdd() {
+    let m = document.getElementById('quickAddModal');
+    if (m) m.style.display = 'none';
+}
+function openProfileSheet() {
+    let m = document.getElementById('profileModal');
+    if (m) m.style.display = 'flex';
+}
+function closeProfileSheet() {
+    let m = document.getElementById('profileModal');
+    if (m) m.style.display = 'none';
+}
+
 function handleLogin() {
     playSound('click');
     window.authMethods.signInWithPopup(window.auth, window.provider).then((result) => { console.log("Welcome back, Engineer:", result.user.displayName); }).catch((error) => { console.error("Login failed:", error); alert("May error sa pag-login. Try again."); });
@@ -1176,11 +1234,13 @@ function startApp() {
             if (user) {
                 window.currentUid = user.uid; document.getElementById('logoutBtn').style.display = 'block';
                 let fallbackName = user.displayName ? user.displayName.split(' ')[0].toUpperCase() : "USER"; window.currentUserName = fallbackName; 
+                updateGreetingHeader();
                 const qProfile = window.dbMethods.query(window.dbMethods.collection(window.db, "userProfiles"), window.dbMethods.where("userId", "==", window.currentUid));
 window.dbMethods.onSnapshot(qProfile, (snapshot) => {
                     if (!snapshot.empty) { window.currentUserName = snapshot.docs[0].data().username.toUpperCase(); }
                     let subtitle = document.getElementById('greetingSubtitle');
                     if (subtitle) { subtitle.innerHTML = `Welcome back, <span style="color: var(--primary); font-weight: bold;">${window.currentUserName}</span> <i class="ph-bold ph-pencil-simple" style="font-size: 11px; opacity: 0.5;"></i>`; }
+                    updateGreetingHeader();
                 });
                 
                 // I-SHOW YUNG SECRET BUTTON
@@ -1563,3 +1623,7 @@ window.verifyPin = verifyPin; window.forgotPin = forgotPin;
 window.clearAllUtang = clearAllUtang; window.clearAllTasks = clearAllTasks; window.clearAllFood = clearAllFood; window.clearAllTransactions = clearAllTransactions;
 window.openGame = openGame; window.closeGame = closeGame;
 window.calcAdd = calcAdd; window.calcClear = calcClear; window.calcEqual = calcEqual;
+window.openQuickAdd = openQuickAdd; window.closeQuickAdd = closeQuickAdd;
+window.openProfileSheet = openProfileSheet; window.closeProfileSheet = closeProfileSheet;
+window.openNotifications = openNotifications; window.updateGreetingHeader = updateGreetingHeader;
+window.handleLogout = handleLogout;
