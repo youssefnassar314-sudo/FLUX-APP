@@ -92,13 +92,9 @@ function setUtangView(mode) {
     currentUtangView = mode;
     let btnDate = document.getElementById('btnViewDate');
     let btnApp = document.getElementById('btnViewApp');
-    if(btnDate && btnApp) {
-        btnDate.style.opacity = mode === 'date' ? '1' : '0.5';
-        btnDate.style.borderColor = mode === 'date' ? 'var(--primary)' : 'var(--glass-border)';
-        btnDate.style.color = mode === 'date' ? 'var(--primary)' : 'var(--text-main)';
-        btnApp.style.opacity = mode === 'app' ? '1' : '0.5';
-        btnApp.style.borderColor = mode === 'app' ? 'var(--secondary)' : 'var(--glass-border)';
-        btnApp.style.color = mode === 'app' ? 'var(--secondary)' : 'var(--text-main)';
+    if (btnDate && btnApp) {
+        btnDate.classList.toggle('active', mode === 'date');
+        btnApp.classList.toggle('active', mode === 'app');
     }
     renderUtangList(); 
 }
@@ -360,17 +356,26 @@ if (currentUtangView === 'date') {
         filteredUtang.forEach(utang => {
             let isFlex = isNaN(utang.dueDate);
             let dateDisplay = isFlex ? 'Flexible' : `${utang.dueDate.toLocaleString('default', { month: 'short' })} ${utang.dueDate.getDate()}`;
-            
-            let cardStyle = utang.isPaid ? 'opacity: 0.5; background-color: var(--glass-bg);' : 'background: var(--glass-bg); border-left: 3px solid var(--primary);';
-            let badgeHTML = utang.category === 'My App' ? `<span class="badge badge-primary"><i class="ph-bold ph-device-mobile"></i> My App: ${utang.appName}</span>` : `<span class="badge badge-secondary"><i class="ph-bold ph-user"></i> Under their: ${utang.appName}</span>`;
-            
-            let cardContent = `<div class="utang-card" style="${cardStyle}">
-                <button onclick="playSound('click'); deleteUtang('${utang.id}')" style="position: absolute; top: 12px; right: 12px; background: none; border: none; color: var(--danger); cursor: pointer; font-size: 16px; padding: 0;"><i class="ph-bold ph-x"></i></button>
-                <div style="margin-bottom: 10px; padding-right: 20px;">${badgeHTML}</div>
-                <h4><span style="font-family: monospace; letter-spacing: 1px; color: var(--primary);">ID: ${utang.utangId}</span> <span>₱${utang.amount.toFixed(2)}</span></h4>
-                <p style="color: var(--danger); font-weight: bold;"><i class="ph-bold ph-calendar-x"></i> Due On: ${dateDisplay}</p>
+            let isMyApp = utang.category === 'My App';
+            let avatarTone = isMyApp ? 'tone-peach' : 'tone-blue';
+            let avatarIcon = isMyApp ? 'ph-device-mobile' : 'ph-user';
+            let ownerLabel = isMyApp ? 'My Account' : "Under their account";
+
+            let cardContent = `<div class="utang-card list-card" style="${utang.isPaid ? 'opacity: 0.55;' : ''}">
+                <button onclick="playSound('click'); deleteUtang('${utang.id}')" class="list-card-close"><i class="ph-bold ph-x"></i></button>
+                <div class="list-card-row">
+                    <div class="list-card-avatar ${avatarTone}"><i class="ph-duotone ${avatarIcon}"></i></div>
+                    <div class="list-card-main">
+                        <p class="list-card-title">${utang.appName}</p>
+                        <p class="list-card-meta">${ownerLabel} • <span style="font-family: monospace;">${utang.utangId}</span></p>
+                    </div>
+                    <div class="list-card-amount">₱${utang.amount.toFixed(2)}</div>
+                </div>
+                <div class="list-card-footer">
+                    <span class="pill-badge ${utang.isPaid ? 'tone-green' : 'tone-pink'}"><i class="ph-bold ${utang.isPaid ? 'ph-check-circle' : 'ph-calendar-x'}"></i> ${utang.isPaid ? 'Paid' : 'Due ' + dateDisplay}</span>
+                </div>
                 ${(utang.partials && utang.partials.length > 0) ? `
-                <div style="margin: 10px 0; border-top: 1px dashed var(--glass-border); padding-top: 10px;">
+                <div style="margin: 10px 0 0; border-top: 1px dashed var(--glass-border); padding-top: 10px;">
                     <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">↳ Partial Payments:</span>
                     ${utang.partials.map(p => `
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px; font-size: 11px;">
@@ -555,9 +560,9 @@ async function moveTaskStatus(id, newState) {
 function renderTasks() {
     let taskContainer = document.getElementById('taskListContainer'); let habitContainer = document.getElementById('habitListContainer'); let schedContainer = document.getElementById('schedListContainer');
     if(!taskContainer || !habitContainer) return; 
-    taskContainer.innerHTML = `<h3 style="color: var(--text-main); margin-top: 30px; font-size: 14px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px;"><i class="ph-duotone ph-list-checks"></i> PENDING TASKS</h3>`;
-    habitContainer.innerHTML = `<h3 style="color: var(--success); margin-top: 30px; font-size: 14px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px;"><i class="ph-duotone ph-arrows-clockwise"></i> DAILY HABITS</h3>`;
-    if (schedContainer) { schedContainer.innerHTML = `<h3 style="color: var(--pastel-amber-fg); margin-top: 30px; font-size: 14px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px;"><i class="ph-duotone ph-calendar-blank"></i> UPCOMING SCHED</h3>`; }
+    taskContainer.innerHTML = `<p class="section-label">Pending Tasks</p>`;
+    habitContainer.innerHTML = `<p class="section-label tone-green">Daily Habits</p>`;
+    if (schedContainer) { schedContainer.innerHTML = `<p class="section-label tone-amber">Upcoming Sched</p>`; }
 
     let todayDateStr = new Date().toLocaleDateString('en-CA');
     let normalTasks = taskDatabase.filter(t => t.category !== 'Sched'); let schedTasks = taskDatabase.filter(t => t.category === 'Sched');
@@ -565,19 +570,25 @@ function renderTasks() {
     if (normalTasks.length === 0) { taskContainer.innerHTML += '<p style="color: var(--text-muted); font-size: 12px; font-style: italic;">No pending tasks.</p>'; } else {
         normalTasks.forEach(task => {
             let isDone = task.status === 'done'; let isDoing = task.status === 'doing';
-            let badgeColor = task.category === 'Work' ? 'var(--pastel-blue-fg)' : task.category === 'School' ? 'var(--pastel-purple-fg)' : 'var(--success)';
+            let catTone = task.category === 'Work' ? 'tone-blue' : task.category === 'School' ? 'tone-purple' : 'tone-green';
+            let catIcon = task.category === 'Work' ? 'ph-briefcase' : task.category === 'School' ? 'ph-graduation-cap' : 'ph-user';
             let totalSpent = task.timeSpent || 0; let est = task.estMins || 0;
-            let runningText = isDoing ? `<span style="color: var(--primary); animation: pulse 1.5s infinite;"> • ⏱️ Running...</span>` : '';
+            let runningText = isDoing ? `<span style="color: var(--primary);"> • ⏱️ Running...</span>` : '';
             let timeText = `<span style="font-size: 11px; color: var(--text-muted);"><i class="ph-bold ph-clock"></i> Spent: ${totalSpent}m / Est: ${est}m ${runningText}</span>`;
             let controlsHTML = '';
             if (isDone) { controlsHTML = `<span style="color: var(--success); font-weight: bold; font-size: 12px;"><i class="ph-bold ph-check-circle"></i> Completed (${totalSpent}m spent)</span>`; } else {
-                let playPauseBtn = isDoing ? `<button style="background: rgba(194, 86, 79, 0.1); color: var(--danger); border: 1px solid var(--danger); padding: 6px 12px; border-radius: 8px; cursor: pointer;" onclick="moveTaskStatus('${task.id}', 'paused')"><i class="ph-bold ph-pause"></i> Pause</button>` : `<button style="background: var(--glass-bg); color: var(--primary); border: 1px solid var(--primary); padding: 6px 12px; border-radius: 8px; cursor: pointer;" onclick="moveTaskStatus('${task.id}', 'doing')"><i class="ph-bold ph-play"></i> Play</button>`;
-                controlsHTML = `<div style="display: flex; gap: 8px; margin-top: 10px;">${playPauseBtn}<button style="background: rgba(78, 154, 107, 0.1); color: var(--success); border: 1px solid var(--success); padding: 6px 12px; border-radius: 8px; cursor: pointer; flex: 1;" onclick="moveTaskStatus('${task.id}', 'done')"><i class="ph-bold ph-check"></i> Finish Task</button></div>`;
+                let playPauseBtn = isDoing ? `<button style="background: var(--pastel-pink-bg); color: var(--danger); border: none; padding: 8px 12px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 12px;" onclick="moveTaskStatus('${task.id}', 'paused')"><i class="ph-bold ph-pause"></i> Pause</button>` : `<button style="background: var(--pastel-blue-bg); color: var(--pastel-blue-fg); border: none; padding: 8px 12px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 12px;" onclick="moveTaskStatus('${task.id}', 'doing')"><i class="ph-bold ph-play"></i> Play</button>`;
+                controlsHTML = `<div style="display: flex; gap: 8px; margin-top: 10px;">${playPauseBtn}<button style="background: var(--pastel-green-bg); color: var(--success); border: none; padding: 8px 12px; border-radius: 10px; cursor: pointer; flex: 1; font-weight: 600; font-size: 12px;" onclick="moveTaskStatus('${task.id}', 'done')"><i class="ph-bold ph-check"></i> Finish Task</button></div>`;
             }
-            taskContainer.innerHTML += `<div class="utang-card" style="position: relative; ${isDone ? 'opacity: 0.5; background: var(--glass-bg);' : 'background: var(--card-bg); border-left: 4px solid var(--secondary);'} margin-bottom: 10px; padding: 15px;">
-                <button onclick="deleteTask('${task.id}')" style="position: absolute; top: 12px; right: 12px; background: none; border: none; color: var(--danger); cursor: pointer; font-size: 16px; padding: 0;"><i class="ph-bold ph-x"></i></button>
-                <span style="font-size: 10px; font-weight: 700; background: var(--glass-bg); color: ${badgeColor}; padding: 3px 8px; border-radius: 5px; text-transform: uppercase;">${task.category}</span>
-                <h4 style="margin: 8px 0 2px 0; font-size: 15px; color: var(--text-main); padding-right: 25px;">${task.title}</h4>
+            taskContainer.innerHTML += `<div class="utang-card list-card" style="${isDone ? 'opacity: 0.55;' : ''} margin-bottom: 10px;">
+                <button onclick="deleteTask('${task.id}')" class="list-card-close"><i class="ph-bold ph-x"></i></button>
+                <div class="list-card-row" style="margin-bottom: 8px;">
+                    <div class="list-card-avatar ${catTone}"><i class="ph-duotone ${catIcon}"></i></div>
+                    <div class="list-card-main">
+                        <p class="list-card-title">${task.title}</p>
+                        <span class="pill-badge ${catTone}" style="margin-top:4px;">${task.category}</span>
+                    </div>
+                </div>
                 ${timeText}${controlsHTML}</div>`;
         });
     }
@@ -587,11 +598,16 @@ function renderTasks() {
             let timeParts = (habit.time || "12:00").split(':'); let hour = parseInt(timeParts[0]);
             let formattedTime = (hour % 12 || 12) + ':' + (timeParts[1] || "00") + (hour >= 12 ? ' PM' : ' AM');
             let isDoneToday = habit.lastDoneDate === todayDateStr; 
-            habitContainer.innerHTML += `<div class="utang-card" style="position: relative; ${isDoneToday ? 'opacity: 0.5;' : 'background: var(--card-bg); border-left: 4px solid var(--success);'} margin-bottom: 10px; padding: 15px;">
-                <button onclick="deleteHabit('${habit.id}')" style="position: absolute; top: 12px; right: 12px; background: none; border: none; color: var(--danger); cursor: pointer; font-size: 16px; padding: 0;"><i class="ph-bold ph-x"></i></button>
-                <h4 style="margin: 0 0 5px 0; font-size: 15px; color: var(--success); padding-right: 25px;">${habit.name}</h4>
-                <span style="font-size: 12px; color: var(--text-muted);"><i class="ph-bold ph-clock"></i> ${formattedTime}</span>
-                <button class="paid-btn" style="border-color: var(--success); color: var(--success); margin-top: 10px; padding: 6px;" onclick="markHabitDone('${habit.id}')" ${isDoneToday ? 'disabled' : ''}>${isDoneToday ? '<i class="ph-bold ph-check"></i> Done Today' : 'Mark Done'}</button>
+            habitContainer.innerHTML += `<div class="utang-card list-card" style="${isDoneToday ? 'opacity: 0.55;' : ''} margin-bottom: 10px;">
+                <button onclick="deleteHabit('${habit.id}')" class="list-card-close"><i class="ph-bold ph-x"></i></button>
+                <div class="list-card-row" style="margin-bottom: 6px;">
+                    <div class="list-card-avatar tone-green"><i class="ph-duotone ph-arrows-clockwise"></i></div>
+                    <div class="list-card-main">
+                        <p class="list-card-title">${habit.name}</p>
+                        <p class="list-card-meta"><i class="ph-bold ph-clock"></i> ${formattedTime}</p>
+                    </div>
+                </div>
+                <button class="paid-btn" style="border-color: var(--success); color: var(--success); margin-top: 4px; padding: 8px;" onclick="markHabitDone('${habit.id}')" ${isDoneToday ? 'disabled' : ''}>${isDoneToday ? '<i class="ph-bold ph-check"></i> Done Today' : 'Mark Done'}</button>
             </div>`;
         });
     }
@@ -601,13 +617,17 @@ function renderTasks() {
             schedTasks.forEach(task => {
                 let isDone = task.status === 'done'; let dateObj = new Date(task.dueDate);
                 let dateFormatted = isNaN(dateObj) ? "Date not set" : dateObj.toLocaleDateString('default', { month: 'short', day: 'numeric', year: 'numeric' });
-                let controlsHTML = isDone ? `<span style="color: var(--success); font-weight: bold; font-size: 12px;"><i class="ph-bold ph-check-circle"></i> Event Completed</span>` : `<button class="paid-btn" style="border-color: var(--pastel-amber-fg); color: var(--pastel-amber-fg); padding: 6px; margin-top: 10px;" onclick="moveTaskStatus('${task.id}', 'done')"><i class="ph-bold ph-check"></i> Mark Done</button>`;
-                schedContainer.innerHTML += `<div class="utang-card" style="position: relative; ${isDone ? 'opacity: 0.5; background: var(--glass-bg);' : 'background: var(--card-bg); border-left: 4px solid var(--pastel-amber-fg);'} margin-bottom: 10px; padding: 15px;">
-                    <button onclick="deleteTask('${task.id}')" style="position: absolute; top: 12px; right: 12px; background: none; border: none; color: var(--danger); cursor: pointer; font-size: 16px; padding: 0;"><i class="ph-bold ph-x"></i></button>
-                    <span style="font-size: 10px; font-weight: 700; background: var(--glass-bg); color: var(--pastel-amber-fg); padding: 3px 8px; border-radius: 5px; text-transform: uppercase;">WHOLE DAY</span>
-                    <h4 style="margin: 8px 0 2px 0; font-size: 15px; color: var(--text-main); padding-right: 25px;">${task.title}</h4>
-                    <span style="font-size: 11px; color: var(--text-muted);"><i class="ph-bold ph-calendar"></i> ${dateFormatted}</span>
-                    <div style="margin-top: 10px;">${controlsHTML}</div>
+                let controlsHTML = isDone ? `<span style="color: var(--success); font-weight: bold; font-size: 12px;"><i class="ph-bold ph-check-circle"></i> Event Completed</span>` : `<button class="paid-btn" style="border-color: var(--pastel-amber-fg); color: var(--pastel-amber-fg); padding: 8px; margin-top: 4px;" onclick="moveTaskStatus('${task.id}', 'done')"><i class="ph-bold ph-check"></i> Mark Done</button>`;
+                schedContainer.innerHTML += `<div class="utang-card list-card" style="${isDone ? 'opacity: 0.55;' : ''} margin-bottom: 10px;">
+                    <button onclick="deleteTask('${task.id}')" class="list-card-close"><i class="ph-bold ph-x"></i></button>
+                    <div class="list-card-row" style="margin-bottom: 6px;">
+                        <div class="list-card-avatar tone-amber"><i class="ph-duotone ph-calendar-blank"></i></div>
+                        <div class="list-card-main">
+                            <p class="list-card-title">${task.title}</p>
+                            <p class="list-card-meta"><i class="ph-bold ph-calendar"></i> ${dateFormatted}</p>
+                        </div>
+                    </div>
+                    ${controlsHTML}
                 </div>`;
             });
         }
@@ -629,8 +649,8 @@ function renderKanban() {
             let isPaused = task.status === 'paused';
             let playPauseBtn = isPaused ? `<button class="kb-btn" style="color: var(--primary);" onclick="moveTaskStatus('${task.id}', 'doing')"><i class="ph-bold ph-play"></i> Resume</button>` : `<button class="kb-btn" style="color: var(--danger);" onclick="moveTaskStatus('${task.id}', 'paused')"><i class="ph-bold ph-pause"></i> Pause</button>`;
             actionButtons = `${playPauseBtn}<button class="kb-btn" style="color: var(--success);" onclick="moveTaskStatus('${task.id}', 'done')"><i class="ph-bold ph-check"></i> Done</button>`;
-            let statusLabel = isPaused ? `<span style="font-size: 10px; font-weight: bold; color: var(--danger);">PAUSED</span>` : `<span style="font-size: 10px; font-weight: bold; color: var(--primary);">RUNNING...</span>`;
-            cardHTML = `<div class="kanban-card" style="${isPaused ? 'opacity: 0.6;' : 'border-left: 3px solid var(--primary);'}">${statusLabel}<h4 style="margin: 4px 0 8px 0; font-size: 14px; color: var(--text-main);">${task.title}</h4><div class="kanban-actions">${actionButtons}</div></div>`;
+            let statusLabel = isPaused ? `<span class="pill-badge tone-pink">Paused</span>` : `<span class="pill-badge tone-blue">Running...</span>`;
+            cardHTML = `<div class="kanban-card" style="${isPaused ? 'opacity: 0.6;' : 'border-left: 3px solid var(--pastel-blue-fg);'}">${statusLabel}<h4 style="margin: 8px 0 8px 0; font-size: 14px; color: var(--text-main);">${task.title}</h4><div class="kanban-actions">${actionButtons}</div></div>`;
             colDoing.innerHTML += cardHTML;
         } else if (task.status === 'done') {
             actionButtons = `<button class="kb-btn" style="width: 100%; color: var(--text-muted);" onclick="moveTaskStatus('${task.id}', 'doing')"><i class="ph-bold ph-arrow-left"></i> Re-open</button>`;
@@ -737,18 +757,25 @@ async function fetchFoodSummary(forceRefresh = false) {
 function refreshFoodSummary() { fetchFoodSummary(true); }
 
 function renderFoodList() {
-    let container = document.getElementById('foodListContainer'); container.innerHTML = `<h3 style="color: var(--text-main); margin-top: 10px; font-size: 14px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px;"><i class="ph-duotone ph-fork-knife"></i> FOOD LOG TODAY</h3>`;
+    let container = document.getElementById('foodListContainer'); container.innerHTML = `<p class="section-label">Food Log Today</p>`;
     let today = new Date().toLocaleDateString('en-CA');
     let todayFood = foodDatabase.filter(food => { return new Date(food.createdAt).toLocaleDateString('en-CA') === today; });
     if (todayFood.length === 0) { container.innerHTML += '<p style="color: var(--text-muted); font-size: 12px; font-style: italic;">Wala ka pang kinakain today.</p>'; return; }
+    const mealIcons = { Breakfast: 'ph-coffee', Lunch: 'ph-bowl-food', Dinner: 'ph-cooking-pot', Snack: 'ph-cookie' };
     todayFood.forEach(food => {
-        let badgeColor = food.meal === 'Breakfast' ? 'var(--pastel-amber-fg)' : food.meal === 'Lunch' ? 'var(--pastel-blue-fg)' : food.meal === 'Dinner' ? 'var(--pastel-purple-fg)' : 'var(--danger)';
-        let picIcon = food.image64 ? ' <i class="ph-bold ph-image"></i>' : ''; let priceTag = food.cost > 0 ? ` - ₱${food.cost}` : '';
-        container.innerHTML += `<div class="utang-card" style="background: var(--card-bg); margin-bottom: 10px; padding: 15px;">
-            <span style="font-size: 9px; font-weight: 700; background: var(--glass-bg); color: ${badgeColor}; padding: 3px 8px; border-radius: 5px; text-transform: uppercase;">${food.meal} • ${food.source}</span>
-            <span style="float: right; font-size: 11px; color: var(--text-muted);">${food.time}</span>
-            <h4 style="margin: 10px 0 0 0; font-size: 14px; color: var(--text-main); font-weight: 500;">${food.item}${picIcon}${priceTag}</h4>
-            <button onclick="deleteFood('${food.id}')" style="background: none; border: none; color: var(--danger); font-size: 12px; margin-top: 8px; cursor: pointer; padding: 0;"><i class="ph-bold ph-trash"></i> Remove</button>
+        let tone = food.meal === 'Breakfast' ? 'tone-amber' : food.meal === 'Lunch' ? 'tone-blue' : food.meal === 'Dinner' ? 'tone-purple' : 'tone-pink';
+        let icon = mealIcons[food.meal] || 'ph-fork-knife';
+        let picIcon = food.image64 ? ' <i class="ph-bold ph-image"></i>' : ''; let priceTag = food.cost > 0 ? ` • ₱${food.cost}` : '';
+        container.innerHTML += `<div class="utang-card list-card" style="margin-bottom: 10px;">
+            <button onclick="deleteFood('${food.id}')" class="list-card-close"><i class="ph-bold ph-x"></i></button>
+            <div class="list-card-row">
+                <div class="list-card-avatar ${tone}"><i class="ph-duotone ${icon}"></i></div>
+                <div class="list-card-main">
+                    <p class="list-card-title">${food.item}${picIcon}</p>
+                    <p class="list-card-meta">${food.meal} • ${food.source}${priceTag}</p>
+                </div>
+                <span style="font-size: 11px; color: var(--text-muted); flex-shrink:0;">${food.time}</span>
+            </div>
         </div>`;
     });
 }
@@ -838,11 +865,14 @@ function updateBudgetDashboard() {
     let container = document.getElementById('walletsContainer'); container.innerHTML = '';
     if (myWallets.length === 0) container.innerHTML = `<p style="color: var(--text-muted); font-size: 12px; font-style: italic;">Wala pang wallet.</p>`;
     else {
-        myWallets.forEach(wallet => {
-            container.innerHTML += `<div style="position: relative; min-width: 120px; background: var(--card-bg); border: 1px solid var(--glass-border); padding: 15px; border-radius: 12px; flex-shrink: 0;">
-                <button onclick="playSound('click'); deleteWallet('${wallet.id}')" style="position: absolute; top: 8px; right: 8px; background: none; border: none; color: var(--danger); cursor: pointer; padding: 0;"><i class="ph-bold ph-x"></i></button>
-                <p style="margin: 0; font-size: 11px; color: var(--text-muted); text-transform: uppercase; padding-right: 15px;">${wallet.name}</p>
-                <h4 style="margin: 5px 0 0 0; color: var(--text-main); font-size: 16px;">₱${parseFloat(wallet.balance).toLocaleString()}</h4>
+        const walletTones = ['tone-peach', 'tone-green', 'tone-pink', 'tone-blue', 'tone-purple', 'tone-amber'];
+        myWallets.forEach((wallet, i) => {
+            let tone = walletTones[i % walletTones.length];
+            container.innerHTML += `<div class="wallet-chip ${tone}">
+                <button onclick="playSound('click'); deleteWallet('${wallet.id}')" class="list-card-close" style="top: 8px; right: 8px;"><i class="ph-bold ph-x"></i></button>
+                <div class="wallet-chip-icon"><i class="ph-duotone ph-wallet"></i></div>
+                <p class="wallet-chip-name">${wallet.name}</p>
+                <h4 class="wallet-chip-balance">₱${parseFloat(wallet.balance).toLocaleString()}</h4>
             </div>`;
         });
     }
@@ -896,19 +926,25 @@ function renderTransactions() {
     recentTx.forEach(t => {
         let isIncome = t.type === 'income'; let isTransfer = t.type === 'transfer';
         let icon = isIncome ? 'ph-trend-up' : (isTransfer ? 'ph-arrows-left-right' : 'ph-trend-down');
-        let color = isIncome ? 'var(--success)' : (isTransfer ? 'var(--secondary)' : 'var(--danger)');
+        let tone = isIncome ? 'tone-green' : (isTransfer ? 'tone-blue' : 'tone-pink');
+        let amountColor = isIncome ? 'var(--success)' : (isTransfer ? 'var(--pastel-blue-fg)' : 'var(--danger)');
         let sign = isIncome ? '+' : (isTransfer ? '' : '-');
         let walletObj = myWallets.find(w => w.id === t.walletId); let walletName = walletObj ? walletObj.name : 'Deleted Wallet';
         let dateStr = new Date(t.createdAt).toLocaleDateString('default', { month: 'short', day: 'numeric' });
         let displayNote = t.note && t.note !== "N/A" ? t.note : t.category;
         let categoryTag = '';
-        if (t.category === 'Debt Payment') { categoryTag = `<span style="font-size: 9px; font-weight: 700; background: rgba(194, 86, 79,0.1); color: var(--danger); padding: 2px 6px; border-radius: 4px; margin-left: 4px;">UTANG • ${walletName}</span>`; } else if (t.category === 'Food & Drinks') { categoryTag = `<span style="font-size: 9px; font-weight: 700; background: rgba(156, 122, 46,0.1); color: var(--pastel-amber-fg); padding: 2px 6px; border-radius: 4px; margin-left: 4px;">FOOD & DRINKS</span>`; }
+        if (t.category === 'Debt Payment') { categoryTag = `<span class="pill-badge tone-pink" style="margin-left: 6px;">Utang</span>`; } else if (t.category === 'Food & Drinks') { categoryTag = `<span class="pill-badge tone-amber" style="margin-left: 6px;">Food</span>`; }
         let targetWalletId = t.walletToId || '';
-        container.innerHTML += `<div class="utang-card" style="padding: 12px 15px; margin-bottom: 10px; background: var(--card-bg); display: flex; justify-content: space-between; align-items: center; border-left-color: ${color}; position: relative;">
-            <div style="display: flex; gap: 12px; align-items: center; overflow: hidden;"><div style="background: var(--glass-bg); padding: 8px; border-radius: 8px; color: ${color};"><i class="ph-bold ${icon}" style="font-size: 16px;"></i></div>
-                <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><p style="margin: 0; font-size: 13px; font-weight: 600; color: var(--text-main);">${displayNote}${categoryTag}</p><p style="margin: 2px 0 0 0; font-size: 11px; color: var(--text-muted);">${walletName} • ${dateStr}</p></div>
+        container.innerHTML += `<div class="utang-card list-card" style="margin-bottom: 10px;">
+            <button onclick="playSound('click'); deleteTransaction('${t.id}', '${t.type}', ${t.amount}, '${t.walletId}', '${targetWalletId}')" class="list-card-close"><i class="ph-bold ph-x"></i></button>
+            <div class="list-card-row">
+                <div class="list-card-avatar ${tone}"><i class="ph-bold ${icon}"></i></div>
+                <div class="list-card-main">
+                    <p class="list-card-title">${displayNote}${categoryTag}</p>
+                    <p class="list-card-meta">${walletName} • ${dateStr}</p>
+                </div>
+                <div class="list-card-amount" style="color: ${amountColor};">${sign}₱${parseFloat(t.amount).toLocaleString()}</div>
             </div>
-            <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0; margin-left: 10px;"><h4 style="margin: 0; font-size: 14px; color: ${color};">${sign}₱${parseFloat(t.amount).toLocaleString()}</h4><button onclick="playSound('click'); deleteTransaction('${t.id}', '${t.type}', ${t.amount}, '${t.walletId}', '${targetWalletId}')" style="background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 5px; transition: 0.2s;" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--text-muted)'"><i class="ph-bold ph-x"></i></button></div>
         </div>`;
     });
 }
@@ -1187,11 +1223,11 @@ function getTimeGreeting() {
 function updateGreetingHeader() {
     let eyebrow = document.getElementById('greetingEyebrow');
     let nameEl = document.getElementById('greetingName');
+    let welcomeNameEl = document.getElementById('welcomeName');
+    let displayName = window.currentUserName ? (window.currentUserName.charAt(0) + window.currentUserName.slice(1).toLowerCase()) : "Engineer";
     if (eyebrow) eyebrow.innerText = getTimeGreeting();
-    if (nameEl) {
-        let displayName = window.currentUserName ? (window.currentUserName.charAt(0) + window.currentUserName.slice(1).toLowerCase()) : "Engineer";
-        nameEl.innerText = `Hi, ${displayName}`;
-    }
+    if (nameEl) nameEl.innerText = `Hi, ${displayName}`;
+    if (welcomeNameEl) welcomeNameEl.innerText = `Hi, ${displayName}`;
 }
 setInterval(updateGreetingHeader, 60000);
 
@@ -1232,30 +1268,22 @@ function startApp() {
     if (window.auth && window.authMethods && window.db) {
         window.authMethods.onAuthStateChanged(window.auth, (user) => {
             if (user) {
-                window.currentUid = user.uid; document.getElementById('logoutBtn').style.display = 'block';
+                window.currentUid = user.uid;
                 let fallbackName = user.displayName ? user.displayName.split(' ')[0].toUpperCase() : "USER"; window.currentUserName = fallbackName; 
                 updateGreetingHeader();
                 const qProfile = window.dbMethods.query(window.dbMethods.collection(window.db, "userProfiles"), window.dbMethods.where("userId", "==", window.currentUid));
-window.dbMethods.onSnapshot(qProfile, (snapshot) => {
+                window.dbMethods.onSnapshot(qProfile, (snapshot) => {
                     if (!snapshot.empty) { window.currentUserName = snapshot.docs[0].data().username.toUpperCase(); }
-                    let subtitle = document.getElementById('greetingSubtitle');
-                    if (subtitle) { subtitle.innerHTML = `Welcome back, <span style="color: var(--primary); font-weight: bold;">${window.currentUserName}</span> <i class="ph-bold ph-pencil-simple" style="font-size: 11px; opacity: 0.5;"></i>`; }
                     updateGreetingHeader();
                 });
-                
-                // I-SHOW YUNG SECRET BUTTON
-                document.getElementById('secretLockBtn').style.display = 'flex';
-                
-                // REKTA SA FAKE GAME SCREEN PAGKA-LOGIN
-                switchScreen('gameScreen');
+
+                // Pumunta muna sa Welcome + Swipe Up screen (walang disguise, tapos PIN gate)
+                switchScreen('welcomeScreen');
             } else {
-                document.getElementById('logoutBtn').style.display = 'none'; 
-                let secretBtn = document.getElementById('secretLockBtn');
-                if (secretBtn) secretBtn.style.display = 'none';
                 switchScreen('loginScreen');
             }
         });
-        document.getElementById('googleLoginBtn').addEventListener('click', handleLogin); document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+        document.getElementById('googleLoginBtn').addEventListener('click', handleLogin);
     } else { setTimeout(startApp, 500); }
 }
 startApp();
@@ -1343,51 +1371,108 @@ function exportUtangToCSV() {
     document.body.removeChild(link);
 }
 // ==========================================
-// 🔒 MODULE 8: PIN LOCK SYSTEM
+// 🔒 MODULE 8: PIN LOCK SYSTEM (Phone-unlock numpad)
 // ==========================================
 let savedPin = localStorage.getItem('flux_pin');
+let pinBuffer = '';
+let pinMode = 'verify'; // 'create' | 'confirm' | 'verify'
+let tempNewPin = '';
+
+function updatePinDots() {
+    let dots = document.querySelectorAll('#pinDots .pin-dot');
+    dots.forEach((dot, i) => dot.classList.toggle('filled', i < pinBuffer.length));
+}
+
+function shakePinDots(message) {
+    let container = document.getElementById('pinDots');
+    if (container) {
+        container.classList.add('shake');
+        setTimeout(() => container.classList.remove('shake'), 400);
+    }
+    if (message) {
+        let subtitle = document.getElementById('pinSubtitle');
+        if (subtitle) subtitle.innerText = message;
+    }
+}
+
+function numpadPress(digit) {
+    if (pinBuffer.length >= 4) return;
+    pinBuffer += digit;
+    updatePinDots();
+    if (pinBuffer.length === 4) { setTimeout(handlePinComplete, 150); }
+}
+
+function numpadBackspace() {
+    pinBuffer = pinBuffer.slice(0, -1);
+    updatePinDots();
+}
+
+function resetPinBuffer() {
+    pinBuffer = '';
+    updatePinDots();
+}
+
+function handlePinComplete() {
+    let pinTitle = document.getElementById('pinTitle');
+    let pinSubtitle = document.getElementById('pinSubtitle');
+
+    if (pinMode === 'create') {
+        tempNewPin = pinBuffer;
+        resetPinBuffer();
+        pinMode = 'confirm';
+        playSound('click');
+        if (pinTitle) pinTitle.innerText = "Confirm your PIN";
+        if (pinSubtitle) pinSubtitle.innerText = "Type it again to make sure.";
+    } else if (pinMode === 'confirm') {
+        if (pinBuffer === tempNewPin) {
+            localStorage.setItem('flux_pin', tempNewPin);
+            savedPin = tempNewPin;
+            playSound('success');
+            resetPinBuffer();
+            proceedToApp();
+        } else {
+            shakePinDots("PINs didn't match. Try again.");
+            playSound('click');
+            resetPinBuffer();
+            tempNewPin = '';
+            pinMode = 'create';
+            setTimeout(() => {
+                if (pinTitle) pinTitle.innerText = "Create your PIN";
+                if (pinSubtitle) pinSubtitle.innerText = "Set a 4-digit PIN for this device.";
+            }, 400);
+        }
+    } else { // verify
+        if (pinBuffer === savedPin) {
+            playSound('success');
+            resetPinBuffer();
+            proceedToApp();
+        } else {
+            shakePinDots("Wrong PIN. Try again.");
+            playSound('click');
+            resetPinBuffer();
+        }
+    }
+}
 
 function checkPinStatus() {
     savedPin = localStorage.getItem('flux_pin');
     let pinTitle = document.getElementById('pinTitle');
     let pinSubtitle = document.getElementById('pinSubtitle');
-    let pinInput = document.getElementById('pinInput');
-    
-    if (pinInput) pinInput.value = ''; // clear input
+    resetPinBuffer();
+    tempNewPin = '';
 
     if (!savedPin) {
-        if(pinTitle) pinTitle.innerText = "Set a PIN";
-        if(pinSubtitle) pinSubtitle.innerText = "Create a 4-digit PIN for this device.";
+        pinMode = 'create';
+        if (pinTitle) pinTitle.innerText = "Create your PIN";
+        if (pinSubtitle) pinSubtitle.innerText = "Set a 4-digit PIN for this device.";
     } else {
-        if(pinTitle) pinTitle.innerText = "Enter PIN";
-        if(pinSubtitle) pinSubtitle.innerText = "Unlock FLUX OS.";
+        pinMode = 'verify';
+        if (pinTitle) pinTitle.innerText = "Enter PIN";
+        if (pinSubtitle) pinSubtitle.innerText = "Unlock FLUX OS.";
     }
     switchScreen('pinScreen');
 }
 
-function verifyPin() {
-    let input = document.getElementById('pinInput').value;
-    if (input.length < 4) { alert("Dapat 4 digits ang PIN!"); return; }
-    
-    if (!savedPin) {
-        // First time setup
-        localStorage.setItem('flux_pin', input);
-        savedPin = input;
-        playSound('success');
-        document.getElementById('pinInput').value = '';
-        proceedToApp();
-    } else {
-        // Verify existing
-        if (input === savedPin) {
-            playSound('success');
-            document.getElementById('pinInput').value = '';
-            proceedToApp();
-        } else {
-            alert("Mali ang PIN! Try again.");
-            document.getElementById('pinInput').value = '';
-        }
-    }
-}
 function forgotPin() {
     if (confirm("Nakalimutan mo ba talaga ang PIN mo, Engineer? Ire-reset natin ito pero kailangan mong mag-login ulit gamit ang Google account mo para makagawa ng bago.")) {
         localStorage.removeItem('flux_pin');
@@ -1407,6 +1492,43 @@ function proceedToApp() {
         isAppInitialized = true; 
     }
 }
+
+// ==========================================
+// 👆 WELCOME SCREEN — SWIPE UP TO CONTINUE
+// ==========================================
+function goToPinGate() {
+    checkPinStatus();
+}
+
+let recentTouchGate = false;
+
+function handleSwipeTap() {
+    // Fallback for desktop / non-touch: tap anywhere on welcome screen.
+    // Skipped if a touch gesture already handled it (avoids double-trigger from synthetic click).
+    if (recentTouchGate) return;
+    playSound('click');
+    goToPinGate();
+}
+
+function initSwipeGesture() {
+    let welcomeScreen = document.getElementById('welcomeScreen');
+    if (!welcomeScreen) return;
+    let startY = null;
+    const THRESHOLD = 50;
+
+    welcomeScreen.addEventListener('touchstart', (e) => { startY = e.touches[0].clientY; }, { passive: true });
+    welcomeScreen.addEventListener('touchend', (e) => {
+        if (startY === null) return;
+        let endY = e.changedTouches[0].clientY;
+        if (startY - endY > THRESHOLD) {
+            recentTouchGate = true;
+            goToPinGate();
+            setTimeout(() => { recentTouchGate = false; }, 500);
+        }
+        startY = null;
+    }, { passive: true });
+}
+initSwipeGesture();
 
 // ==========================================
 // 🧹 MODULE 9: CLEAR ALL (RESET) FUNCTIONS
@@ -1525,38 +1647,6 @@ function closeGame() {
     }
 }
 
-// ==========================================
-// 🧮 MODULE 12: CALCULATOR VAULT
-// ==========================================
-function calcAdd(val) {
-    document.getElementById('calcDisplay').value += val;
-}
-function calcClear() {
-    document.getElementById('calcDisplay').value = '';
-}
-function calcEqual() {
-    let display = document.getElementById('calcDisplay');
-    let input = display.value;
-
-    // 1. VAULT TRIGGER: Kung ang tinype mo ay tumugma sa PIN
-    if (input === savedPin) {
-        display.value = "G"; // Letter G for Gillian
-        setTimeout(() => {
-            playSound('success');
-            proceedToApp();
-        }, 800);
-        return;
-    }
-
-    // 2. PRANK MODE: Kung hindi PIN ang tinype, mag-generate ng random letter
-    // Mga letters na pagpipilian
-    const randomLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    const randomChar = randomLetters.charAt(Math.floor(Math.random() * randomLetters.length));
-    
-    // Gawin nating mukhang "Error" o "Sira" yung response
-    display.value = randomChar; 
-}
-
 async function undoPartialPayment(utangFirebaseId, partialId) {
     if (!confirm("I-undo ang partial payment na ito? Ibabalik nito ang pera sa wallet mo at tataas ulit ang balance ng utang.")) return;
     
@@ -1619,10 +1709,11 @@ window.togglePaidFolder = togglePaidFolder;
 window.setUtangView = setUtangView; window.toggleTheme = toggleTheme; window.setCustomUsername = setCustomUsername;
 window.refreshFoodSummary = refreshFoodSummary; window.toggleVisibility = toggleVisibility; window.updateQuickGlance = updateQuickGlance;
 window.setReceiptFilter = setReceiptFilter; window.playSound = playSound; window.exportUtangToCSV = exportUtangToCSV;
-window.verifyPin = verifyPin; window.forgotPin = forgotPin;
+window.forgotPin = forgotPin;
 window.clearAllUtang = clearAllUtang; window.clearAllTasks = clearAllTasks; window.clearAllFood = clearAllFood; window.clearAllTransactions = clearAllTransactions;
 window.openGame = openGame; window.closeGame = closeGame;
-window.calcAdd = calcAdd; window.calcClear = calcClear; window.calcEqual = calcEqual;
+window.numpadPress = numpadPress; window.numpadBackspace = numpadBackspace; window.checkPinStatus = checkPinStatus;
+window.handleSwipeTap = handleSwipeTap; window.goToPinGate = goToPinGate;
 window.openQuickAdd = openQuickAdd; window.closeQuickAdd = closeQuickAdd;
 window.openProfileSheet = openProfileSheet; window.closeProfileSheet = closeProfileSheet;
 window.openNotifications = openNotifications; window.updateGreetingHeader = updateGreetingHeader;
