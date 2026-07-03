@@ -122,7 +122,6 @@ body {
     margin: 0;
     background: var(--dark-card-bg);
     color: var(--dark-card-fg);
-    display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
@@ -130,6 +129,7 @@ body {
     text-align: center;
     z-index: 5;
 }
+.lock-screen.active-screen { display: flex; }
 
 /* --- Welcome screen --- */
 .lock-top {
