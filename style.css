@@ -589,7 +589,134 @@ body {
 .icon-chip-btn:hover { transform: scale(1.08); }
 .icon-chip-btn.tone-purple { background: var(--pastel-purple-bg); color: var(--pastel-purple-fg); }
 .icon-chip-btn.tone-blue { background: var(--pastel-blue-bg); color: var(--pastel-blue-fg); }
+.icon-chip-btn.tone-pink { background: var(--pastel-pink-bg); color: var(--pastel-pink-fg); }
 .icon-chip-btn.tone-danger { background: var(--pastel-pink-bg); color: var(--danger); }
+
+/* ============================================================
+   SCREEN HEADER ROW (icon back-chip + title + actions)
+   ============================================================ */
+.screen-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+.screen-back-chip {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+}
+.screen-back-chip:hover { transform: translateX(-2px); }
+.screen-back-chip.tone-pink { background: var(--pastel-pink-bg); color: var(--pastel-pink-fg); }
+.screen-back-chip.tone-purple { background: var(--pastel-purple-bg); color: var(--pastel-purple-fg); }
+.screen-back-chip.tone-amber { background: var(--pastel-amber-bg); color: var(--pastel-amber-fg); }
+.screen-back-chip.tone-blue { background: var(--pastel-blue-bg); color: var(--pastel-blue-fg); }
+.screen-back-chip.tone-green { background: var(--pastel-green-bg); color: var(--pastel-green-fg); }
+.screen-back-chip.tone-neutral { background: var(--glass-bg); color: var(--text-main); }
+.screen-header-title {
+    flex: 1;
+    font-family: var(--font-body);
+    font-size: 19px;
+    font-weight: 800;
+    color: var(--text-main);
+}
+.screen-add-chip {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+    cursor: pointer;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(43,35,26,0.12);
+    transition: transform 0.2s ease;
+}
+.screen-add-chip:hover { transform: scale(1.08); }
+.screen-add-chip.tone-pink { background: var(--pastel-pink-fg); color: #fff; }
+.screen-add-chip.tone-purple { background: var(--pastel-purple-fg); color: #fff; }
+.screen-add-chip.tone-blue { background: var(--pastel-blue-fg); color: #fff; }
+.screen-add-chip.tone-green { background: var(--pastel-green-fg); color: #fff; }
+.screen-add-chip.tone-amber { background: var(--pastel-amber-fg); color: #fff; }
+
+/* ============================================================
+   HERO STAT ROW (2-up featured cards, e.g. Utang screen)
+   ============================================================ */
+.hero-stat-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+.hero-stat-card {
+    border-radius: 20px;
+    padding: 18px 16px;
+}
+.hero-stat-card p {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 700;
+    opacity: 0.75;
+    margin-bottom: 6px;
+}
+.hero-stat-card h3 { font-size: 20px; font-weight: 800; }
+.hero-stat-card.tone-pink { background: var(--pastel-pink-bg); color: var(--pastel-pink-fg); }
+.hero-stat-card.tone-peach { background: var(--pastel-peach-bg); color: var(--pastel-peach-fg); }
+.hero-stat-card.tone-dark { background: var(--dark-card-bg); color: var(--dark-card-fg); }
+.hero-stat-card.tone-dark p { color: rgba(245,239,227,0.6); opacity: 1; }
+
+.mini-stat-row {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-muted);
+    padding: 0 4px;
+    margin-bottom: 22px;
+}
+.mini-stat-row strong { color: var(--text-main); font-weight: 700; }
+.mini-stat-row i { color: var(--success); margin-right: 2px; }
+
+/* ============================================================
+   PILL SEARCH BAR
+   ============================================================ */
+.pill-search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--glass-bg);
+    border-radius: 30px;
+    padding: 12px 18px;
+    margin-bottom: 15px;
+}
+.pill-search i { color: var(--text-muted); font-size: 15px; }
+.pill-search input {
+    border: none;
+    background: none;
+    outline: none;
+    flex: 1;
+    font-size: 13px;
+    color: var(--text-main);
+    font-family: var(--font-body);
+    padding: 0;
+    margin: 0;
+}
+.pill-search.tone-pink { background: var(--pastel-pink-bg); }
+.pill-search.tone-pink i { color: var(--pastel-pink-fg); }
+.pill-search.tone-pink input::placeholder { color: var(--pastel-pink-fg); opacity: 0.65; }
 
 .ai-verdict-box {
     background: var(--pastel-blue-bg);
@@ -867,6 +994,14 @@ body {
     box-shadow: 0 2px 8px rgba(43,35,26,0.08);
 }
 
+.segmented-control.tone-pink { background: var(--pastel-pink-bg); }
+.segmented-control.tone-pink .segmented-btn { color: var(--pastel-pink-fg); }
+.segmented-control.tone-pink .segmented-btn.active {
+    background: var(--pastel-pink-fg);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(180,83,75,0.3);
+}
+
 .back-btn {
     background: none;
     border: none;
@@ -979,6 +1114,7 @@ input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(0.5); cur
     overflow: hidden;
 }
 .utang-card:hover { box-shadow: 0 6px 18px rgba(43,35,26,0.08); }
+.utang-card.list-card { border-left: none; }
 
 /* ============================================================
    SHARED LIST-CARD LANGUAGE (Utang / Food / Transactions)
@@ -1044,6 +1180,31 @@ input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(0.5); cur
     white-space: nowrap;
 }
 .list-card-footer { margin-top: 10px; }
+
+.list-card-action-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 4px;
+}
+.pay-pill-btn {
+    background: var(--pastel-pink-fg);
+    color: #fff;
+    border: none;
+    padding: 9px 22px;
+    border-radius: 20px;
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+.pay-pill-btn:hover:not(:disabled) { transform: translateY(-1px); }
+.pay-pill-btn:disabled {
+    background: var(--pastel-green-bg);
+    color: var(--pastel-green-fg);
+    cursor: default;
+}
 
 .pill-badge {
     display: inline-flex;
