@@ -34,6 +34,10 @@
     --pastel-pink-fg:  #B4534B;
     --pastel-blue-bg:  #DCE3F2;
     --pastel-blue-fg:  #4C5FA0;
+    --pastel-purple-bg: #E6DEF2;
+    --pastel-purple-fg: #6C4F94;
+    --pastel-amber-bg: #F2E2B8;
+    --pastel-amber-fg: #9C7A2E;
     --dark-card-bg:    #2A231C;
     --dark-card-fg:    #F5EFE3;
 
@@ -663,7 +667,8 @@ input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(0.5); cur
     background: var(--card-bg);
     padding: 18px;
     border-radius: 22px;
-    border: 1px solid var(--glass-border);
+    border: none;
+    box-shadow: 0 3px 14px rgba(43,35,26,0.05);
     margin-bottom: 22px;
 }
 .hidden-form label {
@@ -682,15 +687,17 @@ input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(0.5); cur
    ============================================================ */
 .utang-card {
     background: var(--card-bg);
-    border: 1px solid var(--glass-border);
+    border: none;
     border-left: 3px solid var(--primary);
     border-radius: 18px;
     padding: 18px;
     margin-bottom: 14px;
-    transition: border-color 0.3s, box-shadow 0.3s;
+    box-shadow: 0 3px 12px rgba(43,35,26,0.05);
+    transition: box-shadow 0.3s, transform 0.2s;
     position: relative;
     overflow: hidden;
 }
+.utang-card:hover { box-shadow: 0 6px 18px rgba(43,35,26,0.08); }
 .utang-card::before {
     content: '';
     position: absolute;
@@ -711,13 +718,13 @@ input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(0.5); cur
 .utang-card p { font-size: 12px; }
 
 .due-row button {
-    background: rgba(244, 63, 94, 0.1) !important;
+    background: rgba(194, 86, 79, 0.1) !important;
     color: var(--danger) !important;
-    border: 1px solid rgba(244, 63, 94, 0.2) !important;
+    border: 1px solid rgba(194, 86, 79, 0.2) !important;
     transition: background 0.2s, transform 0.2s;
 }
 .due-row button:hover {
-    background: rgba(244, 63, 94, 0.22) !important;
+    background: rgba(194, 86, 79, 0.22) !important;
     transform: scale(1.08);
 }
 
@@ -741,9 +748,9 @@ input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(0.5); cur
     box-shadow: 0 0 16px var(--primary-glow);
 }
 .paid-btn:disabled {
-    background: rgba(16, 185, 129, 0.08);
+    background: rgba(78, 154, 107, 0.08);
     color: var(--success);
-    border-color: rgba(16, 185, 129, 0.3);
+    border-color: rgba(78, 154, 107, 0.3);
     cursor: default;
 }
 
@@ -771,7 +778,8 @@ input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(0.5); cur
     justify-content: space-between;
     align-items: center;
     background: var(--card-bg);
-    border: 1px solid var(--glass-border);
+    border: none;
+    box-shadow: 0 3px 12px rgba(43,35,26,0.05);
     padding: 11px 18px;
     border-radius: 18px;
     margin-bottom: 18px;
@@ -804,7 +812,8 @@ input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(0.5); cur
     padding: 14px;
     border-radius: 18px;
     text-align: center;
-    border: 1px solid var(--glass-border);
+    border: none;
+    box-shadow: 0 3px 12px rgba(43,35,26,0.05);
 }
 .stat-col p {
     font-family: var(--font-body);
@@ -817,9 +826,18 @@ input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(0.5); cur
 }
 .stat-col h3 {
     font-family: var(--font-body);
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 800;
+    color: var(--text-main);
 }
+.stat-col.tone-peach { background: var(--pastel-peach-bg); }
+.stat-col.tone-peach p, .stat-col.tone-peach h3 { color: var(--pastel-peach-fg); }
+.stat-col.tone-green { background: var(--pastel-green-bg); }
+.stat-col.tone-green p, .stat-col.tone-green h3 { color: var(--pastel-green-fg); }
+.stat-col.tone-pink { background: var(--pastel-pink-bg); }
+.stat-col.tone-pink p, .stat-col.tone-pink h3 { color: var(--pastel-pink-fg); }
+.stat-col.tone-blue { background: var(--pastel-blue-bg); }
+.stat-col.tone-blue p, .stat-col.tone-blue h3 { color: var(--pastel-blue-fg); }
 .text-danger { color: var(--danger); }
 .text-success { color: var(--success); }
 
@@ -842,8 +860,8 @@ input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(0.5); cur
 .kanban-col {
     min-width: 275px;
     flex: 1;
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
+    background: var(--card-bg);
+    border: none;
     border-radius: 20px;
     padding: 14px;
     display: flex;
@@ -851,28 +869,37 @@ input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(0.5); cur
     scroll-snap-align: center;
     max-height: 60vh;
     overflow-y: auto;
+    box-shadow: 0 3px 14px rgba(43,35,26,0.05);
 }
-.kanban-col h4 {
+.kanban-col-title {
     font-family: var(--font-body);
     font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 2px;
     text-align: center;
-    background: var(--card-bg);
     padding: 9px;
     border-radius: 12px;
     margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
 }
+.kanban-col-title.tone-peach { background: var(--pastel-peach-bg); color: var(--pastel-peach-fg); }
+.kanban-col-title.tone-pink { background: var(--pastel-pink-bg); color: var(--pastel-pink-fg); }
+.kanban-col-title.tone-green { background: var(--pastel-green-bg); color: var(--pastel-green-fg); }
+.kanban-col-title.tone-blue { background: var(--pastel-blue-bg); color: var(--pastel-blue-fg); }
 .kanban-card {
     background: var(--card-bg);
-    border: 1px solid var(--glass-border);
+    border: none;
+    box-shadow: 0 2px 8px rgba(43,35,26,0.05);
     border-radius: 12px;
     padding: 14px;
     margin-bottom: 10px;
-    transition: border-color 0.25s, transform 0.25s;
+    transition: box-shadow 0.25s, transform 0.25s;
 }
-.kanban-card:hover { border-color: var(--primary); transform: translateY(-3px); }
+.kanban-card:hover { box-shadow: 0 6px 16px rgba(43,35,26,0.1); transform: translateY(-3px); }
 .kanban-actions {
     display: flex;
     justify-content: space-between;
@@ -901,7 +928,8 @@ input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(0.5); cur
     text-align: center;
     padding: 32px 20px;
     background: var(--card-bg) !important;
-    border: 1px solid var(--glass-border) !important;
+    border: none !important;
+    box-shadow: 0 6px 24px rgba(43,35,26,0.07);
     border-radius: 26px !important;
 }
 
