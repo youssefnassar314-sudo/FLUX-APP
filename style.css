@@ -732,10 +732,11 @@ body {
    BOTTOM NAV BAR
    ============================================================ */
 .bottom-nav {
-    position: absolute;
-    left: 22px;
-    right: 22px;
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
     bottom: 20px;
+    width: calc(min(100vw - 32px, 420px) - 44px);
     background: var(--dark-card-bg);
     border-radius: 30px;
     padding: 10px 14px;
