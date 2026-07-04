@@ -721,6 +721,57 @@ function initRealtimeFood() {
     });
 }
 
+let customFoodCategories = [];
+
+function initRealtimeFoodCategories() {
+    const q = window.dbMethods.query(window.dbMethods.collection(window.db, "foodCategories"), window.dbMethods.where("userId", "==", window.currentUid));
+    window.dbMethods.onSnapshot(q, (snapshot) => {
+        customFoodCategories = []; snapshot.forEach(doc => customFoodCategories.push({ id: doc.id, ...doc.data() }));
+        customFoodCategories.sort((a, b) => a.name.localeCompare(b.name));
+        renderFoodSourceOptions();
+    });
+}
+
+function renderFoodSourceOptions() {
+    let select = document.getElementById('foodSource');
+    let divider = document.getElementById('foodSourceDivider');
+    if (!select || !divider) return;
+    let currentVal = select.value;
+    // Alisin muna lahat ng dating custom options (may data-custom="1" tag)
+    select.querySelectorAll('option[data-custom="1"]').forEach(opt => opt.remove());
+    // Ilagay yung custom categories bago yung divider
+    customFoodCategories.forEach(cat => {
+        let opt = document.createElement('option');
+        opt.value = cat.name; opt.textContent = cat.name; opt.dataset.custom = "1";
+        divider.parentNode.insertBefore(opt, divider);
+    });
+    // Ibalik yung napiling value kung meron pa (hindi yung __add_new__ sentinel)
+    if (currentVal && currentVal !== '__add_new__') select.value = currentVal;
+}
+
+async function handleFoodSourceChange(selectEl) {
+    if (selectEl.value !== '__add_new__') return;
+    let newCat = prompt("Anong bagong food category ang gusto mong idagdag?\n(Ex: Panaderya, Delivery App, Buffet)");
+    if (newCat && newCat.trim() !== "") {
+        let finalName = newCat.trim();
+        // Check muna kung existing na yung category (case-insensitive) para hindi magduplicate
+        let allOptions = Array.from(selectEl.options).map(o => o.value.toLowerCase());
+        if (allOptions.includes(finalName.toLowerCase())) {
+            selectEl.value = finalName; playSound('click'); return;
+        }
+        try {
+            await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "foodCategories"), {
+                userId: window.currentUid, name: finalName, createdAt: Date.now()
+            });
+            playSound('success');
+            // Yung realtime listener na ang bahalang mag-render; i-set lang natin yung pending value
+            setTimeout(() => { selectEl.value = finalName; }, 400);
+        } catch (e) { console.error(e); alert("May error sa pag-save ng bagong category."); selectEl.value = "Home-cooked"; }
+    } else {
+        selectEl.value = "Home-cooked";
+    }
+}
+
 function getFoodGradeColor(grade) {
     if (!grade || grade === '--' || grade === 'N/A') return { bg: 'var(--glass-bg)', border: 'var(--glass-border)', text: 'var(--text-muted)' };
     const g = grade.toUpperCase();
@@ -1503,7 +1554,7 @@ function forgotPin() {
 function proceedToApp() {
     switchScreen('dashboardScreen');
     if (!isAppInitialized) { 
-        initRealtimeUtang(); initRealtimeTasks(); initRealtimeFood(); initRealtimeBudget(); 
+        initRealtimeUtang(); initRealtimeTasks(); initRealtimeFood(); initRealtimeBudget(); initRealtimeFoodCategories();
         initRealtimeTransactions(); initRealtimeBudgetConfig(); initRealtimeAiAnalyses(); 
         initRealtimeFoodSummary(); 
         isAppInitialized = true; 
@@ -1735,6 +1786,7 @@ window.clearAllUtang = clearAllUtang; window.clearAllTasks = clearAllTasks; wind
 window.openGame = openGame; window.closeGame = closeGame;
 window.numpadPress = numpadPress; window.numpadBackspace = numpadBackspace; window.checkPinStatus = checkPinStatus;
 window.handleSwipeTap = handleSwipeTap; window.goToPinGate = goToPinGate;
+window.handleFoodSourceChange = handleFoodSourceChange;
 window.closeAddUtangForm = closeAddUtangForm;
 window.openQuickAdd = openQuickAdd; window.closeQuickAdd = closeQuickAdd;
 window.openProfileSheet = openProfileSheet; window.closeProfileSheet = closeProfileSheet;
