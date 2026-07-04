@@ -502,6 +502,18 @@
             <div id="transactionListContainer"></div>
         </div>
 
+        <div id="quotesScreen" class="screen lock-screen" style="background: var(--dark-card-bg);">
+            <div class="lock-top" style="margin-top: 0;">
+                <div class="welcome-orb"><i class="ph-bold ph-quotes"></i></div>
+                <p id="quotesPeriodLabel" class="welcome-eyebrow">Morning Motivation</p>
+            </div>
+            <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 8px;">
+                <p id="quotesText" style="font-family: var(--font-body); font-size: 20px; font-weight: 700; line-height: 1.5; color: var(--dark-card-fg); text-align: center; margin-bottom: 16px;">Loading...</p>
+                <p id="quotesAuthor" style="font-size: 13px; color: rgba(245,239,227,0.6);"></p>
+            </div>
+            <button class="screen-back-chip tone-neutral" style="background: rgba(245,239,227,0.1); color: var(--dark-card-fg);" onclick="playSound('click'); switchScreen('dashboardScreen')"><i class="ph-bold ph-caret-left"></i></button>
+        </div>
+
         <div id="statsScreen" class="screen">
             <div class="screen-header-row">
                 <button class="screen-back-chip tone-blue" onclick="playSound('click'); switchScreen('dashboardScreen')"><i class="ph-bold ph-caret-left"></i></button>
@@ -563,8 +575,8 @@
             <button class="nav-btn-center" onclick="playSound('click'); openQuickAdd()" title="Quick Add">
                 <i class="ph-bold ph-plus"></i>
             </button>
-            <button class="nav-btn" data-nav="summaryScreen" onclick="playSound('click'); openDailySummary()" title="Receipt">
-                <i class="ph-bold ph-receipt"></i>
+            <button class="nav-btn" data-nav="quotesScreen" onclick="playSound('click'); switchScreen('quotesScreen')" title="Quotes">
+                <i class="ph-bold ph-quotes"></i>
             </button>
             <button class="nav-btn" data-nav="profile" onclick="playSound('click'); openProfileSheet()" title="Profile">
                 <i class="ph-bold ph-user-circle"></i>
