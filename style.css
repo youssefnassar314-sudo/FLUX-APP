@@ -486,6 +486,86 @@ body {
     opacity: 0.6;
     margin-top: 4px;
 }
+
+/* ============================================================
+   WISHLIST / SAVINGS GOALS
+   ============================================================ */
+.dashed-add-btn {
+    width: 100%;
+    background: var(--pastel-purple-bg);
+    border: 2px dashed var(--pastel-purple-fg);
+    color: var(--pastel-purple-fg);
+    border-radius: 20px;
+    padding: 22px;
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: center;
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+.dashed-add-btn:hover { transform: translateY(-2px); background: var(--pastel-purple-bg); }
+
+.goal-card { margin-bottom: 14px; }
+.goal-card-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+.goal-card-main { flex: 1; min-width: 0; }
+.goal-card-title { font-size: 15px; font-weight: 800; color: var(--text-main); }
+.goal-card-wallet { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.goal-card-amounts {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 8px;
+}
+.goal-card-saved { font-size: 22px; font-weight: 800; color: var(--pastel-purple-fg); }
+.goal-card-target { font-size: 12px; color: var(--text-muted); }
+.goal-progress-track {
+    height: 9px;
+    background: var(--glass-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+.goal-progress-fill { height: 100%; background: var(--pastel-purple-fg); border-radius: 10px; transition: width 0.4s ease; }
+.goal-card-caption { font-size: 11px; color: var(--text-muted); margin-bottom: 10px; }
+.goal-wallet-share {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--glass-bg);
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 10.5px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+}
+.goal-wallet-share strong { color: var(--text-main); }
+.goal-card-actions { display: flex; gap: 8px; }
+.goal-add-btn {
+    flex: 1;
+    background: var(--pastel-purple-fg);
+    color: #fff;
+    border: none;
+    padding: 10px;
+    border-radius: 12px;
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+.goal-delete-btn {
+    background: var(--pastel-pink-bg);
+    color: var(--danger);
+    border: none;
+    padding: 10px 14px;
+    border-radius: 12px;
+    cursor: pointer;
+}
 .wallet-chip.tone-peach { background: var(--pastel-peach-bg); color: var(--pastel-peach-fg); }
 .wallet-chip.tone-green { background: var(--pastel-green-bg); color: var(--pastel-green-fg); }
 .wallet-chip.tone-pink { background: var(--pastel-pink-bg); color: var(--pastel-pink-fg); }
