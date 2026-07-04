@@ -218,6 +218,9 @@
                 <label>App Used</label>
                 <input type="text" id="appName" placeholder="e.g., SPayLater, GCash" oninput="generateUtangID()">
 
+                <label>Ano ba binili/hiniram mo? (Optional)</label>
+                <input type="text" id="utangItem" placeholder="Ex: Air Fryer 3.5L, Load, Rent share">
+
                 <label>Date Borrowed</label>
                 <input type="date" id="dateBorrowed" onchange="generateUtangID()" style="color: var(--text-muted);">
 
@@ -499,6 +502,32 @@
             <div id="transactionListContainer"></div>
         </div>
 
+        <div id="statsScreen" class="screen">
+            <div class="screen-header-row">
+                <button class="screen-back-chip tone-blue" onclick="playSound('click'); switchScreen('dashboardScreen')"><i class="ph-bold ph-caret-left"></i></button>
+                <h2 class="screen-header-title">Stats</h2>
+                <div style="width: 38px;"></div>
+            </div>
+
+            <div class="month-nav" style="padding: 10px 20px;">
+                <button onclick="playSound('click'); changeStatsMonth(-1)"><i class="ph-bold ph-caret-left"></i></button>
+                <h3 id="statsMonthLabel" style="font-size: 13px; text-transform: uppercase; letter-spacing: 2px; color: var(--primary);">Month Year</h3>
+                <button onclick="playSound('click'); changeStatsMonth(1)"><i class="ph-bold ph-caret-right"></i></button>
+            </div>
+
+            <div class="networth-card" style="padding: 20px;">
+                <p style="font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: rgba(245,239,227,0.6); margin-bottom: 8px;">Spent This Month</p>
+                <h1 id="statsSpentTotal" style="font-size: 30px; margin: 0 0 6px;">₱0.00</h1>
+                <p id="statsBudgetSubtitle" style="font-size: 11px; color: rgba(245,239,227,0.6); margin: 0;">Walang naka-set na budget</p>
+            </div>
+
+            <div id="statsDonutContainer" style="display: flex; justify-content: center; padding: 24px 0 10px;"></div>
+            <div id="statsLegendContainer" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; margin-bottom: 24px;"></div>
+
+            <p class="section-label">By Category</p>
+            <div id="statsCategoryList"></div>
+        </div>
+
         <div id="wishlistScreen" class="screen">
             <div class="screen-header-row">
                 <button class="screen-back-chip tone-purple" onclick="playSound('click'); switchScreen('dashboardScreen')"><i class="ph-bold ph-caret-left"></i></button>
@@ -528,7 +557,7 @@
             <button class="nav-btn" data-nav="dashboardScreen" onclick="playSound('click'); switchScreen('dashboardScreen')" title="Home">
                 <i class="ph-bold ph-house"></i>
             </button>
-            <button class="nav-btn" data-nav="budgetScreen" onclick="playSound('click'); switchScreen('budgetScreen')" title="Budget">
+            <button class="nav-btn" data-nav="statsScreen" onclick="playSound('click'); switchScreen('statsScreen')" title="Stats">
                 <i class="ph-bold ph-chart-pie-slice"></i>
             </button>
             <button class="nav-btn-center" onclick="playSound('click'); openQuickAdd()" title="Quick Add">
@@ -645,12 +674,10 @@
             <select id="transactionWallet" class="glass-select"></select>
             <select id="transactionWalletTo" class="glass-select" style="display:none;"></select>
             <input type="number" id="transactionAmount" placeholder="Amount">
-            <select id="transactionCategory" class="glass-select" style="display:none;">
+            <select id="transactionCategory" class="glass-select" style="display:none;" onchange="handleExpenseCategoryChange(this)">
                 <option value="">Category...</option>
-                <option value="Needs (Essentials)">Needs</option>
-                <option value="Food & Drinks">Food</option>
-                <option value="Education">Education</option>
-                <option value="Wants / Lifestyle">Wants</option>
+                <option id="expenseCategoryDivider" disabled>──────────</option>
+                <option value="__add_new__">+ Add Category</option>
             </select>
             <input type="text" id="transactionNote" placeholder="Notes">
             <div id="budgetCheckboxRow" style="display:none; align-items:center; gap:10px; margin-bottom:15px; padding: 12px 14px; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius:12px;">
