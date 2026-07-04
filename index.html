@@ -403,17 +403,19 @@
                         <option value="Dinner">Dinner</option>
                         <option value="Snack">Snack</option>
                     </select>
-                    <select id="foodSource" class="glass-select" style="margin-bottom: 0; flex: 1;">
-                        <option value="Homecooked">Luto sa Bahay</option>
-                        <option value="Carinderia">Carinderia / Turo-turo</option>
-                        <option value="Panaderya">Panaderya</option>
-                        <option value="SariSariStore">Tindahan / De-lata</option>
-                        <option value="ConvenienceStore">7-Eleven / Alfamart</option>
-                        <option value="StreetFood">Street Food / Pares</option>
-                        <option value="FastFood">Fast Food</option>
-                        <option value="Delivery">Delivery App</option>
-                        <option value="Cafe">Coffee Shop</option>
-                        <option value="Libre">Libre / Bigay</option>
+                    <select id="foodSource" class="glass-select" style="margin-bottom: 0; flex: 1;" onchange="handleFoodSourceChange(this)">
+                        <option value="Home-cooked">Home-cooked</option>
+                        <option value="Cafeteria">Cafeteria</option>
+                        <option value="Convenience Store">Convenience Store</option>
+                        <option value="Sari-Sari Store">Sari-Sari Store</option>
+                        <option value="Street Food">Street Food</option>
+                        <option value="Local Eatery">Local Eatery</option>
+                        <option value="Fast Food">Fast Food</option>
+                        <option value="Restaurant">Restaurant</option>
+                        <option value="Cafe">Cafe</option>
+                        <option value="Bar / Pub">Bar / Pub</option>
+                        <option id="foodSourceDivider" disabled>──────────</option>
+                        <option value="__add_new__">+ Add Category</option>
                     </select>
                 </div>
                 <div style="display: flex; gap: 10px; margin-bottom: 15px; align-items: center;">
