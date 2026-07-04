@@ -253,8 +253,8 @@ async function confirmPayUtang() {
                         partials: existingPartials
                     });
                 } else {
-                    // Full payment para dito
-                    await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "utang", id), { isPaid: true });
+                    // Full payment para dito — i-record kung KAILAN talaga nagbayad (hindi yung due date)
+                    await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "utang", id), { isPaid: true, paidAt: Date.now() });
                     syncToSheets({ action: 'payUtang', firebaseId: id });
                 }
             }
@@ -377,6 +377,11 @@ if (currentUtangView === 'date') {
             let avatarTone = isMyApp ? 'tone-peach' : 'tone-blue';
             let avatarIcon = isMyApp ? 'ph-device-mobile' : 'ph-user';
             let status = getUtangStatusInfo(utang, isFlex);
+            let dueLabel = isFlex ? 'Flexible' : utang.dueDate.toLocaleDateString('default', { month: 'short', day: 'numeric', year: 'numeric' });
+            let metaLine = `${utang.utangId} • Due ${dueLabel}`;
+            if (utang.isPaid && utang.paidAt) {
+                metaLine += ` • Paid ${new Date(utang.paidAt).toLocaleDateString('default', { month: 'short', day: 'numeric' })}`;
+            }
 
             let cardContent = `<div class="utang-card list-card" style="${utang.isPaid ? 'opacity: 0.55;' : ''}">
                 <button onclick="playSound('click'); deleteUtang('${utang.id}')" class="list-card-close"><i class="ph-bold ph-x"></i></button>
@@ -384,7 +389,7 @@ if (currentUtangView === 'date') {
                     <div class="list-card-avatar ${avatarTone}"><i class="ph-duotone ${avatarIcon}"></i></div>
                     <div class="list-card-main">
                         <p class="list-card-title">${utang.appName}</p>
-                        <p class="list-card-meta" style="font-family: monospace;">${utang.utangId}</p>
+                        <p class="list-card-meta" style="font-family: monospace;">${metaLine}</p>
                     </div>
                     <span class="pill-badge ${status.tone}">${status.label}</span>
                 </div>
@@ -450,7 +455,7 @@ if (currentUtangView === 'date') {
                     let dateDisplay = isFlex ? 'Flexible' : `${u.dueDate.toLocaleString('default', { month: 'short' })} ${u.dueDate.getDate()}${u.dueDate.getFullYear() !== new Date().getFullYear() ? ` '${u.dueDate.getFullYear().toString().slice(-2)}` : ''}`;
                     
                     let dueLabel = u.utangId.includes('(Due') ? u.utangId.split('(')[1].replace(')', '') : 'Full';
-                    let controls = u.isPaid ? `<span style="color: var(--success); font-size: 11px; font-weight: bold;"><i class="ph-bold ph-check"></i> Paid</span>` : `<button onclick="openPayUtangModal('${u.id}', ${u.amount}, '${u.utangId}')" style="background:none; border:1px solid var(--primary); color:var(--primary); padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer;">Pay</button>`;
+                    let controls = u.isPaid ? `<span style="color: var(--success); font-size: 11px; font-weight: bold;"><i class="ph-bold ph-check"></i> Paid${u.paidAt ? ' ' + new Date(u.paidAt).toLocaleDateString('default', { month: 'short', day: 'numeric' }) : ''}</span>` : `<button onclick="openPayUtangModal('${u.id}', ${u.amount}, '${u.utangId}')" style="background:none; border:1px solid var(--primary); color:var(--primary); padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer;">Pay</button>`;
                     return `<div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed var(--glass-border); padding-top: 10px; margin-top: 10px;">
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <button onclick="playSound('click'); deleteUtang('${u.id}')" style="background:none; border:none; color:var(--danger); font-size:14px; cursor:pointer; padding:0;"><i class="ph-bold ph-x"></i></button>
@@ -1163,9 +1168,9 @@ function groupByDay(items, getTimestamp) {
 
 function buildReceiptSections() {
     const now = new Date(); const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime(); const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate(); const daysLeft = daysInMonth - now.getDate() + 1;
-    let paidUtang = utangDatabase.filter(u => { if (!u.isPaid) return false; let d = u.dueDate instanceof Date ? u.dueDate : new Date(u.dueDate); return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear(); }).sort((a, b) => { let da = a.dueDate instanceof Date ? a.dueDate : new Date(a.dueDate); let db = b.dueDate instanceof Date ? b.dueDate : new Date(b.dueDate); return da - db; });
-    let utangByDay = groupByDay(paidUtang, u => (u.dueDate instanceof Date ? u.dueDate : new Date(u.dueDate)).getTime()); let totalUtangPaid = paidUtang.reduce((s, u) => s + u.amount, 0);
-    let utangRows = utangByDay.map(day => `<div class="receipt-day-header">${day.label}</div>${day.items.map(u => `<div class="receipt-row"><span class="r-label">ID: ${u.utangId}<span class="receipt-paid-tag">PAID</span></span><span class="r-val">₱${u.amount.toFixed(2)}</span></div>`).join('')}`).join('') || '<p style="text-align:center;font-size:10px;color:#888;letter-spacing:1px;margin:12px 0;">NO DEBTS PAID THIS MONTH</p>';
+    let paidUtang = utangDatabase.filter(u => { if (!u.isPaid) return false; let paidTime = u.paidAt || u.dueDate || u.createdAt; let d = paidTime instanceof Date ? paidTime : new Date(paidTime); return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear(); }).sort((a, b) => (b.paidAt || b.dueDate || b.createdAt) - (a.paidAt || a.dueDate || a.createdAt));
+    let utangByDay = groupByDay(paidUtang, u => { let t = u.paidAt || u.dueDate || u.createdAt; return t instanceof Date ? t.getTime() : new Date(t).getTime(); }); let totalUtangPaid = paidUtang.reduce((s, u) => s + u.amount, 0);
+    let utangRows = utangByDay.map(day => `<div class="receipt-day-header">PAID ${day.label}</div>${day.items.map(u => { let dueD = u.dueDate instanceof Date ? u.dueDate : new Date(u.dueDate); let dueLabel = isNaN(dueD) ? 'Flexible' : dueD.toLocaleDateString('default', { month: 'short', day: 'numeric' }); return `<div class="receipt-row"><span class="r-label">ID: ${u.utangId} <span style="opacity:0.6;">(Due ${dueLabel})</span><span class="receipt-paid-tag">PAID</span></span><span class="r-val">₱${u.amount.toFixed(2)}</span></div>`; }).join('')}`).join('') || '<p style="text-align:center;font-size:10px;color:#888;letter-spacing:1px;margin:12px 0;">NO DEBTS PAID THIS MONTH</p>';
     let debtSection = `<div class="receipt-section-title">DEBT REPAYMENT</div>${utangRows}<div class="receipt-divider-solid"></div><div class="receipt-row r-total"><span class="r-label">TOTAL REPAID</span><span class="r-val">₱${totalUtangPaid.toFixed(2)}</span></div>`;
 
     let foodThisMonth = foodDatabase.filter(f => f.createdAt >= startOfMonth); let foodByDay = groupByDay(foodThisMonth, f => f.createdAt); let totalFood = foodThisMonth.reduce((s, f) => s + (f.cost || 0), 0);
