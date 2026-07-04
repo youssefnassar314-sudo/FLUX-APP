@@ -641,7 +641,8 @@
     <!-- INILABAS NA NATIN YUNG MGA MODALS DITO -->
     <div id="walletModal" style="display: none;" class="modal-overlay">
         <div class="utang-card modal-content">
-            <h3 style="color: var(--primary);">Add Wallet</h3>
+            <h3 id="walletModalTitle" style="color: var(--primary);">Add Wallet</h3>
+            <input type="hidden" id="walletEditId">
             <input type="text" id="walletName" placeholder="Wallet Name">
             <select id="walletType" class="glass-select">
                 <option value="" disabled selected>Pumili ng Type</option>
@@ -652,7 +653,7 @@
                 <option value="Credit Card">Credit Card</option>
             </select>
             <input type="number" id="walletBalance" placeholder="Initial Balance">
-            <button onclick="playSound('click'); saveWallet()" class="save-btn">Save Wallet</button>
+            <button id="walletModalSaveBtn" onclick="playSound('click'); saveWallet()" class="save-btn">Save Wallet</button>
             <button onclick="playSound('click'); closeBudgetModals()" style="width:100%; background:none; border:none; color:var(--text-muted);">Cancel</button>
         </div>
     </div>
@@ -660,22 +661,23 @@
     <div id="goalModal" style="display: none;" class="modal-overlay">
         <div class="utang-card modal-content" style="text-align: left;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h3 style="margin: 0; color: var(--pastel-purple-fg);"><i class="ph-duotone ph-target"></i> Add Savings Goal</h3>
+                <h3 id="goalModalTitle" style="margin: 0; color: var(--pastel-purple-fg);"><i class="ph-duotone ph-target"></i> Add Savings Goal</h3>
                 <button onclick="playSound('click'); closeGoalModal()" style="background:none; border:none; color:var(--text-muted); font-size: 18px; cursor: pointer;"><i class="ph-bold ph-x"></i></button>
             </div>
+            <input type="hidden" id="goalEditId">
             <label>Goal Name</label>
             <input type="text" id="goalName" placeholder="Ex: New Laptop">
             <label>Target Amount (₱)</label>
             <input type="number" id="goalTarget" placeholder="Ex: 30000">
             <label>Target Date</label>
             <input type="date" id="goalDate" style="color: var(--text-muted);">
-            <label>Naka-ipon na ba ito? (Starting amount, optional)</label>
+            <label id="goalStartingAmountLabel">Naka-ipon na ba ito? (Starting amount, optional)</label>
             <input type="number" id="goalStartingAmount" placeholder="₱0">
             <label>Saan mo ito naka-lagay? (Label lang, hindi ito auto-deduct)</label>
             <select id="goalWalletLabel" class="glass-select">
                 <option value="">Wala / Iba pa</option>
             </select>
-            <button class="save-btn" onclick="playSound('click'); saveGoal()" style="background: var(--pastel-purple-fg);"><i class="ph-bold ph-floppy-disk"></i> Save Goal</button>
+            <button id="goalModalSaveBtn" class="save-btn" onclick="playSound('click'); saveGoal()" style="background: var(--pastel-purple-fg);"><i class="ph-bold ph-floppy-disk"></i> Save Goal</button>
         </div>
     </div>
 
@@ -694,9 +696,10 @@
     <div id="paylaterAccountModal" style="display: none;" class="modal-overlay">
         <div class="utang-card modal-content" style="text-align: left;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h3 style="margin: 0; color: var(--pastel-amber-fg);"><i class="ph-duotone ph-credit-card"></i> Add Account</h3>
+                <h3 id="paylaterAccountModalTitle" style="margin: 0; color: var(--pastel-amber-fg);"><i class="ph-duotone ph-credit-card"></i> Add Account</h3>
                 <button onclick="playSound('click'); closePaylaterModals()" style="background:none; border:none; color:var(--text-muted); font-size: 18px; cursor: pointer;"><i class="ph-bold ph-x"></i></button>
             </div>
+            <input type="hidden" id="paylaterAccountEditId">
             <label>Account Type</label>
             <select id="paylaterAccountType" class="glass-select">
                 <option value="PayLater">PayLater (SPayLater, LazPayLater, etc.)</option>
@@ -706,17 +709,18 @@
             <input type="text" id="paylaterAccountName" placeholder="Ex: SPayLater, BDO Credit Card">
             <label>Cutoff / Due Day ng Buwan</label>
             <input type="number" id="paylaterCutoffDay" placeholder="Ex: 15" min="1" max="31">
-            <button class="save-btn" onclick="playSound('click'); savePaylaterAccount()" style="background: var(--pastel-amber-fg);"><i class="ph-bold ph-floppy-disk"></i> Save Account</button>
+            <button id="paylaterAccountSaveBtn" class="save-btn" onclick="playSound('click'); savePaylaterAccount()" style="background: var(--pastel-amber-fg);"><i class="ph-bold ph-floppy-disk"></i> Save Account</button>
         </div>
     </div>
 
     <div id="paylaterItemModal" style="display: none;" class="modal-overlay">
         <div class="utang-card modal-content" style="text-align: left;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h3 style="margin: 0; color: var(--pastel-amber-fg);"><i class="ph-duotone ph-shopping-bag"></i> Add Item</h3>
+                <h3 id="paylaterItemModalTitle" style="margin: 0; color: var(--pastel-amber-fg);"><i class="ph-duotone ph-shopping-bag"></i> Add Item</h3>
                 <button onclick="playSound('click'); closePaylaterModals()" style="background:none; border:none; color:var(--text-muted); font-size: 18px; cursor: pointer;"><i class="ph-bold ph-x"></i></button>
             </div>
             <input type="hidden" id="paylaterItemAccountId">
+            <input type="hidden" id="paylaterItemEditId">
             <label>Ano ba binili/hiniram mo?</label>
             <input type="text" id="paylaterItemName" placeholder="Ex: Air Fryer 3.5L">
             <label>Total Amount (₱)</label>
@@ -725,7 +729,7 @@
                 <label>Hahatiin sa ilang buwan?</label>
                 <input type="number" id="paylaterItemMonths" placeholder="Ex: 6" min="1">
             </div>
-            <button class="save-btn" onclick="playSound('click'); savePaylaterItem()" style="background: var(--pastel-amber-fg);"><i class="ph-bold ph-plus"></i> Add Item</button>
+            <button id="paylaterItemSaveBtn" class="save-btn" onclick="playSound('click'); savePaylaterItem()" style="background: var(--pastel-amber-fg);"><i class="ph-bold ph-plus"></i> Add Item</button>
         </div>
     </div>
 
@@ -762,6 +766,51 @@
             </div>
             <button id="saveTransactionBtn" onclick="playSound('click'); saveTransaction()" class="save-btn">Confirm</button>
             <button onclick="playSound('click'); closeBudgetModals()" style="width:100%; background:none; border:none; color:var(--text-muted);">Cancel</button>
+        </div>
+    </div>
+
+    <div id="editFoodModal" style="display: none;" class="modal-overlay">
+        <div class="utang-card modal-content" style="text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin: 0; color: var(--pastel-amber-fg);"><i class="ph-duotone ph-pencil-simple"></i> Edit Food Log</h3>
+                <button onclick="playSound('click'); closeEditFoodModal()" style="background:none; border:none; color:var(--text-muted); font-size: 18px; cursor: pointer;"><i class="ph-bold ph-x"></i></button>
+            </div>
+            <input type="hidden" id="editFoodId">
+            <label>Meal</label>
+            <select id="editFoodMeal" class="glass-select">
+                <option value="Breakfast">Breakfast</option>
+                <option value="Lunch">Lunch</option>
+                <option value="Dinner">Dinner</option>
+                <option value="Snack">Snack</option>
+            </select>
+            <label>Ano kinain mo?</label>
+            <input type="text" id="editFoodItem" placeholder="Ano kinain mo?">
+            <label>Notes (optional)</label>
+            <input type="text" id="editFoodNotes" placeholder="Notes">
+            <label>Presyo (₱)</label>
+            <input type="number" id="editFoodPrice" placeholder="₱0">
+            <button class="save-btn" onclick="playSound('click'); saveEditFood()" style="background: var(--pastel-amber-fg);"><i class="ph-bold ph-floppy-disk"></i> Save Changes</button>
+        </div>
+    </div>
+
+    <div id="editUtangModal" style="display: none;" class="modal-overlay">
+        <div class="utang-card modal-content" style="text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin: 0; color: var(--primary);"><i class="ph-duotone ph-pencil-simple"></i> Edit Utang</h3>
+                <button onclick="playSound('click'); closeEditUtangModal()" style="background:none; border:none; color:var(--text-muted); font-size: 18px; cursor: pointer;"><i class="ph-bold ph-x"></i></button>
+            </div>
+            <input type="hidden" id="editUtangId">
+            <label>App Used</label>
+            <input type="text" id="editUtangAppName" placeholder="e.g., SPayLater, GCash">
+            <label>Amount (₱)</label>
+            <input type="number" id="editUtangAmount" placeholder="Amount">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px; background: var(--glass-bg); padding: 10px; border-radius: 8px;">
+                <input type="checkbox" id="editUtangFlexible" onchange="document.getElementById('editUtangDueDate').disabled = this.checked;" style="width: 16px; height: 16px; accent-color: var(--primary);">
+                <label for="editUtangFlexible" style="margin: 0; font-size: 11px; color: var(--text-main); text-transform: none;">Walang eksaktong Due Date (Flexible)</label>
+            </div>
+            <label>Due Date</label>
+            <input type="date" id="editUtangDueDate" style="color: var(--text-muted);">
+            <button class="save-btn" onclick="playSound('click'); saveEditUtang()"><i class="ph-bold ph-floppy-disk"></i> Save Changes</button>
         </div>
     </div>
 
