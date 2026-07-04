@@ -57,7 +57,7 @@ let transactionDatabase = [];
 let currentUtangView = 'date';
 let lastFoodSummaryCache = null; // instant restore cache 
 
-const NAV_VISIBLE_SCREENS = ['dashboardScreen', 'utangScreen', 'taskScreen', 'kanbanScreen', 'foodScreen', 'budgetScreen', 'summaryScreen', 'wishlistScreen', 'statsScreen', 'quotesScreen'];
+const NAV_VISIBLE_SCREENS = ['dashboardScreen', 'utangScreen', 'taskScreen', 'kanbanScreen', 'foodScreen', 'budgetScreen', 'summaryScreen', 'wishlistScreen', 'statsScreen', 'quotesScreen', 'paylaterScreen'];
 
 function switchScreen(screenId) {
     playSound('transition'); 
@@ -74,6 +74,7 @@ function switchScreen(screenId) {
     if (screenId === 'wishlistScreen') renderWishlist();
     if (screenId === 'statsScreen') renderStats();
     if (screenId === 'quotesScreen') renderQuotesScreen();
+    if (screenId === 'paylaterScreen') renderPaylaterAccounts();
 
     let bottomNav = document.getElementById('bottomNav');
     if (bottomNav) {
@@ -1363,6 +1364,244 @@ async function renderQuotesScreen() {
     }
 }
 
+// ==========================================
+// 💳 PAYLATER & CREDIT CARDS — items accumulate, "Finalize" bills them into Utang
+// ==========================================
+let paylaterAccounts = [];
+let paylaterItems = [];
+
+function initRealtimePaylater() {
+    const qAcc = window.dbMethods.query(window.dbMethods.collection(window.db, "paylaterAccounts"), window.dbMethods.where("userId", "==", window.currentUid));
+    window.dbMethods.onSnapshot(qAcc, (snapshot) => {
+        paylaterAccounts = []; snapshot.forEach(doc => paylaterAccounts.push({ id: doc.id, ...doc.data() }));
+        renderPaylaterAccounts();
+    });
+    const qItems = window.dbMethods.query(window.dbMethods.collection(window.db, "paylaterItems"), window.dbMethods.where("userId", "==", window.currentUid));
+    window.dbMethods.onSnapshot(qItems, (snapshot) => {
+        paylaterItems = []; snapshot.forEach(doc => paylaterItems.push({ id: doc.id, ...doc.data() }));
+        renderPaylaterAccounts();
+    });
+}
+
+function openAddPaylaterAccountForm() {
+    document.getElementById('paylaterAccountName').value = '';
+    document.getElementById('paylaterCutoffDay').value = '';
+    document.getElementById('paylaterAccountType').value = 'PayLater';
+    document.getElementById('paylaterAccountModal').style.display = 'flex';
+}
+
+function closePaylaterModals() {
+    document.getElementById('paylaterAccountModal').style.display = 'none';
+    document.getElementById('paylaterItemModal').style.display = 'none';
+    document.getElementById('paylaterFinalizeModal').style.display = 'none';
+}
+
+async function savePaylaterAccount() {
+    let type = document.getElementById('paylaterAccountType').value;
+    let name = document.getElementById('paylaterAccountName').value.trim();
+    let cutoffDay = parseInt(document.getElementById('paylaterCutoffDay').value);
+    if (!name || isNaN(cutoffDay) || cutoffDay < 1 || cutoffDay > 31) { alert("Kumpletuhin ang Account Name at Cutoff Day (1-31)!"); return; }
+    try {
+        await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "paylaterAccounts"), {
+            userId: window.currentUid, type: type, name: name, cutoffDay: cutoffDay, carriedBalance: 0, createdAt: Date.now()
+        });
+        playSound('success');
+        closePaylaterModals();
+    } catch (e) { console.error(e); alert("May error sa pag-save."); }
+}
+
+async function deletePaylaterAccount(id) {
+    if (confirm("Buburahin ang account na ito pati lahat ng items dito. Sigurado ka?")) {
+        try {
+            let itemsToDelete = paylaterItems.filter(it => it.accountId === id);
+            for (let it of itemsToDelete) { await window.dbMethods.deleteDoc(window.dbMethods.doc(window.db, "paylaterItems", it.id)); }
+            await window.dbMethods.deleteDoc(window.dbMethods.doc(window.db, "paylaterAccounts", id));
+            playSound('click');
+        } catch (e) { console.error(e); }
+    }
+}
+
+function openAddItemModal(accountId) {
+    let account = paylaterAccounts.find(a => a.id === accountId);
+    if (!account) return;
+    document.getElementById('paylaterItemAccountId').value = accountId;
+    document.getElementById('paylaterItemName').value = '';
+    document.getElementById('paylaterItemAmount').value = '';
+    document.getElementById('paylaterItemMonths').value = '';
+    document.getElementById('paylaterItemMonthsField').style.display = account.type === 'PayLater' ? 'block' : 'none';
+    document.getElementById('paylaterItemModal').style.display = 'flex';
+}
+
+async function savePaylaterItem() {
+    let accountId = document.getElementById('paylaterItemAccountId').value;
+    let account = paylaterAccounts.find(a => a.id === accountId);
+    if (!account) return;
+    let name = document.getElementById('paylaterItemName').value.trim();
+    let amount = parseFloat(document.getElementById('paylaterItemAmount').value);
+    if (!name || isNaN(amount) || amount <= 0) { alert("Kumpletuhin ang Item at Amount!"); return; }
+
+    let payload = { userId: window.currentUid, accountId: accountId, name: name, amount: amount, createdAt: Date.now() };
+    if (account.type === 'PayLater') {
+        let months = parseInt(document.getElementById('paylaterItemMonths').value);
+        if (isNaN(months) || months < 1) { alert("Pakilagay kung ilang buwan hahatiin!"); return; }
+        payload.totalMonths = months;
+        payload.monthsPaid = 0;
+    }
+
+    try {
+        await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "paylaterItems"), payload);
+        playSound('success');
+        closePaylaterModals();
+    } catch (e) { console.error(e); alert("May error sa pag-save."); }
+}
+
+async function deletePaylaterItem(id) {
+    if (confirm("Burahin ang item na ito?")) {
+        try { await window.dbMethods.deleteDoc(window.dbMethods.doc(window.db, "paylaterItems", id)); playSound('click'); } catch (e) { console.error(e); }
+    }
+}
+
+function getNextCutoffDate(cutoffDay) {
+    let now = new Date();
+    let target = new Date(now.getFullYear(), now.getMonth(), cutoffDay);
+    if (target < now) target.setMonth(target.getMonth() + 1);
+    return target;
+}
+
+function openFinalizeModal(accountId) {
+    let account = paylaterAccounts.find(a => a.id === accountId);
+    if (!account) return;
+    let items = paylaterItems.filter(it => it.accountId === accountId);
+
+    document.getElementById('finalizeAccountId').value = accountId;
+    let minDueField = document.getElementById('finalizeMinDueField');
+    let summaryText = document.getElementById('finalizeSummaryText');
+    let dueDateLabel = getNextCutoffDate(account.cutoffDay).toLocaleDateString('default', { month: 'short', day: 'numeric', year: 'numeric' });
+
+    if (account.type === 'PayLater') {
+        let activeItems = items.filter(it => it.monthsPaid < it.totalMonths);
+        let total = activeItems.reduce((s, it) => s + (it.amount / it.totalMonths), 0);
+        if (total <= 0) { alert("Walang active na items para i-finalize."); return; }
+        summaryText.innerText = `Total para sa cycle na ito: ₱${total.toLocaleString(undefined, { minimumFractionDigits: 2 })} (${activeItems.length} item/s). Ito ay idadagdag sa Utang mo, due sa ${dueDateLabel}.`;
+        minDueField.style.display = 'none';
+    } else {
+        let total = items.reduce((s, it) => s + it.amount, 0) + (account.carriedBalance || 0);
+        summaryText.innerText = `Total Balance: ₱${total.toLocaleString(undefined, { minimumFractionDigits: 2 })}${account.carriedBalance > 0 ? ` (kasama ₱${account.carriedBalance.toLocaleString()} na carried over)` : ''}. Ilagay kung magkano ang babayaran mo bilang Minimum Due — ang natitira ay idadala sa susunod na cycle.`;
+        minDueField.style.display = 'block';
+        document.getElementById('finalizeMinDue').value = '';
+    }
+
+    document.getElementById('paylaterFinalizeModal').style.display = 'flex';
+}
+
+async function confirmFinalizePaylater() {
+    let accountId = document.getElementById('finalizeAccountId').value;
+    let account = paylaterAccounts.find(a => a.id === accountId);
+    if (!account) return;
+    let items = paylaterItems.filter(it => it.accountId === accountId);
+    let dueDate = getNextCutoffDate(account.cutoffDay);
+    let mm = String(dueDate.getMonth() + 1).padStart(2, '0'); let dd = String(dueDate.getDate()).padStart(2, '0'); let yy = String(dueDate.getFullYear()).slice(-2);
+    let accCode = account.name.replace(/[^A-Za-z]/g, '').toUpperCase().substring(0, 4) || 'XXXX';
+    let utangId = `MY${accCode}${mm}${dd}${yy}`;
+    let dueDateStr = `${dueDate.getFullYear()}-${mm}-${dd}`;
+
+    try {
+        if (account.type === 'PayLater') {
+            let activeItems = items.filter(it => it.monthsPaid < it.totalMonths);
+            let total = activeItems.reduce((s, it) => s + (it.amount / it.totalMonths), 0);
+            if (total <= 0) return;
+
+            let docRef = await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "utang"), {
+                userId: window.currentUid, utangId: utangId, amount: total, dueDate: dueDateStr,
+                isPaid: false, category: 'My App', appName: account.name, createdAt: Date.now()
+            });
+            syncToSheets({ action: 'addUtang', firebaseId: docRef.id, utangId: utangId, appName: account.name, amount: total, dueDate: dueDateStr, category: 'My App' });
+
+            for (let it of activeItems) {
+                let newMonthsPaid = it.monthsPaid + 1;
+                if (newMonthsPaid >= it.totalMonths) {
+                    await window.dbMethods.deleteDoc(window.dbMethods.doc(window.db, "paylaterItems", it.id));
+                } else {
+                    await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "paylaterItems", it.id), { monthsPaid: newMonthsPaid });
+                }
+            }
+        } else {
+            let minDue = parseFloat(document.getElementById('finalizeMinDue').value);
+            if (isNaN(minDue) || minDue <= 0) { alert("Pakilagay ang Minimum Amount Due!"); return; }
+            let total = items.reduce((s, it) => s + it.amount, 0) + (account.carriedBalance || 0);
+            let remaining = Math.max(0, total - minDue);
+
+            let docRef = await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "utang"), {
+                userId: window.currentUid, utangId: utangId, amount: minDue, dueDate: dueDateStr,
+                isPaid: false, category: 'My App', appName: account.name, createdAt: Date.now()
+            });
+            syncToSheets({ action: 'addUtang', firebaseId: docRef.id, utangId: utangId, appName: account.name, amount: minDue, dueDate: dueDateStr, category: 'My App' });
+
+            for (let it of items) { await window.dbMethods.deleteDoc(window.dbMethods.doc(window.db, "paylaterItems", it.id)); }
+            await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "paylaterAccounts", accountId), { carriedBalance: remaining });
+        }
+        playSound('success');
+        closePaylaterModals();
+        alert("Na-add na sa Utang mo! Puntahan mo ang Utang screen para makita.");
+    } catch (e) { console.error(e); alert("May error sa pag-finalize."); }
+}
+
+function renderPaylaterAccounts() {
+    let container = document.getElementById('paylaterAccountsContainer');
+    if (!container) return;
+    if (paylaterAccounts.length === 0) {
+        container.innerHTML = '<p style="color: var(--text-muted); font-size: 12px; font-style: italic; text-align:center; margin-top: 20px;">Wala ka pang PayLater o Credit Card account. Pindutin ang + sa taas para magdagdag.</p>';
+        return;
+    }
+
+    container.innerHTML = paylaterAccounts.map(account => {
+        let items = paylaterItems.filter(it => it.accountId === account.id);
+        let isCC = account.type === 'Credit Card';
+        let total = isCC
+            ? items.reduce((s, it) => s + it.amount, 0) + (account.carriedBalance || 0)
+            : items.filter(it => it.monthsPaid < it.totalMonths).reduce((s, it) => s + (it.amount / it.totalMonths), 0);
+
+        let itemsHTML = items.length === 0
+            ? '<p style="font-size: 11px; color: var(--text-muted); font-style: italic; margin: 8px 0;">Wala pang item.</p>'
+            : items.map(it => {
+                if (isCC) {
+                    return `<div class="paylater-item-row"><span>${it.name}</span><span>₱${it.amount.toLocaleString()} <button onclick="playSound('click'); deletePaylaterItem('${it.id}')" style="background:none;border:none;color:var(--danger);cursor:pointer;padding:0 0 0 6px;"><i class="ph-bold ph-x"></i></button></span></div>`;
+                } else {
+                    let monthly = it.amount / it.totalMonths;
+                    return `<div class="paylater-item-row"><span>${it.name} <span style="opacity:0.6;">(${it.monthsPaid}/${it.totalMonths} mos)</span></span><span>₱${monthly.toLocaleString(undefined, { maximumFractionDigits: 2 })}/mo <button onclick="playSound('click'); deletePaylaterItem('${it.id}')" style="background:none;border:none;color:var(--danger);cursor:pointer;padding:0 0 0 6px;"><i class="ph-bold ph-x"></i></button></span></div>`;
+                }
+            }).join('');
+
+        return `<div class="utang-card" style="margin-bottom: 16px;">
+            <div class="form-header" style="justify-content: space-between; margin-bottom: 10px;">
+                <div style="display:flex; align-items:center; gap: 12px;">
+                    <div class="list-card-avatar tone-amber"><i class="ph-duotone ${isCC ? 'ph-credit-card' : 'ph-device-mobile'}"></i></div>
+                    <div>
+                        <p class="list-card-title">${account.name}</p>
+                        <p class="list-card-meta">${account.type} • Cutoff: ${account.cutoffDay}</p>
+                    </div>
+                </div>
+                <button onclick="playSound('click'); deletePaylaterAccount('${account.id}')" style="background:none;border:none;color:var(--danger);cursor:pointer;"><i class="ph-bold ph-trash"></i></button>
+            </div>
+            ${account.carriedBalance > 0 ? `<div class="pill-badge tone-pink" style="margin-bottom:8px;">Carried over: ₱${account.carriedBalance.toLocaleString()}</div>` : ''}
+            <div style="border-top: 1px dashed var(--glass-border); padding-top: 8px; margin-bottom: 10px;">${itemsHTML}</div>
+            <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom: 12px;">
+                <span style="font-size:11px; color:var(--text-muted); text-transform:uppercase;">Current Cycle Total</span>
+                <span style="font-size:18px; font-weight:800; color:var(--text-main);">₱${total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+            </div>
+            <div style="display:flex; gap:8px;">
+                <button class="icon-action-btn" onclick="playSound('click'); openAddItemModal('${account.id}')"><i class="ph-bold ph-plus"></i> Add Item</button>
+                <button class="icon-action-btn" style="background:var(--pastel-amber-fg); color:#fff;" onclick="playSound('click'); openFinalizeModal('${account.id}')"><i class="ph-bold ph-check-circle"></i> Finalize</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+window.openAddPaylaterAccountForm = openAddPaylaterAccountForm; window.closePaylaterModals = closePaylaterModals;
+window.savePaylaterAccount = savePaylaterAccount; window.deletePaylaterAccount = deletePaylaterAccount;
+window.openAddItemModal = openAddItemModal; window.savePaylaterItem = savePaylaterItem; window.deletePaylaterItem = deletePaylaterItem;
+window.openFinalizeModal = openFinalizeModal; window.confirmFinalizePaylater = confirmFinalizePaylater;
+
 
 
 function initRealtimeTransactions() {
@@ -1944,7 +2183,7 @@ function forgotPin() {
 function proceedToApp() {
     switchScreen('dashboardScreen');
     if (!isAppInitialized) { 
-        initRealtimeUtang(); initRealtimeTasks(); initRealtimeFood(); initRealtimeBudget(); initRealtimeFoodCategories(); initRealtimeWishlist(); initRealtimeExpenseCategories();
+        initRealtimeUtang(); initRealtimeTasks(); initRealtimeFood(); initRealtimeBudget(); initRealtimeFoodCategories(); initRealtimeWishlist(); initRealtimeExpenseCategories(); initRealtimePaylater();
         initRealtimeTransactions(); initRealtimeBudgetConfig(); initRealtimeAiAnalyses(); 
         initRealtimeFoodSummary(); 
         isAppInitialized = true; 
