@@ -360,8 +360,10 @@ function renderUtangList() {
     });
     
     // Compute total utang BEFORE filtering para hindi bumaba yung display sa stat boxes
+    // Hindi kasama ang Flexible entries dito — wala silang eksaktong due date kaya hindi dapat sila
+    // isama sa "due this month" na computation (pero nananatili silang visible sa listahan mismo).
     let monthUtang = 0; let monthBayad = 0;
-    filteredUtang.forEach(u => { if (u.isPaid) monthBayad += u.amount; else monthUtang += u.amount; });
+    filteredUtang.forEach(u => { if (isNaN(u.dueDate)) return; if (u.isPaid) monthBayad += u.amount; else monthUtang += u.amount; });
     document.getElementById('displayMonthUtang').innerText = monthUtang.toFixed(2);
     document.getElementById('displayMonthBayad').innerText = monthBayad.toFixed(2);
 
