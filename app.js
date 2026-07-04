@@ -57,7 +57,7 @@ let transactionDatabase = [];
 let currentUtangView = 'date';
 let lastFoodSummaryCache = null; // instant restore cache 
 
-const NAV_VISIBLE_SCREENS = ['dashboardScreen', 'utangScreen', 'taskScreen', 'kanbanScreen', 'foodScreen', 'budgetScreen', 'summaryScreen', 'wishlistScreen'];
+const NAV_VISIBLE_SCREENS = ['dashboardScreen', 'utangScreen', 'taskScreen', 'kanbanScreen', 'foodScreen', 'budgetScreen', 'summaryScreen', 'wishlistScreen', 'statsScreen'];
 
 function switchScreen(screenId) {
     playSound('transition'); 
@@ -72,6 +72,7 @@ function switchScreen(screenId) {
     if (screenId === 'kanbanScreen') renderKanban();
     if (screenId === 'dashboardScreen') updateQuickGlance();
     if (screenId === 'wishlistScreen') renderWishlist();
+    if (screenId === 'statsScreen') renderStats();
 
     let bottomNav = document.getElementById('bottomNav');
     if (bottomNav) {
@@ -783,6 +784,53 @@ async function handleFoodSourceChange(selectEl) {
     }
 }
 
+let customExpenseCategories = [];
+
+function initRealtimeExpenseCategories() {
+    const q = window.dbMethods.query(window.dbMethods.collection(window.db, "expenseCategories"), window.dbMethods.where("userId", "==", window.currentUid));
+    window.dbMethods.onSnapshot(q, (snapshot) => {
+        customExpenseCategories = []; snapshot.forEach(doc => customExpenseCategories.push({ id: doc.id, ...doc.data() }));
+        customExpenseCategories.sort((a, b) => a.name.localeCompare(b.name));
+        renderExpenseCategoryOptions();
+    });
+}
+
+function renderExpenseCategoryOptions() {
+    let select = document.getElementById('transactionCategory');
+    let divider = document.getElementById('expenseCategoryDivider');
+    if (!select || !divider) return;
+    let currentVal = select.value;
+    select.querySelectorAll('option[data-custom="1"]').forEach(opt => opt.remove());
+    customExpenseCategories.forEach(cat => {
+        let opt = document.createElement('option');
+        opt.value = cat.name; opt.textContent = cat.name; opt.dataset.custom = "1";
+        divider.parentNode.insertBefore(opt, divider);
+    });
+    if (currentVal && currentVal !== '__add_new__') select.value = currentVal;
+}
+
+async function handleExpenseCategoryChange(selectEl) {
+    if (selectEl.value !== '__add_new__') return;
+    let newCat = prompt("Anong bagong expense category ang gusto mong idagdag?\n(Ex: Bills, Transport, Subscriptions)");
+    if (newCat && newCat.trim() !== "") {
+        let finalName = newCat.trim();
+        let allOptions = Array.from(selectEl.options).map(o => o.value.toLowerCase());
+        if (allOptions.includes(finalName.toLowerCase())) {
+            selectEl.value = finalName; playSound('click'); return;
+        }
+        try {
+            await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "expenseCategories"), {
+                userId: window.currentUid, name: finalName, createdAt: Date.now()
+            });
+            playSound('success');
+            setTimeout(() => { selectEl.value = finalName; }, 400);
+        } catch (e) { console.error(e); alert("May error sa pag-save ng bagong category."); selectEl.value = ""; }
+    } else {
+        selectEl.value = "";
+    }
+}
+window.handleExpenseCategoryChange = handleExpenseCategoryChange;
+
 function getFoodGradeColor(grade) {
     if (!grade || grade === '--' || grade === 'N/A') return { bg: 'var(--glass-bg)', border: 'var(--glass-border)', text: 'var(--text-muted)' };
     const g = grade.toUpperCase();
@@ -1135,6 +1183,102 @@ function renderWishlist() {
 
 window.openAddGoalForm = openAddGoalForm; window.closeGoalModal = closeGoalModal; window.saveGoal = saveGoal;
 window.openContributeModal = openContributeModal; window.confirmContributeGoal = confirmContributeGoal; window.deleteGoal = deleteGoal;
+
+// ==========================================
+// 📊 STATS — Comprehensive "where did my money go" overview (kasama ang Utang payments)
+// ==========================================
+let currentStatsView = new Date();
+const STATS_PALETTE = [
+    { bg: 'var(--pastel-pink-bg)',  fg: 'var(--pastel-pink-fg)',  hex: '#B4534B' },
+    { bg: 'var(--pastel-amber-bg)', fg: 'var(--pastel-amber-fg)', hex: '#9C7A2E' },
+    { bg: 'var(--pastel-blue-bg)',  fg: 'var(--pastel-blue-fg)',  hex: '#4C5FA0' },
+    { bg: 'var(--pastel-green-bg)', fg: 'var(--pastel-green-fg)', hex: '#3F7A54' },
+    { bg: 'var(--pastel-purple-bg)',fg: 'var(--pastel-purple-fg)',hex: '#6C4F94' },
+    { bg: 'var(--pastel-peach-bg)', fg: 'var(--pastel-peach-fg)', hex: '#8A5A2B' },
+];
+const STATS_ICON_MAP = {
+    'Debt Payment': 'ph-hand-coins',
+    'Food & Drinks': 'ph-hamburger',
+    'Needs (Essentials)': 'ph-shopping-cart',
+    'Wants / Lifestyle': 'ph-sparkle',
+};
+
+function changeStatsMonth(offset) {
+    currentStatsView.setMonth(currentStatsView.getMonth() + offset);
+    renderStats();
+}
+
+function buildDonutChart(segments, totalAmount) {
+    const size = 180, strokeWidth = 26, radius = (size / 2) - (strokeWidth / 2), circumference = 2 * Math.PI * radius, center = size / 2;
+    if (totalAmount <= 0) {
+        return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><circle cx="${center}" cy="${center}" r="${radius}" fill="none" stroke="var(--glass-bg)" stroke-width="${strokeWidth}"/></svg>`;
+    }
+    let cumulative = 0;
+    let circles = segments.map(seg => {
+        let segLength = (seg.percent / 100) * circumference;
+        let offset = -1 * (cumulative / 100) * circumference;
+        cumulative += seg.percent;
+        return `<circle cx="${center}" cy="${center}" r="${radius}" fill="none" stroke="${seg.color.hex}" stroke-width="${strokeWidth}" stroke-dasharray="${segLength} ${circumference - segLength}" stroke-dashoffset="${offset}" transform="rotate(-90 ${center} ${center})" stroke-linecap="butt"/>`;
+    }).join('');
+    return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${circles}</svg>`;
+}
+
+function renderStats() {
+    let monthLabel = document.getElementById('statsMonthLabel');
+    if (monthLabel) monthLabel.innerText = currentStatsView.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+    let year = currentStatsView.getFullYear(), month = currentStatsView.getMonth();
+    // Comprehensive: LAHAT ng expense type transactions, kasama ang Debt Payment (hindi tulad ng Budget screen na exclusive lang sa discretionary spend)
+    let monthTx = transactionDatabase.filter(t => {
+        if (t.type !== 'expense') return false;
+        let d = new Date(t.createdAt);
+        return d.getFullYear() === year && d.getMonth() === month;
+    });
+
+    let totalSpent = monthTx.reduce((s, t) => s + parseFloat(t.amount || 0), 0);
+
+    document.getElementById('statsSpentTotal').innerText = `₱${totalSpent.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    let budgetSubtitle = document.getElementById('statsBudgetSubtitle');
+    if (monthlyTarget > 0) {
+        let usedPercent = Math.min((totalSpent / monthlyTarget) * 100, 999);
+        budgetSubtitle.innerText = `of ₱${parseFloat(monthlyTarget).toLocaleString()} budget • ${usedPercent.toFixed(0)}% used`;
+    } else {
+        budgetSubtitle.innerText = 'Walang naka-set na budget';
+    }
+
+    // Group by category
+    let grouped = {};
+    monthTx.forEach(t => {
+        let cat = t.category || 'Others';
+        grouped[cat] = (grouped[cat] || 0) + parseFloat(t.amount || 0);
+    });
+    let categories = Object.keys(grouped).map(name => ({ name, amount: grouped[name] })).sort((a, b) => b.amount - a.amount);
+    categories.forEach((cat, i) => { cat.percent = totalSpent > 0 ? (cat.amount / totalSpent) * 100 : 0; cat.color = STATS_PALETTE[i % STATS_PALETTE.length]; cat.icon = STATS_ICON_MAP[cat.name] || 'ph-tag'; });
+
+    // Donut chart
+    document.getElementById('statsDonutContainer').innerHTML = buildDonutChart(categories, totalSpent);
+
+    // Legend
+    let legendContainer = document.getElementById('statsLegendContainer');
+    if (categories.length === 0) {
+        legendContainer.innerHTML = '<p style="color: var(--text-muted); font-size: 12px; font-style: italic;">Walang expenses ngayong buwan.</p>';
+    } else {
+        legendContainer.innerHTML = categories.map(cat => `<span style="display:flex; align-items:center; gap:5px; font-size: 11px; color: var(--text-main);"><span style="width:9px; height:9px; border-radius:50%; background:${cat.color.hex}; display:inline-block;"></span>${cat.name} ${cat.percent.toFixed(0)}%</span>`).join('');
+    }
+
+    // Category list
+    let listContainer = document.getElementById('statsCategoryList');
+    if (categories.length === 0) {
+        listContainer.innerHTML = '';
+    } else {
+        listContainer.innerHTML = categories.map(cat => `<div class="quick-access-row" style="cursor: default;">
+            <div class="quick-access-icon" style="background:${cat.color.bg}; color:${cat.color.fg};"><i class="ph-duotone ${cat.icon}"></i></div>
+            <span class="quick-access-text">${cat.name}</span>
+            <span style="font-weight: 700; color: var(--text-main); font-size: 13px;">₱${cat.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+        </div>`).join('');
+    }
+}
+window.changeStatsMonth = changeStatsMonth;
 
 
 function initRealtimeTransactions() {
@@ -1716,7 +1860,7 @@ function forgotPin() {
 function proceedToApp() {
     switchScreen('dashboardScreen');
     if (!isAppInitialized) { 
-        initRealtimeUtang(); initRealtimeTasks(); initRealtimeFood(); initRealtimeBudget(); initRealtimeFoodCategories(); initRealtimeWishlist();
+        initRealtimeUtang(); initRealtimeTasks(); initRealtimeFood(); initRealtimeBudget(); initRealtimeFoodCategories(); initRealtimeWishlist(); initRealtimeExpenseCategories();
         initRealtimeTransactions(); initRealtimeBudgetConfig(); initRealtimeAiAnalyses(); 
         initRealtimeFoodSummary(); 
         isAppInitialized = true; 
