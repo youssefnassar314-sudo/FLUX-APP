@@ -842,7 +842,7 @@ body {
     color: #fff;
     transition: transform 0.25s ease, box-shadow 0.25s ease;
     letter-spacing: 0.3px;
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    background: var(--primary);
     box-shadow: 0 8px 22px var(--primary-glow);
     margin-bottom: 18px;
 }
@@ -1160,16 +1160,6 @@ input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(0.5); cur
 .pill-badge.tone-blue { background: var(--pastel-blue-bg); color: var(--pastel-blue-fg); }
 .pill-badge.tone-purple { background: var(--pastel-purple-bg); color: var(--pastel-purple-fg); }
 .pill-badge.tone-amber { background: var(--pastel-amber-bg); color: var(--pastel-amber-fg); }
-.utang-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: -100%;
-    width: 50%; height: 100%;
-    background: linear-gradient(to right, transparent, rgba(255,255,255,0.02), transparent);
-    transform: skewX(-18deg);
-    transition: left 0.5s ease;
-}
-.utang-card:hover::before { left: 150%; }
 .utang-card h4 {
     font-size: 14px;
     font-weight: 700;
@@ -1316,7 +1306,7 @@ input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(0.5); cur
 .kanban-board::-webkit-scrollbar { height: 4px; }
 .kanban-board::-webkit-scrollbar-track { background: var(--glass-bg); border-radius: 10px; }
 .kanban-board::-webkit-scrollbar-thumb {
-    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    background: var(--primary);
     border-radius: 10px;
 }
 .kanban-col {
