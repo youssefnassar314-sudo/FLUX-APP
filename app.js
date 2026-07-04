@@ -1016,13 +1016,15 @@ async function analyzeFoodAI() {
 function initRealtimeAiAnalyses() {
     const q = window.dbMethods.query(window.dbMethods.collection(window.db, "aiAnalyses"), window.dbMethods.where("userId", "==", window.currentUid));
     window.dbMethods.onSnapshot(q, (snapshot) => {
-        aiAnalyses = []; let todayKey = new Date().toLocaleDateString('en-CA');
+        aiAnalyses = [];
         snapshot.forEach(doc => { aiAnalyses.push({ id: doc.id, ...doc.data() }); });
-        aiAnalyses.sort((a, b) => a.createdAt - b.createdAt); 
+        aiAnalyses.sort((a, b) => a.createdAt - b.createdAt);
 
-        let todaysAnalyses = aiAnalyses.filter(a => a.type === 'food' && a.dateKey === todayKey);
-        if (todaysAnalyses.length > 0) {
-            let latest = todaysAnalyses[todaysAnalyses.length - 1]; 
+        // Palaging ipakita yung PINAKA-HULING food analysis, kahit anong araw pa 'yon —
+        // manatili ito hanggang sa mag-Analyze ulit (hindi dapat basta nagre-reset sa "--" pagtawid ng bagong araw)
+        let foodAnalyses = aiAnalyses.filter(a => a.type === 'food');
+        if (foodAnalyses.length > 0) {
+            let latest = foodAnalyses[foodAnalyses.length - 1];
             let resultDiv = document.getElementById('aiFoodResult'); let textDiv = document.getElementById('aiVerdictText');
             if (resultDiv && textDiv) { resultDiv.style.display = 'block'; textDiv.innerHTML = latest.verdict; }
             if (latest.grade) {
