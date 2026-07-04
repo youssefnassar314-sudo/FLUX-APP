@@ -169,6 +169,11 @@
                 <span class="quick-access-text">Wishlist</span>
                 <i class="ph-bold ph-caret-right"></i>
             </div>
+            <div class="quick-access-row" onclick="playSound('click'); switchScreen('paylaterScreen')">
+                <div class="quick-access-icon tone-amber"><i class="ph-duotone ph-credit-card"></i></div>
+                <span class="quick-access-text">PayLater &amp; Credit Cards</span>
+                <i class="ph-bold ph-caret-right"></i>
+            </div>
 
         </div>
 
@@ -537,6 +542,16 @@
             <div id="statsCategoryList"></div>
         </div>
 
+        <div id="paylaterScreen" class="screen">
+            <div class="screen-header-row">
+                <button class="screen-back-chip tone-amber" onclick="playSound('click'); switchScreen('dashboardScreen')"><i class="ph-bold ph-caret-left"></i></button>
+                <h2 class="screen-header-title">PayLater &amp; Credit</h2>
+                <button class="screen-add-chip tone-amber" onclick="playSound('click'); openAddPaylaterAccountForm()" title="Add Account"><i class="ph-bold ph-plus"></i></button>
+            </div>
+
+            <div id="paylaterAccountsContainer"></div>
+        </div>
+
         <div id="wishlistScreen" class="screen">
             <div class="screen-header-row">
                 <button class="screen-back-chip tone-purple" onclick="playSound('click'); switchScreen('dashboardScreen')"><i class="ph-bold ph-caret-left"></i></button>
@@ -673,6 +688,58 @@
             <input type="number" id="contributeAmount" placeholder="₱ Amount">
             <button onclick="playSound('click'); confirmContributeGoal()" class="save-btn" style="background: var(--pastel-purple-fg);">Add Savings</button>
             <button onclick="playSound('click'); closeGoalModal()" style="width:100%; background:none; border:none; color:var(--text-muted);">Cancel</button>
+        </div>
+    </div>
+
+    <div id="paylaterAccountModal" style="display: none;" class="modal-overlay">
+        <div class="utang-card modal-content" style="text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin: 0; color: var(--pastel-amber-fg);"><i class="ph-duotone ph-credit-card"></i> Add Account</h3>
+                <button onclick="playSound('click'); closePaylaterModals()" style="background:none; border:none; color:var(--text-muted); font-size: 18px; cursor: pointer;"><i class="ph-bold ph-x"></i></button>
+            </div>
+            <label>Account Type</label>
+            <select id="paylaterAccountType" class="glass-select">
+                <option value="PayLater">PayLater (SPayLater, LazPayLater, etc.)</option>
+                <option value="Credit Card">Credit Card</option>
+            </select>
+            <label>Account Name</label>
+            <input type="text" id="paylaterAccountName" placeholder="Ex: SPayLater, BDO Credit Card">
+            <label>Cutoff / Due Day ng Buwan</label>
+            <input type="number" id="paylaterCutoffDay" placeholder="Ex: 15" min="1" max="31">
+            <button class="save-btn" onclick="playSound('click'); savePaylaterAccount()" style="background: var(--pastel-amber-fg);"><i class="ph-bold ph-floppy-disk"></i> Save Account</button>
+        </div>
+    </div>
+
+    <div id="paylaterItemModal" style="display: none;" class="modal-overlay">
+        <div class="utang-card modal-content" style="text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin: 0; color: var(--pastel-amber-fg);"><i class="ph-duotone ph-shopping-bag"></i> Add Item</h3>
+                <button onclick="playSound('click'); closePaylaterModals()" style="background:none; border:none; color:var(--text-muted); font-size: 18px; cursor: pointer;"><i class="ph-bold ph-x"></i></button>
+            </div>
+            <input type="hidden" id="paylaterItemAccountId">
+            <label>Ano ba binili/hiniram mo?</label>
+            <input type="text" id="paylaterItemName" placeholder="Ex: Air Fryer 3.5L">
+            <label>Total Amount (₱)</label>
+            <input type="number" id="paylaterItemAmount" placeholder="Ex: 3000">
+            <div id="paylaterItemMonthsField">
+                <label>Hahatiin sa ilang buwan?</label>
+                <input type="number" id="paylaterItemMonths" placeholder="Ex: 6" min="1">
+            </div>
+            <button class="save-btn" onclick="playSound('click'); savePaylaterItem()" style="background: var(--pastel-amber-fg);"><i class="ph-bold ph-plus"></i> Add Item</button>
+        </div>
+    </div>
+
+    <div id="paylaterFinalizeModal" style="display: none;" class="modal-overlay">
+        <div class="utang-card modal-content">
+            <h3 style="color: var(--pastel-amber-fg);">Finalize Statement</h3>
+            <input type="hidden" id="finalizeAccountId">
+            <p id="finalizeSummaryText" style="font-size: 13px; color: var(--text-main); margin-bottom: 15px; line-height: 1.5;"></p>
+            <div id="finalizeMinDueField" style="display:none;">
+                <label style="font-size: 11px; color: var(--primary); font-weight: 700; display: block; margin-bottom: 5px; text-transform: uppercase;">Minimum Amount Due (₱)</label>
+                <input type="number" id="finalizeMinDue" placeholder="₱ Amount">
+            </div>
+            <button onclick="playSound('click'); confirmFinalizePaylater()" class="save-btn" style="background: var(--pastel-amber-fg);">Confirm &amp; Add to Utang</button>
+            <button onclick="playSound('click'); closePaylaterModals()" style="width:100%; background:none; border:none; color:var(--text-muted);">Cancel</button>
         </div>
     </div>
 
