@@ -1565,9 +1565,14 @@ function closePaylaterModals() {
 function openExistingBillModal(accountId) {
     let account = paylaterAccounts.find(a => a.id === accountId);
     if (!account) return;
+    let isCC = account.type === 'Credit Card';
     document.getElementById('existingBillAccountId').value = accountId;
-    document.getElementById('existingBillAmount').value = '';
-    document.getElementById('existingBillDueDate').value = '';
+    document.getElementById('existingBillPaylaterFields').style.display = isCC ? 'none' : 'block';
+    document.getElementById('existingBillCreditFields').style.display = isCC ? 'block' : 'none';
+    document.getElementById('existingBillName').value = '';
+    document.getElementById('existingBillMonthly').value = '';
+    document.getElementById('existingBillMonthsLeft').value = '';
+    document.getElementById('existingBillBalance').value = '';
     document.getElementById('paylaterExistingBillModal').style.display = 'flex';
 }
 window.openExistingBillModal = openExistingBillModal;
@@ -1576,21 +1581,25 @@ async function saveExistingBill() {
     let accountId = document.getElementById('existingBillAccountId').value;
     let account = paylaterAccounts.find(a => a.id === accountId);
     if (!account) return;
-    let amount = parseFloat(document.getElementById('existingBillAmount').value);
-    let dueDateVal = document.getElementById('existingBillDueDate').value;
-    if (isNaN(amount) || amount <= 0 || !dueDateVal) { alert("Kumpletuhin ang Amount at Due Date!"); return; }
-
-    let dueDateObj = new Date(dueDateVal);
-    let mm = String(dueDateObj.getMonth() + 1).padStart(2, '0'); let dd = String(dueDateObj.getDate()).padStart(2, '0'); let yy = String(dueDateObj.getFullYear()).slice(-2);
-    let accCode = account.name.replace(/[^A-Za-z]/g, '').toUpperCase().substring(0, 4) || 'XXXX';
-    let utangId = `MY${accCode}${mm}${dd}${yy}${Math.floor(Math.random() * 90 + 10)}`; // extra random suffix para hindi mag-clash kung maraming existing bills sa parehong account/due date
 
     try {
-        let docRef = await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "utang"), {
-            userId: window.currentUid, utangId: utangId, amount: amount, dueDate: dueDateVal,
-            isPaid: false, category: 'My App', appName: account.name, createdAt: Date.now()
-        });
-        syncToSheets({ action: 'addUtang', firebaseId: docRef.id, utangId: utangId, appName: account.name, amount: amount, dueDate: dueDateVal, category: 'My App' });
+        if (account.type === 'Credit Card') {
+            let balance = parseFloat(document.getElementById('existingBillBalance').value);
+            if (isNaN(balance) || balance <= 0) { alert("Pakilagay ang Existing Balance!"); return; }
+            await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "paylaterAccounts", accountId), { carriedBalance: (account.carriedBalance || 0) + balance });
+        } else {
+            let name = document.getElementById('existingBillName').value.trim() || 'Existing Bill';
+            let monthlyAmount = parseFloat(document.getElementById('existingBillMonthly').value);
+            let monthsLeft = parseInt(document.getElementById('existingBillMonthsLeft').value);
+            if (isNaN(monthlyAmount) || monthlyAmount <= 0 || isNaN(monthsLeft) || monthsLeft < 1) { alert("Kumpletuhin ang Monthly Amount at Ilang Buwan Pa Matitira!"); return; }
+
+            // I-store bilang normal na item — kaya lalabas ito sa items list ng account (sa ibaba),
+            // at sasama sa susunod na Finalize kasama ang anumang bagong item na idadagdag para sa parehong buwan.
+            await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "paylaterItems"), {
+                userId: window.currentUid, accountId: accountId, name: name,
+                amount: monthlyAmount * monthsLeft, totalMonths: monthsLeft, monthsPaid: 0, createdAt: Date.now()
+            });
+        }
         playSound('success');
         closePaylaterModals();
     } catch (e) { console.error(e); alert("May error sa pag-save."); }
