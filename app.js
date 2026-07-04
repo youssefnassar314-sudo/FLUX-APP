@@ -57,7 +57,7 @@ let transactionDatabase = [];
 let currentUtangView = 'date';
 let lastFoodSummaryCache = null; // instant restore cache 
 
-const NAV_VISIBLE_SCREENS = ['dashboardScreen', 'utangScreen', 'taskScreen', 'kanbanScreen', 'foodScreen', 'budgetScreen', 'summaryScreen'];
+const NAV_VISIBLE_SCREENS = ['dashboardScreen', 'utangScreen', 'taskScreen', 'kanbanScreen', 'foodScreen', 'budgetScreen', 'summaryScreen', 'wishlistScreen'];
 
 function switchScreen(screenId) {
     playSound('transition'); 
@@ -71,6 +71,7 @@ function switchScreen(screenId) {
     if (screenId === 'budgetScreen') updateBudgetDashboard();
     if (screenId === 'kanbanScreen') renderKanban();
     if (screenId === 'dashboardScreen') updateQuickGlance();
+    if (screenId === 'wishlistScreen') renderWishlist();
 
     let bottomNav = document.getElementById('bottomNav');
     if (bottomNav) {
@@ -1003,6 +1004,139 @@ async function saveWallet() {
 
 async function deleteWallet(id) { if (confirm("Sigurado ka bang gusto mong burahin ang wallet na ito? Hindi na ito maibabalik.")) { try { await window.dbMethods.deleteDoc(window.dbMethods.doc(window.db, "wallets", id)); playSound('click'); } catch (e) { console.error(e); alert("May error sa pagbura ng wallet."); } } }
 
+// ==========================================
+// 🎯 WISHLIST / SAVINGS GOALS (label-only wallet reference, manual tracking)
+// ==========================================
+let wishlistGoals = [];
+
+function initRealtimeWishlist() {
+    const q = window.dbMethods.query(window.dbMethods.collection(window.db, "wishlistGoals"), window.dbMethods.where("userId", "==", window.currentUid));
+    window.dbMethods.onSnapshot(q, (snapshot) => {
+        wishlistGoals = []; snapshot.forEach(doc => wishlistGoals.push({ id: doc.id, ...doc.data() }));
+        wishlistGoals.sort((a, b) => (a.targetDate ? new Date(a.targetDate) : 0) - (b.targetDate ? new Date(b.targetDate) : 0));
+        renderWishlist();
+    });
+}
+
+function openAddGoalForm() {
+    document.getElementById('goalName').value = '';
+    document.getElementById('goalTarget').value = '';
+    document.getElementById('goalDate').value = '';
+    document.getElementById('goalStartingAmount').value = '';
+    let walletSelect = document.getElementById('goalWalletLabel');
+    walletSelect.innerHTML = '<option value="">Wala / Iba pa</option>' + myWallets.map(w => `<option value="${w.id}">${w.name}</option>`).join('');
+    document.getElementById('goalModal').style.display = 'flex';
+}
+
+function closeGoalModal() {
+    document.getElementById('goalModal').style.display = 'none';
+    document.getElementById('contributeGoalModal').style.display = 'none';
+}
+
+async function saveGoal() {
+    let name = document.getElementById('goalName').value;
+    let target = parseFloat(document.getElementById('goalTarget').value);
+    let dateVal = document.getElementById('goalDate').value;
+    let startingAmount = parseFloat(document.getElementById('goalStartingAmount').value) || 0;
+    let walletId = document.getElementById('goalWalletLabel').value || null;
+
+    if (!name || isNaN(target) || target <= 0 || !dateVal) { alert("Pakilagay ang Goal Name, Target Amount, at Target Date!"); return; }
+
+    try {
+        await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "wishlistGoals"), {
+            userId: window.currentUid, name: name, targetAmount: target, targetDate: dateVal,
+            savedAmount: startingAmount, walletId: walletId, createdAt: Date.now()
+        });
+        playSound('success');
+        closeGoalModal();
+    } catch (e) { console.error(e); alert("May error sa pag-save ng goal."); }
+}
+
+function openContributeModal(goalId) {
+    let goal = wishlistGoals.find(g => g.id === goalId);
+    if (!goal) return;
+    document.getElementById('contributeGoalId').value = goalId;
+    document.getElementById('contributeGoalLabel').innerText = `Para sa: ${goal.name}`;
+    document.getElementById('contributeAmount').value = '';
+    document.getElementById('contributeGoalModal').style.display = 'flex';
+}
+
+async function confirmContributeGoal() {
+    let goalId = document.getElementById('contributeGoalId').value;
+    let amount = parseFloat(document.getElementById('contributeAmount').value);
+    if (isNaN(amount) || amount <= 0) { alert("Pakilagay ng tamang amount!"); return; }
+
+    let goal = wishlistGoals.find(g => g.id === goalId);
+    if (!goal) return;
+
+    try {
+        await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wishlistGoals", goalId), { savedAmount: (goal.savedAmount || 0) + amount });
+        playSound('success');
+        closeGoalModal();
+    } catch (e) { console.error(e); alert("May error sa pag-update ng goal."); }
+}
+
+async function deleteGoal(id) {
+    if (confirm("Sigurado ka bang gusto mong burahin ang goal na ito?")) {
+        try { await window.dbMethods.deleteDoc(window.dbMethods.doc(window.db, "wishlistGoals", id)); playSound('click'); } catch (e) { console.error(e); }
+    }
+}
+
+function renderWishlist() {
+    let container = document.getElementById('wishlistContainer');
+    if (!container) return;
+    if (wishlistGoals.length === 0) { container.innerHTML = ''; return; }
+
+    container.innerHTML = wishlistGoals.map(goal => {
+        let saved = goal.savedAmount || 0;
+        let target = goal.targetAmount || 1;
+        let percent = Math.min((saved / target) * 100, 100);
+
+        let today = new Date(); today.setHours(0,0,0,0);
+        let targetD = new Date(goal.targetDate);
+        let monthsLeft = Math.max(0, Math.round((targetD - today) / (1000 * 60 * 60 * 24 * 30)));
+        let timeLabel = monthsLeft <= 0 ? 'Due na' : `${monthsLeft} mos left`;
+
+        let remaining = target - saved;
+        let monthlyNeeded = (remaining > 0 && monthsLeft > 0) ? (remaining / monthsLeft) : 0;
+        let captionText = remaining <= 0 ? 'Tapos na! 🎉' : `${percent.toFixed(0)}% complete${monthlyNeeded > 0 ? ` • ₱${monthlyNeeded.toLocaleString(undefined, {maximumFractionDigits:0})}/mo to hit goal` : ''}`;
+
+        let walletObj = goal.walletId ? myWallets.find(w => w.id === goal.walletId) : null;
+        let walletShareHTML = '';
+        if (walletObj) {
+            let walletBal = parseFloat(walletObj.balance) || 0;
+            let walletPercent = walletBal > 0 ? Math.min((saved / walletBal) * 100, 100) : 0;
+            walletShareHTML = `<div class="goal-wallet-share"><span>₱${saved.toLocaleString()} of ₱${walletBal.toLocaleString()} sa ${walletObj.name}</span><strong>${walletPercent.toFixed(0)}%</strong></div>`;
+        }
+
+        return `<div class="utang-card goal-card">
+            <div class="goal-card-top">
+                <div class="list-card-avatar tone-purple"><i class="ph-duotone ph-target"></i></div>
+                <div class="goal-card-main">
+                    <p class="goal-card-title">${goal.name}</p>
+                    ${walletObj ? `<p class="goal-card-wallet">${walletObj.name}</p>` : ''}
+                </div>
+                <span class="pill-badge tone-purple">${timeLabel}</span>
+            </div>
+            <div class="goal-card-amounts">
+                <span class="goal-card-saved">₱${saved.toLocaleString()}</span>
+                <span class="goal-card-target">of ₱${target.toLocaleString()}</span>
+            </div>
+            <div class="goal-progress-track"><div class="goal-progress-fill" style="width: ${percent}%;"></div></div>
+            <p class="goal-card-caption">${captionText}</p>
+            ${walletShareHTML}
+            <div class="goal-card-actions">
+                <button class="goal-add-btn" onclick="playSound('click'); openContributeModal('${goal.id}')"><i class="ph-bold ph-plus"></i> Add Savings</button>
+                <button class="goal-delete-btn" onclick="playSound('click'); deleteGoal('${goal.id}')"><i class="ph-bold ph-trash"></i></button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+window.openAddGoalForm = openAddGoalForm; window.closeGoalModal = closeGoalModal; window.saveGoal = saveGoal;
+window.openContributeModal = openContributeModal; window.confirmContributeGoal = confirmContributeGoal; window.deleteGoal = deleteGoal;
+
+
 function initRealtimeTransactions() {
     const q = window.dbMethods.query(window.dbMethods.collection(window.db, "transactions"), window.dbMethods.where("userId", "==", window.currentUid));
     window.dbMethods.onSnapshot(q, (snapshot) => { transactionDatabase = []; snapshot.forEach(doc => transactionDatabase.push({ id: doc.id, ...doc.data() })); transactionDatabase.sort((a, b) => b.createdAt - a.createdAt); renderTransactions(); updateBudgetDashboard(); });
@@ -1582,7 +1716,7 @@ function forgotPin() {
 function proceedToApp() {
     switchScreen('dashboardScreen');
     if (!isAppInitialized) { 
-        initRealtimeUtang(); initRealtimeTasks(); initRealtimeFood(); initRealtimeBudget(); initRealtimeFoodCategories();
+        initRealtimeUtang(); initRealtimeTasks(); initRealtimeFood(); initRealtimeBudget(); initRealtimeFoodCategories(); initRealtimeWishlist();
         initRealtimeTransactions(); initRealtimeBudgetConfig(); initRealtimeAiAnalyses(); 
         initRealtimeFoodSummary(); 
         isAppInitialized = true; 
