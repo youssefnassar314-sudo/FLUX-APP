@@ -231,6 +231,7 @@ async function confirmPayUtang() {
         await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletId), { balance: parseFloat(walletObj.balance) - totalAmountToPay });
         
         // Update Firebase
+        let fullyPaidIds = [];
         for (let id of utangIds) {
             if (id) {
                 if (isPartial) {
@@ -255,6 +256,7 @@ async function confirmPayUtang() {
                 } else {
                     // Full payment para dito — i-record kung KAILAN talaga nagbayad (hindi yung due date)
                     await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "utang", id), { isPaid: true, paidAt: Date.now() });
+                    fullyPaidIds.push(id);
                     syncToSheets({ action: 'payUtang', firebaseId: id });
                 }
             }
@@ -267,10 +269,10 @@ async function confirmPayUtang() {
             ? `${paymentType}: ${cleanUtangLabel} (+₱${interestAmount} Interest)` 
             : `${paymentType}: ${cleanUtangLabel}`;
 
-        // Save sa Transactions History
+        // Save sa Transactions History — naka-link sa mismong utang IDs para ma-undo nang tama sa hinaharap
         await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "transactions"), {
             userId: window.currentUid, type: 'expense', walletId: walletId, amount: totalAmountToPay,
-            note: transactionNote, category: "Debt Payment", paidFromWallet: walletObj.name, createdAt: Date.now()
+            note: transactionNote, category: "Debt Payment", paidFromWallet: walletObj.name, linkedUtangIds: fullyPaidIds, createdAt: Date.now()
         });
         playSound('success'); 
         closeBudgetModals();
@@ -406,7 +408,9 @@ if (currentUtangView === 'date') {
                 ` : ''}
                 <div class="list-card-action-row">
                     <div class="list-card-amount" style="font-size: 19px;">₱${utang.amount.toFixed(2)}</div>
-                    <button class="pay-pill-btn" onclick="openPayUtangModal('${utang.id}', ${utang.amount}, '${utang.utangId}')" ${utang.isPaid ? 'disabled' : ''}>${utang.isPaid ? '<i class="ph-bold ph-check"></i> Paid' : 'Pay'}</button>
+                    ${utang.isPaid
+                        ? `<button class="pay-pill-btn" style="background: var(--pastel-green-bg); color: var(--pastel-green-fg);" onclick="playSound('click'); undoFullPayment('${utang.id}')"><i class="ph-bold ph-arrow-counter-clockwise"></i> Undo</button>`
+                        : `<button class="pay-pill-btn" onclick="openPayUtangModal('${utang.id}', ${utang.amount}, '${utang.utangId}')">Pay</button>`}
                 </div>
             </div>`;
 
@@ -455,7 +459,7 @@ if (currentUtangView === 'date') {
                     let dateDisplay = isFlex ? 'Flexible' : `${u.dueDate.toLocaleString('default', { month: 'short' })} ${u.dueDate.getDate()}${u.dueDate.getFullYear() !== new Date().getFullYear() ? ` '${u.dueDate.getFullYear().toString().slice(-2)}` : ''}`;
                     
                     let dueLabel = u.utangId.includes('(Due') ? u.utangId.split('(')[1].replace(')', '') : 'Full';
-                    let controls = u.isPaid ? `<span style="color: var(--success); font-size: 11px; font-weight: bold;"><i class="ph-bold ph-check"></i> Paid${u.paidAt ? ' ' + new Date(u.paidAt).toLocaleDateString('default', { month: 'short', day: 'numeric' }) : ''}</span>` : `<button onclick="openPayUtangModal('${u.id}', ${u.amount}, '${u.utangId}')" style="background:none; border:1px solid var(--primary); color:var(--primary); padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer;">Pay</button>`;
+                    let controls = u.isPaid ? `<button onclick="playSound('click'); undoFullPayment('${u.id}')" style="background: var(--pastel-green-bg); border: none; color: var(--pastel-green-fg); padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer;"><i class="ph-bold ph-arrow-counter-clockwise"></i> Paid${u.paidAt ? ' ' + new Date(u.paidAt).toLocaleDateString('default', { month: 'short', day: 'numeric' }) : ''}</button>` : `<button onclick="openPayUtangModal('${u.id}', ${u.amount}, '${u.utangId}')" style="background:none; border:1px solid var(--primary); color:var(--primary); padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer;">Pay</button>`;
                     return `<div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed var(--glass-border); padding-top: 10px; margin-top: 10px;">
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <button onclick="playSound('click'); deleteUtang('${u.id}')" style="background:none; border:none; color:var(--danger); font-size:14px; cursor:pointer; padding:0;"><i class="ph-bold ph-x"></i></button>
@@ -1062,6 +1066,13 @@ async function saveTransaction() {
 }
 
 async function deleteTransaction(id, type, amount, walletId, walletToId) {
+    // Kung Debt Payment 'to, gamitin yung proper na "Undo" flow (sa Utang screen) imbes na dito lang direktang burahin —
+    // para hindi ma-desync yung status ng utang (paid pa rin kahit na-refund na yung pera).
+    let txRecord = transactionDatabase.find(t => t.id === id);
+    if (txRecord && txRecord.category === 'Debt Payment' && Array.isArray(txRecord.linkedUtangIds) && txRecord.linkedUtangIds.length > 0) {
+        return alert("Para ma-undo nang tama ang bayad na 'to (kasama ang pagbabalik ng status ng utang), pumunta ka sa Utang screen at pindutin ang 'Undo' doon sa specific na utang. Hindi puwedeng dito lang direktang burahin para hindi masira ang pagkakasync ng datos mo.");
+    }
+
     if (confirm("Burahin itong transaction? (Ire-reverse ang epekto nito sa wallet mo)")) {
         try {
             let walletObj = myWallets.find(w => w.id === walletId);
@@ -1770,6 +1781,56 @@ async function undoPartialPayment(utangFirebaseId, partialId) {
 }
 
 window.undoPartialPayment = undoPartialPayment;
+
+async function undoFullPayment(utangFirebaseId) {
+    let utang = utangDatabase.find(u => u.id === utangFirebaseId);
+    if (!utang) return alert("Hindi mahanap ang utang na ito.");
+    if (!utang.isPaid) return alert("Hindi pa naman ito bayad.");
+
+    let tx = transactionDatabase.find(t => t.category === 'Debt Payment' && Array.isArray(t.linkedUtangIds) && t.linkedUtangIds.includes(utangFirebaseId));
+
+    if (!tx) {
+        if (!confirm("Hindi mahanap ang kaugnay na transaction nito (baka matagal na o hindi na-link). Gusto mo bang i-unmark na lang bilang unpaid ang utang na ito? (Hindi na-refund sa wallet — kailangan mo na lang i-adjust nang manual kung kinakailangan.)")) return;
+        try {
+            await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "utang", utangFirebaseId), { isPaid: false, paidAt: null });
+            playSound('click');
+        } catch (e) { console.error(e); alert("May error sa pag-undo."); }
+        return;
+    }
+
+    let otherLinked = tx.linkedUtangIds.filter(id => id !== utangFirebaseId);
+    let warningExtra = otherLinked.length > 0 ? `\n\nNote: Kasama itong binayaran mo dati kasabay ng ${otherLinked.length} pang ibang utang sa iisang transaction — mababalik silang lahat sa "unpaid" kasama nito.` : '';
+
+    if (!confirm(`I-undo ang pagbabayad na ito? Ibabalik ang ₱${tx.amount.toFixed(2)} sa wallet mo, at babalik sa "unpaid" ang utang.${warningExtra}`)) return;
+
+    try {
+        let walletObj = myWallets.find(w => w.id === tx.walletId);
+
+        // 1. Ibalik lahat ng utang na naka-link sa transaction na 'to pabalik sa unpaid
+        for (let id of tx.linkedUtangIds) {
+            await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "utang", id), { isPaid: false, paidAt: null });
+        }
+
+        // 2. Ibalik ang pera sa wallet (kung nag-eexist pa)
+        if (walletObj) {
+            await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", walletObj.id), { balance: parseFloat(walletObj.balance) + tx.amount });
+        }
+
+        // 3. I-log bilang Refund (audit trail — hindi binubura yung orihinal na Debt Payment record)
+        if (walletObj) {
+            await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "transactions"), {
+                userId: window.currentUid, type: 'income', walletId: walletObj.id, amount: tx.amount,
+                note: `Refund: Payment Undo (${tx.note || 'Utang'})`, category: "Refund", createdAt: Date.now()
+            });
+        }
+
+        playSound('success');
+    } catch (e) {
+        console.error(e);
+        alert("May error sa pag-undo.");
+    }
+}
+window.undoFullPayment = undoFullPayment;
 
 // ==========================================
 // 🌍 GLOBAL EXPORTS 
