@@ -100,8 +100,13 @@ function setUtangView(mode) {
 }
 
 function showAddForm() {
-    let form = document.getElementById('addUtangForm');
-    form.style.display = (form.style.display === 'none' || form.style.display === '') ? 'block' : 'none';
+    let overlay = document.getElementById('addUtangModalOverlay');
+    if (overlay) overlay.style.display = 'flex';
+}
+
+function closeAddUtangForm() {
+    let overlay = document.getElementById('addUtangModalOverlay');
+    if (overlay) overlay.style.display = 'none';
 }
 
 function addDueRow() {
@@ -172,7 +177,7 @@ async function saveUtang() {
                     <input type="date" class="dynamic-date" style="flex: 1;">
                 </div>
             </div>`;
-        dueCounter = 1; document.getElementById('addUtangForm').style.display = 'none';
+        dueCounter = 1; closeAddUtangForm();
     } catch (e) { console.error(e); alert("May error sa pag-save ng utang!"); }
 }
 
@@ -1529,6 +1534,10 @@ function initSwipeGesture() {
     const THRESHOLD = 50;
 
     welcomeScreen.addEventListener('touchstart', (e) => { startY = e.touches[0].clientY; }, { passive: true });
+    welcomeScreen.addEventListener('touchmove', (e) => {
+        // Panatilihing static/hindi gumagalaw ang screen habang nagsu-swipe (parang totoong lock screen)
+        e.preventDefault();
+    }, { passive: false });
     welcomeScreen.addEventListener('touchend', (e) => {
         if (startY === null) return;
         let endY = e.changedTouches[0].clientY;
@@ -1726,6 +1735,7 @@ window.clearAllUtang = clearAllUtang; window.clearAllTasks = clearAllTasks; wind
 window.openGame = openGame; window.closeGame = closeGame;
 window.numpadPress = numpadPress; window.numpadBackspace = numpadBackspace; window.checkPinStatus = checkPinStatus;
 window.handleSwipeTap = handleSwipeTap; window.goToPinGate = goToPinGate;
+window.closeAddUtangForm = closeAddUtangForm;
 window.openQuickAdd = openQuickAdd; window.closeQuickAdd = closeQuickAdd;
 window.openProfileSheet = openProfileSheet; window.closeProfileSheet = closeProfileSheet;
 window.openNotifications = openNotifications; window.updateGreetingHeader = updateGreetingHeader;
