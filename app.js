@@ -945,14 +945,21 @@ function updateBudgetDashboard() {
     let container = document.getElementById('walletsContainer'); container.innerHTML = '';
     if (myWallets.length === 0) container.innerHTML = `<p style="color: var(--text-muted); font-size: 12px; font-style: italic;">Wala pang wallet.</p>`;
     else {
-        const walletTones = ['tone-peach', 'tone-green', 'tone-pink', 'tone-blue', 'tone-purple', 'tone-amber'];
-        myWallets.forEach((wallet, i) => {
-            let tone = walletTones[i % walletTones.length];
-            container.innerHTML += `<div class="wallet-chip ${tone}">
+        const walletTypeMap = {
+            'E-wallet':    { tone: 'tone-blue',   icon: 'ph-device-mobile' },
+            'Bank':        { tone: 'tone-purple', icon: 'ph-bank' },
+            'Cash':        { tone: 'tone-peach',  icon: 'ph-money' },
+            'Savings':     { tone: 'tone-green',  icon: 'ph-piggy-bank' },
+            'Credit Card': { tone: 'tone-pink',   icon: 'ph-credit-card' },
+        };
+        myWallets.forEach((wallet) => {
+            let typeInfo = walletTypeMap[wallet.type] || { tone: 'tone-amber', icon: 'ph-wallet' };
+            container.innerHTML += `<div class="wallet-chip ${typeInfo.tone}">
                 <button onclick="playSound('click'); deleteWallet('${wallet.id}')" class="list-card-close" style="top: 8px; right: 8px;"><i class="ph-bold ph-x"></i></button>
-                <div class="wallet-chip-icon"><i class="ph-duotone ph-wallet"></i></div>
+                <div class="wallet-chip-icon"><i class="ph-duotone ${typeInfo.icon}"></i></div>
                 <p class="wallet-chip-name">${wallet.name}</p>
                 <h4 class="wallet-chip-balance">₱${parseFloat(wallet.balance).toLocaleString()}</h4>
+                ${wallet.type ? `<span class="wallet-chip-type">${wallet.type}</span>` : ''}
             </div>`;
         });
     }
@@ -988,8 +995,10 @@ function initRealtimeBudget() {
 
 async function saveWallet() {
     let name = document.getElementById('walletName').value; let bal = document.getElementById('walletBalance').value;
+    let typeInput = document.getElementById('walletType'); let type = typeInput ? typeInput.value : '';
     if (!name || !bal) return alert("Kulang details!");
-    try { await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "wallets"), { userId: window.currentUid, name: name, balance: parseFloat(bal), createdAt: Date.now() }); playSound('success'); document.getElementById('walletName').value = ''; document.getElementById('walletBalance').value = ''; closeBudgetModals(); } catch (e) { console.error(e); alert("May error sa pag-save!"); }
+    if (!type) return alert("Pumili ng Wallet Type!");
+    try { await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "wallets"), { userId: window.currentUid, name: name, type: type, balance: parseFloat(bal), createdAt: Date.now() }); playSound('success'); document.getElementById('walletName').value = ''; document.getElementById('walletBalance').value = ''; if (typeInput) typeInput.value = ''; closeBudgetModals(); } catch (e) { console.error(e); alert("May error sa pag-save!"); }
 }
 
 async function deleteWallet(id) { if (confirm("Sigurado ka bang gusto mong burahin ang wallet na ito? Hindi na ito maibabalik.")) { try { await window.dbMethods.deleteDoc(window.dbMethods.doc(window.db, "wallets", id)); playSound('click'); } catch (e) { console.error(e); alert("May error sa pagbura ng wallet."); } } }
