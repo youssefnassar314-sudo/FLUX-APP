@@ -1558,8 +1558,44 @@ function closePaylaterModals() {
     document.getElementById('paylaterAccountModal').style.display = 'none';
     document.getElementById('paylaterItemModal').style.display = 'none';
     document.getElementById('paylaterFinalizeModal').style.display = 'none';
+    document.getElementById('paylaterExistingBillModal').style.display = 'none';
     document.getElementById('paylaterAccountType').disabled = false;
 }
+
+function openExistingBillModal(accountId) {
+    let account = paylaterAccounts.find(a => a.id === accountId);
+    if (!account) return;
+    document.getElementById('existingBillAccountId').value = accountId;
+    document.getElementById('existingBillAmount').value = '';
+    document.getElementById('existingBillDueDate').value = '';
+    document.getElementById('paylaterExistingBillModal').style.display = 'flex';
+}
+window.openExistingBillModal = openExistingBillModal;
+
+async function saveExistingBill() {
+    let accountId = document.getElementById('existingBillAccountId').value;
+    let account = paylaterAccounts.find(a => a.id === accountId);
+    if (!account) return;
+    let amount = parseFloat(document.getElementById('existingBillAmount').value);
+    let dueDateVal = document.getElementById('existingBillDueDate').value;
+    if (isNaN(amount) || amount <= 0 || !dueDateVal) { alert("Kumpletuhin ang Amount at Due Date!"); return; }
+
+    let dueDateObj = new Date(dueDateVal);
+    let mm = String(dueDateObj.getMonth() + 1).padStart(2, '0'); let dd = String(dueDateObj.getDate()).padStart(2, '0'); let yy = String(dueDateObj.getFullYear()).slice(-2);
+    let accCode = account.name.replace(/[^A-Za-z]/g, '').toUpperCase().substring(0, 4) || 'XXXX';
+    let utangId = `MY${accCode}${mm}${dd}${yy}${Math.floor(Math.random() * 90 + 10)}`; // extra random suffix para hindi mag-clash kung maraming existing bills sa parehong account/due date
+
+    try {
+        let docRef = await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "utang"), {
+            userId: window.currentUid, utangId: utangId, amount: amount, dueDate: dueDateVal,
+            isPaid: false, category: 'My App', appName: account.name, createdAt: Date.now()
+        });
+        syncToSheets({ action: 'addUtang', firebaseId: docRef.id, utangId: utangId, appName: account.name, amount: amount, dueDate: dueDateVal, category: 'My App' });
+        playSound('success');
+        closePaylaterModals();
+    } catch (e) { console.error(e); alert("May error sa pag-save."); }
+}
+window.saveExistingBill = saveExistingBill;
 
 async function savePaylaterAccount() {
     let editId = document.getElementById('paylaterAccountEditId').value;
@@ -1795,10 +1831,11 @@ function renderPaylaterAccounts() {
                 <span style="font-size:11px; color:var(--text-muted); text-transform:uppercase;">Current Cycle Total</span>
                 <span style="font-size:18px; font-weight:800; color:var(--text-main);">₱${total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
             </div>
-            <div style="display:flex; gap:8px;">
+            <div style="display:flex; gap:8px; margin-bottom: 8px;">
                 <button class="icon-action-btn" onclick="playSound('click'); openAddItemModal('${account.id}')"><i class="ph-bold ph-plus"></i> Add Item</button>
                 <button class="icon-action-btn" style="background:var(--pastel-amber-fg); color:#fff;" onclick="playSound('click'); openFinalizeModal('${account.id}')"><i class="ph-bold ph-check-circle"></i> Finalize</button>
             </div>
+            <button class="icon-action-btn" style="width: 100%;" onclick="playSound('click'); openExistingBillModal('${account.id}')"><i class="ph-bold ph-receipt"></i> Add Existing Bill</button>
         </div>`;
     }).join('');
 }
