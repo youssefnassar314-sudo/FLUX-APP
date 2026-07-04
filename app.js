@@ -683,6 +683,7 @@ function renderKanban() {
 async function saveFood() {
     let mealType = document.getElementById('mealType').value; let foodSource = document.getElementById('foodSource').value;
     let foodItem = document.getElementById('foodItem').value; let priceInput = document.getElementById('foodPrice');
+    let notesInput = document.getElementById('foodNotes'); let notes = notesInput ? notesInput.value.trim() : '';
     let walletInput = document.getElementById('foodWallet'); let price = priceInput ? parseFloat(priceInput.value || 0) : 0;
     let walletId = walletInput ? walletInput.value : null;
 
@@ -699,10 +700,10 @@ async function saveFood() {
             });
         }
         await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "foodLogs"), {
-            userId: window.currentUid, meal: mealType, source: foodSource, item: foodItem, cost: price, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), createdAt: Date.now()
+            userId: window.currentUid, meal: mealType, source: foodSource, item: foodItem, notes: notes, cost: price, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), createdAt: Date.now()
         });
         playSound('success');
-        document.getElementById('foodItem').value = ''; if (priceInput) priceInput.value = '';
+        document.getElementById('foodItem').value = ''; if (priceInput) priceInput.value = ''; if (notesInput) notesInput.value = '';
     } catch (e) { console.error(e); alert("May error sa pag-save!"); }
 }
 
@@ -834,6 +835,7 @@ function renderFoodList() {
         let tone = food.meal === 'Breakfast' ? 'tone-amber' : food.meal === 'Lunch' ? 'tone-blue' : food.meal === 'Dinner' ? 'tone-purple' : 'tone-pink';
         let icon = mealIcons[food.meal] || 'ph-fork-knife';
         let picIcon = food.image64 ? ' <i class="ph-bold ph-image"></i>' : ''; let priceTag = food.cost > 0 ? ` • ₱${food.cost}` : '';
+        let noteTag = food.notes ? `<p style="font-size: 11px; color: var(--text-muted); font-style: italic; margin-top: 6px;"><i class="ph-bold ph-note"></i> ${food.notes}</p>` : '';
         container.innerHTML += `<div class="utang-card list-card" style="margin-bottom: 10px;">
             <button onclick="deleteFood('${food.id}')" class="list-card-close"><i class="ph-bold ph-x"></i></button>
             <div class="list-card-row">
@@ -844,6 +846,7 @@ function renderFoodList() {
                 </div>
                 <span style="font-size: 11px; color: var(--text-muted); flex-shrink:0;">${food.time}</span>
             </div>
+            ${noteTag}
         </div>`;
     });
 }
@@ -1167,7 +1170,7 @@ function buildReceiptSections() {
 
     let foodThisMonth = foodDatabase.filter(f => f.createdAt >= startOfMonth); let foodByDay = groupByDay(foodThisMonth, f => f.createdAt); let totalFood = foodThisMonth.reduce((s, f) => s + (f.cost || 0), 0);
     let aiByDay = {}; aiAnalyses.forEach(a => { let key = a.dateKey || new Date(a.createdAt).toLocaleDateString('en-CA'); aiByDay[key] = a.verdict; });
-    let foodRows = foodByDay.map(day => { let dayKey = Object.keys(aiByDay).length > 0 ? new Date(day.items[0].createdAt).toLocaleDateString('en-CA') : null; let dayVerdict = dayKey && aiByDay[dayKey] ? aiByDay[dayKey] : null; return `<div class="receipt-day-header">${day.label}</div>${day.items.map(f => `<div class="receipt-row"><span class="r-label">• ${f.item}</span><span class="r-val">${f.cost > 0 ? '₱' + f.cost.toFixed(2) : '—'}</span></div>`).join('')}${dayVerdict ? `<div class="receipt-ai-box">AI: ${dayVerdict}</div>` : ''}`; }).join('') || '<p style="text-align:center;font-size:10px;color:#888;letter-spacing:1px;margin:12px 0;">NO FOOD LOGGED</p>';
+    let foodRows = foodByDay.map(day => { let dayKey = Object.keys(aiByDay).length > 0 ? new Date(day.items[0].createdAt).toLocaleDateString('en-CA') : null; let dayVerdict = dayKey && aiByDay[dayKey] ? aiByDay[dayKey] : null; return `<div class="receipt-day-header">${day.label}</div>${day.items.map(f => `<div class="receipt-row"><span class="r-label">• ${f.item}${f.notes ? ` <span style="opacity:0.6;">(${f.notes})</span>` : ''}</span><span class="r-val">${f.cost > 0 ? '₱' + f.cost.toFixed(2) : '—'}</span></div>`).join('')}${dayVerdict ? `<div class="receipt-ai-box">AI: ${dayVerdict}</div>` : ''}`; }).join('') || '<p style="text-align:center;font-size:10px;color:#888;letter-spacing:1px;margin:12px 0;">NO FOOD LOGGED</p>';
     let foodSection = `<div class="receipt-section-title">FOOD CONSUMPTION</div>${foodRows}<div class="receipt-divider-solid"></div><div class="receipt-row r-total"><span class="r-label">FOOD TOTAL</span><span class="r-val">₱${totalFood.toFixed(2)}</span></div>`;
 
     let doneTasks = taskDatabase.filter(t => t.status === 'done' && t.createdAt >= startOfMonth); let tasksByDay = groupByDay(doneTasks, t => t.createdAt); let totalMins = doneTasks.reduce((s, t) => s + (t.timeSpent || t.estMins || 0), 0);
