@@ -1456,6 +1456,27 @@ input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(0.5); cur
 .receipt-row.r-total { font-size: 13px; margin-top: 6px; padding-top: 8px; }
 .receipt-row.r-total .r-label,
 .receipt-row.r-total .r-val { font-weight: 700; color: #1a1a1a; }
+
+.receipt-food-row { margin-bottom: 7px; }
+.receipt-food-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    font-size: 11px;
+    line-height: 1.4;
+}
+.receipt-food-top .r-label { color: #444; flex: 1; white-space: normal; word-break: break-word; }
+.receipt-food-top .r-val { font-weight: 700; color: #1a1a1a; white-space: nowrap; flex-shrink: 0; }
+.receipt-food-sub {
+    font-size: 9.5px;
+    color: #999;
+    padding-left: 13px;
+    margin-top: 1px;
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.35;
+}
 .receipt-paid-tag {
     display: inline-block;
     font-size: 7px;
