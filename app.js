@@ -391,6 +391,7 @@ if (currentUtangView === 'date') {
 
             let cardContent = `<div class="utang-card list-card" style="${utang.isPaid ? 'opacity: 0.55;' : ''}">
                 <button onclick="playSound('click'); deleteUtang('${utang.id}')" class="list-card-close"><i class="ph-bold ph-x"></i></button>
+                <button onclick="playSound('click'); openEditUtangModal('${utang.id}')" class="list-card-close" style="right: 32px;"><i class="ph-bold ph-pencil-simple"></i></button>
                 <div class="list-card-row" style="margin-bottom: 12px;">
                     <div class="list-card-avatar ${avatarTone}"><i class="ph-duotone ${avatarIcon}"></i></div>
                     <div class="list-card-main">
@@ -466,6 +467,7 @@ if (currentUtangView === 'date') {
                     let controls = u.isPaid ? `<button onclick="playSound('click'); undoFullPayment('${u.id}')" style="background: var(--pastel-green-bg); border: none; color: var(--pastel-green-fg); padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer;"><i class="ph-bold ph-arrow-counter-clockwise"></i> Paid${u.paidAt ? ' ' + new Date(u.paidAt).toLocaleDateString('default', { month: 'short', day: 'numeric' }) : ''}</button>` : `<button onclick="openPayUtangModal('${u.id}', ${u.amount}, '${u.utangId}')" style="background:none; border:1px solid var(--primary); color:var(--primary); padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer;">Pay</button>`;
                     return `<div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed var(--glass-border); padding-top: 10px; margin-top: 10px;">
                         <div style="display: flex; align-items: center; gap: 8px;">
+                            <button onclick="playSound('click'); openEditUtangModal('${u.id}')" style="background:none; border:none; color:var(--text-muted); font-size:14px; cursor:pointer; padding:0;"><i class="ph-bold ph-pencil-simple"></i></button>
                             <button onclick="playSound('click'); deleteUtang('${u.id}')" style="background:none; border:none; color:var(--danger); font-size:14px; cursor:pointer; padding:0;"><i class="ph-bold ph-x"></i></button>
                             <span style="font-size: 11px; color: var(--text-muted);"><strong style="color:var(--text-main);">${dueLabel}</strong> • ${dateDisplay}</span>
                         </div>
@@ -513,6 +515,40 @@ function togglePaidFolder() {
         }
     }
 }
+
+function openEditUtangModal(id) {
+    let utang = utangDatabase.find(u => u.id === id);
+    if (!utang) return;
+    document.getElementById('editUtangId').value = id;
+    document.getElementById('editUtangAppName').value = utang.appName || '';
+    document.getElementById('editUtangAmount').value = utang.amount;
+    let isFlex = isNaN(utang.dueDate instanceof Date ? utang.dueDate : new Date(utang.dueDate));
+    document.getElementById('editUtangFlexible').checked = isFlex;
+    document.getElementById('editUtangDueDate').disabled = isFlex;
+    document.getElementById('editUtangDueDate').value = isFlex ? '' : new Date(utang.dueDate).toISOString().split('T')[0];
+    document.getElementById('editUtangModal').style.display = 'flex';
+}
+
+function closeEditUtangModal() {
+    document.getElementById('editUtangModal').style.display = 'none';
+}
+
+async function saveEditUtang() {
+    let id = document.getElementById('editUtangId').value;
+    let appName = document.getElementById('editUtangAppName').value.trim();
+    let amount = parseFloat(document.getElementById('editUtangAmount').value);
+    let isFlex = document.getElementById('editUtangFlexible').checked;
+    let dueDateVal = isFlex ? 'Flexible' : document.getElementById('editUtangDueDate').value;
+
+    if (!appName || isNaN(amount) || amount <= 0 || !dueDateVal) { alert("Kumpletuhin ang App Name, Amount, at Due Date!"); return; }
+
+    try {
+        await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "utang", id), { appName: appName, amount: amount, dueDate: dueDateVal });
+        playSound('success');
+        closeEditUtangModal();
+    } catch (e) { console.error(e); alert("May error sa pag-save ng changes."); }
+}
+window.openEditUtangModal = openEditUtangModal; window.closeEditUtangModal = closeEditUtangModal; window.saveEditUtang = saveEditUtang;
 
 async function deleteUtang(id) {
     if (confirm("Sigurado ka bang gusto mong burahin ang utang na ito? Hindi na ito maibabalik.")) {
@@ -720,6 +756,38 @@ async function saveFood() {
     } catch (e) { console.error(e); alert("May error sa pag-save!"); }
 }
 
+function openEditFoodModal(id) {
+    let food = foodDatabase.find(f => f.id === id);
+    if (!food) return;
+    document.getElementById('editFoodId').value = id;
+    document.getElementById('editFoodMeal').value = food.meal || 'Breakfast';
+    document.getElementById('editFoodItem').value = food.item || '';
+    document.getElementById('editFoodNotes').value = food.notes || '';
+    document.getElementById('editFoodPrice').value = food.cost || '';
+    document.getElementById('editFoodModal').style.display = 'flex';
+}
+
+function closeEditFoodModal() {
+    document.getElementById('editFoodModal').style.display = 'none';
+}
+
+async function saveEditFood() {
+    let id = document.getElementById('editFoodId').value;
+    let meal = document.getElementById('editFoodMeal').value;
+    let item = document.getElementById('editFoodItem').value.trim();
+    let notes = document.getElementById('editFoodNotes').value.trim();
+    let price = parseFloat(document.getElementById('editFoodPrice').value) || 0;
+
+    if (!item) { alert("I-type mo kung anong kinain mo!"); return; }
+
+    try {
+        await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "foodLogs", id), { meal: meal, item: item, notes: notes, cost: price });
+        playSound('success');
+        closeEditFoodModal();
+    } catch (e) { console.error(e); alert("May error sa pag-save ng changes."); }
+}
+window.openEditFoodModal = openEditFoodModal; window.closeEditFoodModal = closeEditFoodModal; window.saveEditFood = saveEditFood;
+
 async function deleteFood(id) { 
     if (confirm("Gusto mo bang burahin ang food log na ito?")) {
         await window.dbMethods.deleteDoc(window.dbMethods.doc(window.db, "foodLogs", id)); 
@@ -898,6 +966,7 @@ function renderFoodList() {
         let noteTag = food.notes ? `<p style="font-size: 11px; color: var(--text-muted); font-style: italic; margin-top: 6px;"><i class="ph-bold ph-note"></i> ${food.notes}</p>` : '';
         container.innerHTML += `<div class="utang-card list-card" style="margin-bottom: 10px;">
             <button onclick="deleteFood('${food.id}')" class="list-card-close"><i class="ph-bold ph-x"></i></button>
+            <button onclick="playSound('click'); openEditFoodModal('${food.id}')" class="list-card-close" style="right: 32px;"><i class="ph-bold ph-pencil-simple"></i></button>
             <div class="list-card-row">
                 <div class="list-card-avatar ${tone}"><i class="ph-duotone ${icon}"></i></div>
                 <div class="list-card-main">
@@ -1007,6 +1076,7 @@ function updateBudgetDashboard() {
             let typeInfo = walletTypeMap[wallet.type] || { tone: 'tone-amber', icon: 'ph-wallet' };
             container.innerHTML += `<div class="wallet-chip ${typeInfo.tone}">
                 <button onclick="playSound('click'); deleteWallet('${wallet.id}')" class="list-card-close" style="top: 8px; right: 8px;"><i class="ph-bold ph-x"></i></button>
+                <button onclick="playSound('click'); openEditWalletModal('${wallet.id}')" class="list-card-close" style="top: 8px; right: 28px;"><i class="ph-bold ph-pencil-simple"></i></button>
                 <div class="wallet-chip-icon"><i class="ph-duotone ${typeInfo.icon}"></i></div>
                 <p class="wallet-chip-name">${wallet.name}</p>
                 <h4 class="wallet-chip-balance">₱${parseFloat(wallet.balance).toLocaleString()}</h4>
@@ -1038,18 +1108,52 @@ function updateBudgetDashboard() {
     }
 }
 
-function showAddWalletModal() { playSound('click'); document.getElementById('walletModal').style.display = 'flex'; }
+function showAddWalletModal() {
+    playSound('click');
+    document.getElementById('walletEditId').value = '';
+    document.getElementById('walletModalTitle').innerText = 'Add Wallet';
+    document.getElementById('walletModalSaveBtn').innerText = 'Save Wallet';
+    document.getElementById('walletName').value = '';
+    document.getElementById('walletType').value = '';
+    document.getElementById('walletBalance').value = '';
+    document.getElementById('walletBalance').placeholder = 'Initial Balance';
+    document.getElementById('walletModal').style.display = 'flex';
+}
+
+function openEditWalletModal(id) {
+    let wallet = myWallets.find(w => w.id === id);
+    if (!wallet) return;
+    playSound('click');
+    document.getElementById('walletEditId').value = id;
+    document.getElementById('walletModalTitle').innerText = 'Edit Wallet';
+    document.getElementById('walletModalSaveBtn').innerText = 'Save Changes';
+    document.getElementById('walletName').value = wallet.name;
+    document.getElementById('walletType').value = wallet.type || '';
+    document.getElementById('walletBalance').value = wallet.balance;
+    document.getElementById('walletBalance').placeholder = 'Balance';
+    document.getElementById('walletModal').style.display = 'flex';
+}
+window.openEditWalletModal = openEditWalletModal;
+
 function initRealtimeBudget() {
     const q = window.dbMethods.query(window.dbMethods.collection(window.db, "wallets"), window.dbMethods.where("userId", "==", window.currentUid));
     window.dbMethods.onSnapshot(q, (snapshot) => { myWallets = []; snapshot.forEach(doc => myWallets.push({ id: doc.id, ...doc.data() })); updateBudgetDashboard(); updateQuickGlance(); });
 }
 
 async function saveWallet() {
+    let editId = document.getElementById('walletEditId').value;
     let name = document.getElementById('walletName').value; let bal = document.getElementById('walletBalance').value;
     let typeInput = document.getElementById('walletType'); let type = typeInput ? typeInput.value : '';
     if (!name || !bal) return alert("Kulang details!");
     if (!type) return alert("Pumili ng Wallet Type!");
-    try { await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "wallets"), { userId: window.currentUid, name: name, type: type, balance: parseFloat(bal), createdAt: Date.now() }); playSound('success'); document.getElementById('walletName').value = ''; document.getElementById('walletBalance').value = ''; if (typeInput) typeInput.value = ''; closeBudgetModals(); } catch (e) { console.error(e); alert("May error sa pag-save!"); }
+    try {
+        if (editId) {
+            await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wallets", editId), { name: name, type: type, balance: parseFloat(bal) });
+        } else {
+            await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "wallets"), { userId: window.currentUid, name: name, type: type, balance: parseFloat(bal), createdAt: Date.now() });
+        }
+        playSound('success'); document.getElementById('walletName').value = ''; document.getElementById('walletBalance').value = ''; if (typeInput) typeInput.value = ''; closeBudgetModals();
+    } catch (e) { console.error(e); alert("May error sa pag-save!"); }
 }
 
 async function deleteWallet(id) { if (confirm("Sigurado ka bang gusto mong burahin ang wallet na ito? Hindi na ito maibabalik.")) { try { await window.dbMethods.deleteDoc(window.dbMethods.doc(window.db, "wallets", id)); playSound('click'); } catch (e) { console.error(e); alert("May error sa pagbura ng wallet."); } } }
@@ -1069,6 +1173,10 @@ function initRealtimeWishlist() {
 }
 
 function openAddGoalForm() {
+    document.getElementById('goalEditId').value = '';
+    document.getElementById('goalModalTitle').innerHTML = '<i class="ph-duotone ph-target"></i> Add Savings Goal';
+    document.getElementById('goalStartingAmountLabel').innerText = 'Naka-ipon na ba ito? (Starting amount, optional)';
+    document.getElementById('goalModalSaveBtn').innerHTML = '<i class="ph-bold ph-floppy-disk"></i> Save Goal';
     document.getElementById('goalName').value = '';
     document.getElementById('goalTarget').value = '';
     document.getElementById('goalDate').value = '';
@@ -1078,29 +1186,54 @@ function openAddGoalForm() {
     document.getElementById('goalModal').style.display = 'flex';
 }
 
+function openEditGoalForm(goalId) {
+    let goal = wishlistGoals.find(g => g.id === goalId);
+    if (!goal) return;
+    document.getElementById('goalEditId').value = goalId;
+    document.getElementById('goalModalTitle').innerHTML = '<i class="ph-duotone ph-pencil-simple"></i> Edit Goal';
+    document.getElementById('goalStartingAmountLabel').innerText = 'Saved Amount';
+    document.getElementById('goalModalSaveBtn').innerHTML = '<i class="ph-bold ph-floppy-disk"></i> Save Changes';
+    document.getElementById('goalName').value = goal.name;
+    document.getElementById('goalTarget').value = goal.targetAmount;
+    document.getElementById('goalDate').value = goal.targetDate;
+    document.getElementById('goalStartingAmount').value = goal.savedAmount || 0;
+    let walletSelect = document.getElementById('goalWalletLabel');
+    walletSelect.innerHTML = '<option value="">Wala / Iba pa</option>' + myWallets.map(w => `<option value="${w.id}">${w.name}</option>`).join('');
+    walletSelect.value = goal.walletId || '';
+    document.getElementById('goalModal').style.display = 'flex';
+}
+
 function closeGoalModal() {
     document.getElementById('goalModal').style.display = 'none';
     document.getElementById('contributeGoalModal').style.display = 'none';
 }
 
 async function saveGoal() {
+    let editId = document.getElementById('goalEditId').value;
     let name = document.getElementById('goalName').value;
     let target = parseFloat(document.getElementById('goalTarget').value);
     let dateVal = document.getElementById('goalDate').value;
-    let startingAmount = parseFloat(document.getElementById('goalStartingAmount').value) || 0;
+    let savedAmount = parseFloat(document.getElementById('goalStartingAmount').value) || 0;
     let walletId = document.getElementById('goalWalletLabel').value || null;
 
     if (!name || isNaN(target) || target <= 0 || !dateVal) { alert("Pakilagay ang Goal Name, Target Amount, at Target Date!"); return; }
 
     try {
-        await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "wishlistGoals"), {
-            userId: window.currentUid, name: name, targetAmount: target, targetDate: dateVal,
-            savedAmount: startingAmount, walletId: walletId, createdAt: Date.now()
-        });
+        if (editId) {
+            await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "wishlistGoals", editId), {
+                name: name, targetAmount: target, targetDate: dateVal, savedAmount: savedAmount, walletId: walletId
+            });
+        } else {
+            await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "wishlistGoals"), {
+                userId: window.currentUid, name: name, targetAmount: target, targetDate: dateVal,
+                savedAmount: savedAmount, walletId: walletId, createdAt: Date.now()
+            });
+        }
         playSound('success');
         closeGoalModal();
     } catch (e) { console.error(e); alert("May error sa pag-save ng goal."); }
 }
+window.openEditGoalForm = openEditGoalForm;
 
 function openContributeModal(goalId) {
     let goal = wishlistGoals.find(g => g.id === goalId);
@@ -1177,6 +1310,7 @@ function renderWishlist() {
             ${walletShareHTML}
             <div class="goal-card-actions">
                 <button class="goal-add-btn" onclick="playSound('click'); openContributeModal('${goal.id}')"><i class="ph-bold ph-plus"></i> Add Savings</button>
+                <button class="goal-delete-btn" style="background: var(--glass-bg); color: var(--text-muted);" onclick="playSound('click'); openEditGoalForm('${goal.id}')"><i class="ph-bold ph-pencil-simple"></i></button>
                 <button class="goal-delete-btn" onclick="playSound('click'); deleteGoal('${goal.id}')"><i class="ph-bold ph-trash"></i></button>
             </div>
         </div>`;
@@ -1204,6 +1338,14 @@ const STATS_ICON_MAP = {
     'Needs (Essentials)': 'ph-shopping-cart',
     'Wants / Lifestyle': 'ph-sparkle',
 };
+
+function getCategoryColor(name) {
+    // Stable hash base sa pangalan mismo — para hindi nagpapalit ng kulay ang isang category
+    // depende sa ranking (ex. palaging green si "Food" kahit hindi na siya pinaka-malaki this month)
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) { hash = (hash * 31 + name.charCodeAt(i)) % 997; }
+    return STATS_PALETTE[hash % STATS_PALETTE.length];
+}
 
 function changeStatsMonth(offset) {
     currentStatsView.setMonth(currentStatsView.getMonth() + offset);
@@ -1255,7 +1397,7 @@ function renderStats() {
         grouped[cat] = (grouped[cat] || 0) + parseFloat(t.amount || 0);
     });
     let categories = Object.keys(grouped).map(name => ({ name, amount: grouped[name] })).sort((a, b) => b.amount - a.amount);
-    categories.forEach((cat, i) => { cat.percent = totalSpent > 0 ? (cat.amount / totalSpent) * 100 : 0; cat.color = STATS_PALETTE[i % STATS_PALETTE.length]; cat.icon = STATS_ICON_MAP[cat.name] || 'ph-tag'; });
+    categories.forEach((cat) => { cat.percent = totalSpent > 0 ? (cat.amount / totalSpent) * 100 : 0; cat.color = getCategoryColor(cat.name); cat.icon = STATS_ICON_MAP[cat.name] || 'ph-tag'; });
 
     // Donut chart
     document.getElementById('statsDonutContainer').innerHTML = buildDonutChart(categories, totalSpent);
@@ -1384,27 +1526,51 @@ function initRealtimePaylater() {
 }
 
 function openAddPaylaterAccountForm() {
+    document.getElementById('paylaterAccountEditId').value = '';
+    document.getElementById('paylaterAccountModalTitle').innerHTML = '<i class="ph-duotone ph-credit-card"></i> Add Account';
+    document.getElementById('paylaterAccountSaveBtn').innerHTML = '<i class="ph-bold ph-floppy-disk"></i> Save Account';
+    document.getElementById('paylaterAccountType').disabled = false;
     document.getElementById('paylaterAccountName').value = '';
     document.getElementById('paylaterCutoffDay').value = '';
     document.getElementById('paylaterAccountType').value = 'PayLater';
     document.getElementById('paylaterAccountModal').style.display = 'flex';
 }
 
+function openEditPaylaterAccountForm(accountId) {
+    let account = paylaterAccounts.find(a => a.id === accountId);
+    if (!account) return;
+    document.getElementById('paylaterAccountEditId').value = accountId;
+    document.getElementById('paylaterAccountModalTitle').innerHTML = '<i class="ph-duotone ph-pencil-simple"></i> Edit Account';
+    document.getElementById('paylaterAccountSaveBtn').innerHTML = '<i class="ph-bold ph-floppy-disk"></i> Save Changes';
+    document.getElementById('paylaterAccountType').value = account.type;
+    document.getElementById('paylaterAccountType').disabled = true; // hindi na baguhin ang type once existing na items depend dito
+    document.getElementById('paylaterAccountName').value = account.name;
+    document.getElementById('paylaterCutoffDay').value = account.cutoffDay;
+    document.getElementById('paylaterAccountModal').style.display = 'flex';
+}
+window.openEditPaylaterAccountForm = openEditPaylaterAccountForm;
+
 function closePaylaterModals() {
     document.getElementById('paylaterAccountModal').style.display = 'none';
     document.getElementById('paylaterItemModal').style.display = 'none';
     document.getElementById('paylaterFinalizeModal').style.display = 'none';
+    document.getElementById('paylaterAccountType').disabled = false;
 }
 
 async function savePaylaterAccount() {
+    let editId = document.getElementById('paylaterAccountEditId').value;
     let type = document.getElementById('paylaterAccountType').value;
     let name = document.getElementById('paylaterAccountName').value.trim();
     let cutoffDay = parseInt(document.getElementById('paylaterCutoffDay').value);
     if (!name || isNaN(cutoffDay) || cutoffDay < 1 || cutoffDay > 31) { alert("Kumpletuhin ang Account Name at Cutoff Day (1-31)!"); return; }
     try {
-        await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "paylaterAccounts"), {
-            userId: window.currentUid, type: type, name: name, cutoffDay: cutoffDay, carriedBalance: 0, createdAt: Date.now()
-        });
+        if (editId) {
+            await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "paylaterAccounts", editId), { name: name, cutoffDay: cutoffDay });
+        } else {
+            await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "paylaterAccounts"), {
+                userId: window.currentUid, type: type, name: name, cutoffDay: cutoffDay, carriedBalance: 0, createdAt: Date.now()
+            });
+        }
         playSound('success');
         closePaylaterModals();
     } catch (e) { console.error(e); alert("May error sa pag-save."); }
@@ -1424,6 +1590,9 @@ async function deletePaylaterAccount(id) {
 function openAddItemModal(accountId) {
     let account = paylaterAccounts.find(a => a.id === accountId);
     if (!account) return;
+    document.getElementById('paylaterItemEditId').value = '';
+    document.getElementById('paylaterItemModalTitle').innerHTML = '<i class="ph-duotone ph-shopping-bag"></i> Add Item';
+    document.getElementById('paylaterItemSaveBtn').innerHTML = '<i class="ph-bold ph-plus"></i> Add Item';
     document.getElementById('paylaterItemAccountId').value = accountId;
     document.getElementById('paylaterItemName').value = '';
     document.getElementById('paylaterItemAmount').value = '';
@@ -1432,7 +1601,25 @@ function openAddItemModal(accountId) {
     document.getElementById('paylaterItemModal').style.display = 'flex';
 }
 
+function openEditItemModal(itemId) {
+    let item = paylaterItems.find(it => it.id === itemId);
+    if (!item) return;
+    let account = paylaterAccounts.find(a => a.id === item.accountId);
+    if (!account) return;
+    document.getElementById('paylaterItemEditId').value = itemId;
+    document.getElementById('paylaterItemModalTitle').innerHTML = '<i class="ph-duotone ph-pencil-simple"></i> Edit Item';
+    document.getElementById('paylaterItemSaveBtn').innerHTML = '<i class="ph-bold ph-floppy-disk"></i> Save Changes';
+    document.getElementById('paylaterItemAccountId').value = item.accountId;
+    document.getElementById('paylaterItemName').value = item.name;
+    document.getElementById('paylaterItemAmount').value = item.amount;
+    document.getElementById('paylaterItemMonths').value = item.totalMonths || '';
+    document.getElementById('paylaterItemMonthsField').style.display = account.type === 'PayLater' ? 'block' : 'none';
+    document.getElementById('paylaterItemModal').style.display = 'flex';
+}
+window.openEditItemModal = openEditItemModal;
+
 async function savePaylaterItem() {
+    let editId = document.getElementById('paylaterItemEditId').value;
     let accountId = document.getElementById('paylaterItemAccountId').value;
     let account = paylaterAccounts.find(a => a.id === accountId);
     if (!account) return;
@@ -1440,16 +1627,22 @@ async function savePaylaterItem() {
     let amount = parseFloat(document.getElementById('paylaterItemAmount').value);
     if (!name || isNaN(amount) || amount <= 0) { alert("Kumpletuhin ang Item at Amount!"); return; }
 
-    let payload = { userId: window.currentUid, accountId: accountId, name: name, amount: amount, createdAt: Date.now() };
+    let payload = { name: name, amount: amount };
     if (account.type === 'PayLater') {
         let months = parseInt(document.getElementById('paylaterItemMonths').value);
         if (isNaN(months) || months < 1) { alert("Pakilagay kung ilang buwan hahatiin!"); return; }
         payload.totalMonths = months;
-        payload.monthsPaid = 0;
+        if (!editId) payload.monthsPaid = 0;
+        // Sa edit, hindi na natin binabago ang monthsPaid — yun yung tumataas kada finalize
     }
 
     try {
-        await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "paylaterItems"), payload);
+        if (editId) {
+            await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "paylaterItems", editId), payload);
+        } else {
+            payload.userId = window.currentUid; payload.accountId = accountId; payload.createdAt = Date.now();
+            await window.dbMethods.addDoc(window.dbMethods.collection(window.db, "paylaterItems"), payload);
+        }
         playSound('success');
         closePaylaterModals();
     } catch (e) { console.error(e); alert("May error sa pag-save."); }
@@ -1472,6 +1665,12 @@ function openFinalizeModal(accountId) {
     let account = paylaterAccounts.find(a => a.id === accountId);
     if (!account) return;
     let items = paylaterItems.filter(it => it.accountId === accountId);
+
+    let currentPeriod = new Date().toISOString().slice(0, 7); // YYYY-MM
+    if (account.lastFinalizedPeriod === currentPeriod) {
+        let finalizedDateLabel = account.lastFinalizedAt ? new Date(account.lastFinalizedAt).toLocaleDateString('default', { month: 'short', day: 'numeric' }) : 'kanina';
+        if (!confirm(`Na-finalize mo na ang "${account.name}" this month noong ${finalizedDateLabel}. Sigurado ka bang gusto mo pa ring mag-finalize ulit? (Baka madoble ang utang mo.)`)) return;
+    }
 
     document.getElementById('finalizeAccountId').value = accountId;
     let minDueField = document.getElementById('finalizeMinDueField');
@@ -1504,6 +1703,7 @@ async function confirmFinalizePaylater() {
     let accCode = account.name.replace(/[^A-Za-z]/g, '').toUpperCase().substring(0, 4) || 'XXXX';
     let utangId = `MY${accCode}${mm}${dd}${yy}`;
     let dueDateStr = `${dueDate.getFullYear()}-${mm}-${dd}`;
+    let currentPeriod = new Date().toISOString().slice(0, 7);
 
     try {
         if (account.type === 'PayLater') {
@@ -1525,6 +1725,7 @@ async function confirmFinalizePaylater() {
                     await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "paylaterItems", it.id), { monthsPaid: newMonthsPaid });
                 }
             }
+            await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "paylaterAccounts", accountId), { lastFinalizedPeriod: currentPeriod, lastFinalizedAt: Date.now() });
         } else {
             let minDue = parseFloat(document.getElementById('finalizeMinDue').value);
             if (isNaN(minDue) || minDue <= 0) { alert("Pakilagay ang Minimum Amount Due!"); return; }
@@ -1538,7 +1739,7 @@ async function confirmFinalizePaylater() {
             syncToSheets({ action: 'addUtang', firebaseId: docRef.id, utangId: utangId, appName: account.name, amount: minDue, dueDate: dueDateStr, category: 'My App' });
 
             for (let it of items) { await window.dbMethods.deleteDoc(window.dbMethods.doc(window.db, "paylaterItems", it.id)); }
-            await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "paylaterAccounts", accountId), { carriedBalance: remaining });
+            await window.dbMethods.updateDoc(window.dbMethods.doc(window.db, "paylaterAccounts", accountId), { carriedBalance: remaining, lastFinalizedPeriod: currentPeriod, lastFinalizedAt: Date.now() });
         }
         playSound('success');
         closePaylaterModals();
@@ -1565,10 +1766,10 @@ function renderPaylaterAccounts() {
             ? '<p style="font-size: 11px; color: var(--text-muted); font-style: italic; margin: 8px 0;">Wala pang item.</p>'
             : items.map(it => {
                 if (isCC) {
-                    return `<div class="paylater-item-row"><span>${it.name}</span><span>₱${it.amount.toLocaleString()} <button onclick="playSound('click'); deletePaylaterItem('${it.id}')" style="background:none;border:none;color:var(--danger);cursor:pointer;padding:0 0 0 6px;"><i class="ph-bold ph-x"></i></button></span></div>`;
+                    return `<div class="paylater-item-row"><span>${it.name}</span><span>₱${it.amount.toLocaleString()} <button onclick="playSound('click'); openEditItemModal('${it.id}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;padding:0 0 0 6px;"><i class="ph-bold ph-pencil-simple"></i></button> <button onclick="playSound('click'); deletePaylaterItem('${it.id}')" style="background:none;border:none;color:var(--danger);cursor:pointer;padding:0 0 0 6px;"><i class="ph-bold ph-x"></i></button></span></div>`;
                 } else {
                     let monthly = it.amount / it.totalMonths;
-                    return `<div class="paylater-item-row"><span>${it.name} <span style="opacity:0.6;">(${it.monthsPaid}/${it.totalMonths} mos)</span></span><span>₱${monthly.toLocaleString(undefined, { maximumFractionDigits: 2 })}/mo <button onclick="playSound('click'); deletePaylaterItem('${it.id}')" style="background:none;border:none;color:var(--danger);cursor:pointer;padding:0 0 0 6px;"><i class="ph-bold ph-x"></i></button></span></div>`;
+                    return `<div class="paylater-item-row"><span>${it.name} <span style="opacity:0.6;">(${it.monthsPaid}/${it.totalMonths} mos)</span></span><span>₱${monthly.toLocaleString(undefined, { maximumFractionDigits: 2 })}/mo <button onclick="playSound('click'); openEditItemModal('${it.id}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;padding:0 0 0 6px;"><i class="ph-bold ph-pencil-simple"></i></button> <button onclick="playSound('click'); deletePaylaterItem('${it.id}')" style="background:none;border:none;color:var(--danger);cursor:pointer;padding:0 0 0 6px;"><i class="ph-bold ph-x"></i></button></span></div>`;
                 }
             }).join('');
 
@@ -1581,6 +1782,7 @@ function renderPaylaterAccounts() {
                         <p class="list-card-meta">${account.type} • Cutoff: ${account.cutoffDay}</p>
                     </div>
                 </div>
+                <button onclick="playSound('click'); openEditPaylaterAccountForm('${account.id}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer; margin-right: 4px;"><i class="ph-bold ph-pencil-simple"></i></button>
                 <button onclick="playSound('click'); deletePaylaterAccount('${account.id}')" style="background:none;border:none;color:var(--danger);cursor:pointer;"><i class="ph-bold ph-trash"></i></button>
             </div>
             ${account.carriedBalance > 0 ? `<div class="pill-badge tone-pink" style="margin-bottom:8px;">Carried over: ₱${account.carriedBalance.toLocaleString()}</div>` : ''}
