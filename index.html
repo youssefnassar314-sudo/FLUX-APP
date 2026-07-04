@@ -193,7 +193,12 @@
                 <span><i class="ph-bold ph-check-circle"></i> Overall paid: <strong>₱<span id="displayTotalBayad">0.00</span></strong></span>
             </div>
 
-            <div id="addUtangForm" class="hidden-form">
+            <div id="addUtangModalOverlay" style="display: none;" class="modal-overlay">
+                <div id="addUtangForm" class="utang-card modal-content" style="max-height: 85vh; overflow-y: auto; text-align: left;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h3 style="margin: 0; color: var(--pastel-pink-fg); font-weight: 800;"><i class="ph-duotone ph-plus-circle"></i> Add New Utang</h3>
+                        <button onclick="playSound('click'); closeAddUtangForm()" style="background:none; border:none; color:var(--text-muted); font-size: 18px; cursor: pointer;"><i class="ph-bold ph-x"></i></button>
+                    </div>
                 <label>Category</label>
                 <select id="utangCategory" class="glass-select" onchange="toggleWhoInput(); generateUtangID()">
                     <option value="My App">My Account / App</option>
@@ -231,6 +236,7 @@
 
                 <button id="addDueBtn" class="secondary-btn" type="button" onclick="playSound('click'); addDueRow()" style="padding: 10px; font-size: 12px;"><i class="ph-bold ph-plus"></i> Add Another Due</button>
                 <button class="save-btn" onclick="playSound('click'); saveUtang()"><i class="ph-bold ph-floppy-disk"></i> Save & Sync</button>
+                </div>
             </div>
             <div class="month-nav" style="padding: 10px 20px;">
                 <button onclick="playSound('click'); changeMonth(-1)"><i class="ph-bold ph-caret-left"></i></button>
