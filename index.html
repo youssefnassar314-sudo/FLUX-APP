@@ -753,13 +753,22 @@
                 <h3 style="margin: 0; color: var(--pastel-amber-fg);"><i class="ph-duotone ph-receipt"></i> Add Existing Bill</h3>
                 <button onclick="playSound('click'); closePaylaterModals()" style="background:none; border:none; color:var(--text-muted); font-size: 18px; cursor: pointer;"><i class="ph-bold ph-x"></i></button>
             </div>
-            <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px;">Para sa mga bill na nabuo na bago mo pa ginamit ang tracker na ito — diretso itong idadagdag sa Utang mo, hindi na dadaan sa items/finalize.</p>
+            <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px;">Para sa mga bill na meron ka nang existing bago mo pa ginamit ang tracker na ito. Lalabas ito sa items mo, kaya kada mag-Finalize ka, sasama ito sa bagong binili mo para sa parehong buwan.</p>
             <input type="hidden" id="existingBillAccountId">
-            <label>Amount (₱)</label>
-            <input type="number" id="existingBillAmount" placeholder="Ex: 1662.94">
-            <label>Due Date</label>
-            <input type="date" id="existingBillDueDate" style="color: var(--text-muted);">
-            <button class="save-btn" onclick="playSound('click'); saveExistingBill()" style="background: var(--pastel-amber-fg);"><i class="ph-bold ph-plus"></i> Add to Utang</button>
+            <div id="existingBillPaylaterFields">
+                <label>Pangalan (optional)</label>
+                <input type="text" id="existingBillName" placeholder="Ex: Old Phone Balance">
+                <label>Monthly Amount (₱)</label>
+                <input type="number" id="existingBillMonthly" placeholder="Ex: 1144.55">
+                <label>Ilang Buwan Pa Matitira?</label>
+                <input type="number" id="existingBillMonthsLeft" placeholder="Ex: 7" min="1">
+            </div>
+            <div id="existingBillCreditFields" style="display:none;">
+                <label>Existing Balance (₱)</label>
+                <input type="number" id="existingBillBalance" placeholder="Ex: 5000">
+                <p style="font-size: 11px; color: var(--text-muted); margin: -8px 0 12px;">Idadagdag ito sa carried-over balance ng account — sasama sa susunod na Finalize.</p>
+            </div>
+            <button class="save-btn" onclick="playSound('click'); saveExistingBill()" style="background: var(--pastel-amber-fg);"><i class="ph-bold ph-plus"></i> Add Existing Bill</button>
         </div>
     </div>
 
