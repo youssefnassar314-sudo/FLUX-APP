@@ -57,7 +57,7 @@ let transactionDatabase = [];
 let currentUtangView = 'date';
 let lastFoodSummaryCache = null; // instant restore cache 
 
-const NAV_VISIBLE_SCREENS = ['dashboardScreen', 'utangScreen', 'taskScreen', 'kanbanScreen', 'foodScreen', 'budgetScreen', 'summaryScreen', 'wishlistScreen', 'statsScreen'];
+const NAV_VISIBLE_SCREENS = ['dashboardScreen', 'utangScreen', 'taskScreen', 'kanbanScreen', 'foodScreen', 'budgetScreen', 'summaryScreen', 'wishlistScreen', 'statsScreen', 'quotesScreen'];
 
 function switchScreen(screenId) {
     playSound('transition'); 
@@ -73,6 +73,7 @@ function switchScreen(screenId) {
     if (screenId === 'dashboardScreen') updateQuickGlance();
     if (screenId === 'wishlistScreen') renderWishlist();
     if (screenId === 'statsScreen') renderStats();
+    if (screenId === 'quotesScreen') renderQuotesScreen();
 
     let bottomNav = document.getElementById('bottomNav');
     if (bottomNav) {
@@ -1279,6 +1280,89 @@ function renderStats() {
     }
 }
 window.changeStatsMonth = changeStatsMonth;
+
+// ==========================================
+// 💬 QUOTES — Morning / Lunch / Dinner, cached once a day
+// ==========================================
+const QUOTES_FALLBACK = [
+    { quote: "The secret of getting ahead is getting started.", author: "Mark Twain" },
+    { quote: "Do something today that your future self will thank you for.", author: "Sean Patrick Flanery" },
+    { quote: "It always seems impossible until it's done.", author: "Nelson Mandela" },
+    { quote: "Well done is better than well said.", author: "Benjamin Franklin" },
+    { quote: "Little by little, a little becomes a lot.", author: "Tanzanian Proverb" },
+    { quote: "You don't have to be great to start, but you have to start to be great.", author: "Zig Ziglar" },
+    { quote: "Discipline is choosing between what you want now and what you want most.", author: "Abraham Lincoln" },
+    { quote: "The best time to plant a tree was 20 years ago. The second best time is now.", author: "Chinese Proverb" },
+    { quote: "Progress, not perfection.", author: "Unknown" },
+    { quote: "Every day is a chance to get it right.", author: "Unknown" },
+    { quote: "Rest if you must, but don't you quit.", author: "Edgar Guest" },
+    { quote: "Small steps every day add up to big results.", author: "Unknown" },
+];
+
+function getQuotesPeriod() {
+    let hour = new Date().getHours();
+    if (hour >= 5 && hour < 11) return { key: 'morning', label: 'Morning Motivation', index: 0 };
+    if (hour >= 11 && hour < 17) return { key: 'lunch', label: 'Lunch Break Thought', index: 1 };
+    return { key: 'dinner', label: 'Dinner Reflection', index: 2 };
+}
+
+function pickFallbackTrio(dateStr) {
+    // I-seed base sa date string para consistent ang napipiling 3 quotes sa buong araw kahit walang internet
+    let seed = dateStr.split('-').reduce((s, n) => s + parseInt(n), 0);
+    let shuffled = [...QUOTES_FALLBACK];
+    for (let i = 0; i < shuffled.length; i++) {
+        let j = (seed * (i + 7)) % shuffled.length;
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled.slice(0, 3);
+}
+
+async function loadDailyQuotes() {
+    let today = new Date().toLocaleDateString('en-CA');
+    let cached = null;
+    try { cached = JSON.parse(localStorage.getItem('flux_daily_quotes') || 'null'); } catch (e) { cached = null; }
+
+    if (cached && cached.date === today && Array.isArray(cached.quotes) && cached.quotes.length === 3) {
+        return cached.quotes;
+    }
+
+    // Bagong araw (o wala pang cache) — kumuha ng 3 bagong quotes
+    try {
+        let res = await fetch('https://quoteslate.vercel.app/api/quotes/random?count=3');
+        if (!res.ok) throw new Error('API error');
+        let data = await res.json();
+        let quotes = data.map(q => ({ quote: q.quote, author: q.author || 'Unknown' }));
+        if (quotes.length < 3) throw new Error('Incomplete data');
+        localStorage.setItem('flux_daily_quotes', JSON.stringify({ date: today, quotes }));
+        return quotes;
+    } catch (e) {
+        console.warn('Quotes API unavailable, gagamit na lang ng offline quotes:', e);
+        let quotes = pickFallbackTrio(today);
+        localStorage.setItem('flux_daily_quotes', JSON.stringify({ date: today, quotes }));
+        return quotes;
+    }
+}
+
+async function renderQuotesScreen() {
+    let period = getQuotesPeriod();
+    let labelEl = document.getElementById('quotesPeriodLabel');
+    let textEl = document.getElementById('quotesText');
+    let authorEl = document.getElementById('quotesAuthor');
+    if (labelEl) labelEl.innerText = period.label;
+    if (textEl) textEl.innerText = 'Loading...';
+    if (authorEl) authorEl.innerText = '';
+
+    try {
+        let quotes = await loadDailyQuotes();
+        let current = quotes[period.index] || quotes[0];
+        if (textEl) textEl.innerText = `"${current.quote}"`;
+        if (authorEl) authorEl.innerText = `— ${current.author}`;
+    } catch (e) {
+        if (textEl) textEl.innerText = '"Progress, not perfection."';
+        if (authorEl) authorEl.innerText = '— Unknown';
+    }
+}
+
 
 
 function initRealtimeTransactions() {
