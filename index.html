@@ -570,6 +570,14 @@
         <div class="utang-card modal-content">
             <h3 style="color: var(--primary);">Add Wallet</h3>
             <input type="text" id="walletName" placeholder="Wallet Name">
+            <select id="walletType" class="glass-select">
+                <option value="" disabled selected>Pumili ng Type</option>
+                <option value="E-wallet">E-wallet (GCash, Maya)</option>
+                <option value="Bank">Bank</option>
+                <option value="Cash">Cash</option>
+                <option value="Savings">Savings</option>
+                <option value="Credit Card">Credit Card</option>
+            </select>
             <input type="number" id="walletBalance" placeholder="Initial Balance">
             <button onclick="playSound('click'); saveWallet()" class="save-btn">Save Wallet</button>
             <button onclick="playSound('click'); closeBudgetModals()" style="width:100%; background:none; border:none; color:var(--text-muted);">Cancel</button>
