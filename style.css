@@ -128,6 +128,9 @@ body {
     padding: 64px 26px 46px;
     text-align: center;
     z-index: 5;
+    overflow: hidden;
+    touch-action: none;
+    overscroll-behavior: none;
 }
 .lock-screen.active-screen { display: flex; }
 
