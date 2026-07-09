@@ -1074,7 +1074,6 @@ function updateBudgetDashboard() {
             'Bank':        { tone: 'tone-purple', icon: 'ph-bank' },
             'Cash':        { tone: 'tone-peach',  icon: 'ph-money' },
             'Savings':     { tone: 'tone-green',  icon: 'ph-piggy-bank' },
-            'Credit Card': { tone: 'tone-pink',   icon: 'ph-credit-card' },
         };
         myWallets.forEach((wallet) => {
             let typeInfo = walletTypeMap[wallet.type] || { tone: 'tone-amber', icon: 'ph-wallet' };
